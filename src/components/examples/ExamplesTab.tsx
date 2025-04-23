@@ -24,7 +24,7 @@ export interface Category {
 export function ExamplesTab() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all-categories');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentExample, setCurrentExample] = useState<TrainingExample | null>(null);
   const API_URL = window.APP_CONFIG?.API_URL || '/api';
@@ -60,7 +60,7 @@ export function ExamplesTab() {
       example.query.toLowerCase().includes(searchQuery.toLowerCase()) || 
       example.response.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = categoryFilter === '' || example.category === categoryFilter;
+    const matchesCategory = categoryFilter === 'all-categories' || example.category === categoryFilter;
     
     return matchesSearch && matchesCategory;
   });
@@ -164,7 +164,7 @@ export function ExamplesTab() {
                 <SelectValue placeholder="Все категории" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem key="all" value="">Все категории</SelectItem>
+                <SelectItem key="all" value="all-categories">Все категории</SelectItem>
                 {categories.map(category => (
                   <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
                 ))}
@@ -180,7 +180,7 @@ export function ExamplesTab() {
             <div className="text-center py-10 text-red-500">Ошибка загрузки примеров</div>
           ) : filteredExamples.length === 0 ? (
             <div className="text-center py-10 text-gray-500">
-              {searchQuery || categoryFilter 
+              {searchQuery || categoryFilter !== 'all-categories' 
                 ? 'Нет примеров, соответствующих фильтрам' 
                 : 'Нет обучающих примеров'}
             </div>
