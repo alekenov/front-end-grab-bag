@@ -164,7 +164,7 @@ export function ExamplesTab() {
                 <SelectValue placeholder="Все категории" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Все категории</SelectItem>
+                <SelectItem key="all" value="">Все категории</SelectItem>
                 {categories.map(category => (
                   <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
                 ))}
