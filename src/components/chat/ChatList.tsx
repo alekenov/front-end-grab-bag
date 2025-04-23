@@ -39,9 +39,8 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
     (chat.lastMessage && chat.lastMessage.content.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  async function toggleAI(chatId: string, enabled: boolean, e: React.MouseEvent) {
-    e.stopPropagation();
-    
+  async function toggleAI(chatId: string, enabled: boolean) {
+    // Fix: Removed the event parameter that was causing the type error
     try {
       const response = await fetch(`${API_URL}/chats/${chatId}`, {
         method: 'PATCH',
@@ -100,9 +99,15 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
             </span>
             <Switch 
               checked={chat.aiEnabled} 
-              onCheckedChange={(checked) => toggleAI(chat.id, checked, event as React.MouseEvent)}
+              onCheckedChange={(checked) => {
+                // Prevent chat selection when toggling AI
+                const handleToggle = (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  toggleAI(chat.id, checked);
+                };
+                handleToggle(event as unknown as React.MouseEvent);
+              }}
               className="h-4 w-7 data-[state=checked]:bg-[#1a73e8]"
-              thumbClassName="h-3 w-3"
             />
           </div>
         </li>
