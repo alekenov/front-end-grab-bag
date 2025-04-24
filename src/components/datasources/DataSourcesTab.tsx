@@ -1,8 +1,11 @@
-
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { KnowledgeCard } from "./KnowledgeCard";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Plus, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 interface KnowledgeItem {
   id: string;
@@ -13,6 +16,9 @@ interface KnowledgeItem {
 
 export function DataSourcesTab() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newContent, setNewContent] = useState("");
   const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeItem[]>([
     {
       id: "1",
@@ -52,53 +58,61 @@ export function DataSourcesTab() {
   };
 
   const handleUpdateKnowledgeItem = (id: string, updatedContent: string) => {
-    const API_URL = window.APP_CONFIG?.API_URL || '/api';
-    
-    // In a real application, you would send this update to your API
-    // For now, we'll just update the state locally
     setKnowledgeItems(prev => prev.map(item => 
       item.id === id ? { ...item, content: updatedContent } : item
     ));
     
-    // Simulate API call with a toast notification
     toast({
       title: "Обновлено",
       description: "Информация успешно обновлена",
     });
-    
-    // Example of how the API call would look:
-    /* 
-    fetch(`${API_URL}/knowledge/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ content: updatedContent }),
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Ошибка обновления');
-      return response.json();
-    })
-    .then(() => {
-      toast({
-        title: "Обновлено",
-        description: "Информация успешно обновлена",
-      });
-    })
-    .catch(error => {
-      console.error('Ошибка:', error);
+  };
+
+  const handleDeleteItem = (id: string) => {
+    setKnowledgeItems(prev => prev.filter(item => item.id !== id));
+    toast({
+      title: "Удалено",
+      description: "Запись успешно удалена",
+    });
+  };
+
+  const handleAddItem = () => {
+    if (!newTitle.trim() || !newContent.trim()) {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: "Не удалось обновить информацию",
+        description: "Заполните все поля",
       });
+      return;
+    }
+
+    const newItem: KnowledgeItem = {
+      id: Date.now().toString(),
+      title: newTitle,
+      content: newContent,
+      tags: selectedTag ? [selectedTag] : []
+    };
+
+    setKnowledgeItems(prev => [newItem, ...prev]);
+    setNewTitle("");
+    setNewContent("");
+    setIsAddDialogOpen(false);
+
+    toast({
+      title: "Добавлено",
+      description: "Новая запись успешно создана",
     });
-    */
   };
 
   return (
     <div className="flex flex-col flex-1 overflow-y-auto p-2 md:p-4">
-      <h2 className="text-lg font-semibold mb-3">База знаний</h2>
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="text-lg font-semibold">База знаний</h2>
+        <Button onClick={() => setIsAddDialogOpen(true)} size="sm">
+          <Plus className="h-4 w-4 mr-1" />
+          Добавить
+        </Button>
+      </div>
       
       <div className="flex flex-wrap gap-2 mb-4">
         {allTags.map((tag) => (
@@ -117,14 +131,65 @@ export function DataSourcesTab() {
 
       <div className="grid gap-3">
         {filteredItems.map((item) => (
-          <KnowledgeCard
-            key={item.id}
-            title={item.title}
-            content={item.content}
-            onSave={(updatedContent) => handleUpdateKnowledgeItem(item.id, updatedContent)}
-          />
+          <div key={item.id} className="relative group">
+            <KnowledgeCard
+              title={item.title}
+              content={item.content}
+              onSave={(updatedContent) => handleUpdateKnowledgeItem(item.id, updatedContent)}
+            />
+            <Button
+              variant="destructive"
+              size="icon"
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => handleDeleteItem(item.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         ))}
       </div>
+
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Добавить новую запись</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="title" className="text-sm font-medium">
+                Заголовок
+              </label>
+              <Textarea
+                id="title"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Введите заголовок"
+                className="h-10"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="content" className="text-sm font-medium">
+                Содержание
+              </label>
+              <Textarea
+                id="content"
+                value={newContent}
+                onChange={(e) => setNewContent(e.target.value)}
+                placeholder="Введите текст"
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleAddItem}>
+              Добавить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
