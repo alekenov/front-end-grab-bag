@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface KnowledgeItem {
   id: string;
@@ -76,8 +77,10 @@ export function DataSourcesTab() {
     });
   };
 
+  const [selectedNewTag, setSelectedNewTag] = useState<string>("");
+
   const handleAddItem = () => {
-    if (!newTitle.trim() || !newContent.trim()) {
+    if (!newTitle.trim() || !newContent.trim() || !selectedNewTag) {
       toast({
         variant: "destructive",
         title: "Ошибка",
@@ -90,12 +93,13 @@ export function DataSourcesTab() {
       id: Date.now().toString(),
       title: newTitle,
       content: newContent,
-      tags: selectedTag ? [selectedTag] : []
+      tags: [selectedNewTag]
     };
 
     setKnowledgeItems(prev => [newItem, ...prev]);
     setNewTitle("");
     setNewContent("");
+    setSelectedNewTag("");
     setIsAddDialogOpen(false);
 
     toast({
@@ -171,6 +175,23 @@ export function DataSourcesTab() {
                 placeholder="Введите текст"
                 className="min-h-[100px]"
               />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Тег
+              </label>
+              <Select value={selectedNewTag} onValueChange={setSelectedNewTag}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Выберите тег" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allTags.map((tag) => (
+                    <SelectItem key={tag} value={tag}>
+                      {tag}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
