@@ -88,8 +88,8 @@ export function ExamplesTab() {
   };
   
   return (
-    <div className="flex flex-col flex-1 overflow-y-auto bg-gradient-to-br from-[#f5f7fb] to-[#e6e8f3]">
-      <div className="bg-white p-6 rounded-2xl shadow-lg m-5 border-2 border-blue-50">
+    <div className="flex flex-col flex-1 bg-gradient-to-br from-[#f5f7fb] to-[#e6e8f3] pt-0">
+      <div className="bg-white p-6 rounded-2xl shadow-lg mx-5 mt-0 border-2 border-blue-50">
         <div className="flex justify-between items-center mb-6 pb-4 border-b border-blue-100">
           <h2 className="text-2xl font-bold text-blue-800">Обучающие примеры</h2>
           <Button 
