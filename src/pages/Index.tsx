@@ -56,10 +56,10 @@ export default function Index() {
           <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden data-[state=active]:flex">
             <ChatView currentChatId={currentChatId} />
           </TabsContent>
-          <TabsContent value="datasources" className="flex-1 data-[state=active]:flex">
+          <TabsContent value="datasources" className="flex-1 flex flex-col overflow-hidden data-[state=active]:flex">
             <DataSourcesTab />
           </TabsContent>
-          <TabsContent value="examples" className="flex-1 data-[state=active]:flex">
+          <TabsContent value="examples" className="flex-1 flex flex-col overflow-hidden data-[state=active]:flex">
             <ExamplesTab />
           </TabsContent>
         </Tabs>
