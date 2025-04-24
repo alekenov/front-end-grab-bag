@@ -16,8 +16,8 @@ export function ChatSidebar({ activeTab, setActiveTab, currentChatId, setCurrent
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <div className="w-80 bg-white border-r border-[#e1e4e8] flex flex-col h-full">
-      <div className="p-5 border-b border-[#e1e4e8]">
+    <div className="w-full md:w-80 bg-white flex flex-col h-full">
+      <div className="p-4 border-b border-[#e1e4e8]">
         <h1 className="text-xl font-semibold text-[#1a73e8]">WhatsApp AI</h1>
       </div>
       

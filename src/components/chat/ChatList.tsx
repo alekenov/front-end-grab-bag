@@ -1,8 +1,8 @@
-
-import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { Sheet } from "@/components/ui/sheet";
+import { useContext } from "react";
 
 interface Chat {
   id: string;
@@ -40,7 +40,6 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
   );
 
   async function toggleAI(chatId: string, enabled: boolean) {
-    // Fix: Removed the event parameter that was causing the type error
     try {
       const response = await fetch(`${API_URL}/chats/${chatId}`, {
         method: 'PATCH',
@@ -73,6 +72,16 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
+  const handleChatSelect = (id: string) => {
+    setCurrentChatId(id);
+    // Close sheet on mobile when selecting a chat
+    const sheet = document.querySelector('[data-state="open"]');
+    if (sheet) {
+      const closeButton = sheet.querySelector('button[data-state]') as HTMLButtonElement;
+      closeButton?.click();
+    }
+  };
+
   if (isLoading) return <div className="p-4 text-center text-gray-500">Загрузка чатов...</div>;
   if (error) return <div className="p-4 text-center text-red-500">Ошибка загрузки чатов</div>;
   if (filteredChats.length === 0) return <div className="p-4 text-center text-gray-500">Нет активных чатов</div>;
@@ -85,7 +94,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
           className={`p-3 border-b border-[#f0f2f7] flex justify-between cursor-pointer ${
             chat.id === currentChatId ? "bg-[#e8f0fe]" : "hover:bg-[#f5f7fb]"
           }`}
-          onClick={() => setCurrentChatId(chat.id)}
+          onClick={() => handleChatSelect(chat.id)}
         >
           <div className="flex-1 min-w-0">
             <span className="block font-medium text-sm mb-0.5 truncate">{chat.name}</span>
@@ -100,7 +109,6 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
             <Switch 
               checked={chat.aiEnabled} 
               onCheckedChange={(checked) => {
-                // Prevent chat selection when toggling AI
                 const handleToggle = (e: React.MouseEvent) => {
                   e.stopPropagation();
                   toggleAI(chat.id, checked);
