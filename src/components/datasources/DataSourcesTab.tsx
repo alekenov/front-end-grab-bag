@@ -136,15 +136,8 @@ export function DataSourcesTab() {
               title={item.title}
               content={item.content}
               onSave={(updatedContent) => handleUpdateKnowledgeItem(item.id, updatedContent)}
+              onDelete={() => handleDeleteItem(item.id)}
             />
-            <Button
-              variant="destructive"
-              size="icon"
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => handleDeleteItem(item.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
           </div>
         ))}
       </div>

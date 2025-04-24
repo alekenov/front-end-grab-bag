@@ -9,9 +9,10 @@ interface KnowledgeCardProps {
   title: string;
   content: string;
   onSave: (updatedContent: string) => void;
+  onDelete: () => void;
 }
 
-export function KnowledgeCard({ title, content, onSave }: KnowledgeCardProps) {
+export function KnowledgeCard({ title, content, onSave, onDelete }: KnowledgeCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
 
@@ -30,17 +31,19 @@ export function KnowledgeCard({ title, content, onSave }: KnowledgeCardProps) {
       <CardHeader className="p-3 flex flex-row items-center justify-between">
         <CardTitle className="text-sm">{title}</CardTitle>
         {!isEditing && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0"
-            onClick={() => setIsEditing(true)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0"
+              onClick={() => setIsEditing(true)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          </div>
         )}
       </CardHeader>
-      <CardContent className="p-3 pt-0">
+      <CardContent className="p-3 pt-0 relative">
         {isEditing ? (
           <div className="space-y-2">
             <Textarea
@@ -67,7 +70,17 @@ export function KnowledgeCard({ title, content, onSave }: KnowledgeCardProps) {
             </div>
           </div>
         ) : (
-          <p className="text-xs text-gray-600 whitespace-pre-wrap">{content}</p>
+          <>
+            <p className="text-xs text-gray-600 whitespace-pre-wrap pr-10">{content}</p>
+            <Button
+              variant="destructive"
+              size="icon"
+              className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={onDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </>
         )}
       </CardContent>
     </Card>
