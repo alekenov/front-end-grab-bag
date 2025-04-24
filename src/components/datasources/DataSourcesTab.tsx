@@ -1,8 +1,8 @@
 
 export function DataSourcesTab() {
   return (
-    <div className="flex-1 p-5">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+    <div className="flex-1 p-5 pt-0">
+      <div className="bg-white p-6 rounded-lg shadow-sm h-full">
         <h2 className="text-xl font-semibold mb-4">База знаний</h2>
         <p className="text-gray-600 mb-6">
           Подключите источники данных для улучшения качества ответов AI-ассистента.
