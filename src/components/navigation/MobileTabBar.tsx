@@ -1,4 +1,3 @@
-
 import { Home, Search, Menu } from "lucide-react";
 import { TabType } from "@/pages/Index";
 
@@ -26,7 +25,7 @@ export function MobileTabBar({ activeTab, setActiveTab }: MobileTabBarProps) {
         }`}
       >
         <Search className="h-5 w-5" />
-        <span className="text-xs mt-0.5">База</span>
+        <span className="text-xs mt-0.5">Знания</span>
       </button>
       <button
         onClick={() => setActiveTab("examples")}
