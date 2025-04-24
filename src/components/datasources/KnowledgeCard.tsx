@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,7 +42,7 @@ export function KnowledgeCard({ title, content, onSave, onDelete }: KnowledgeCar
           </div>
         )}
       </CardHeader>
-      <CardContent className="p-3 pt-0 relative">
+      <CardContent className="p-3 pt-0">
         {isEditing ? (
           <div className="space-y-2">
             <Textarea
@@ -52,6 +51,14 @@ export function KnowledgeCard({ title, content, onSave, onDelete }: KnowledgeCar
               className="min-h-[80px] text-xs"
             />
             <div className="flex justify-end gap-2">
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={onDelete}
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Удалить
+              </Button>
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -70,17 +77,7 @@ export function KnowledgeCard({ title, content, onSave, onDelete }: KnowledgeCar
             </div>
           </div>
         ) : (
-          <>
-            <p className="text-xs text-gray-600 whitespace-pre-wrap pr-10">{content}</p>
-            <Button
-              variant="destructive"
-              size="icon"
-              className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={onDelete}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </>
+          <p className="text-xs text-gray-600 whitespace-pre-wrap">{content}</p>
         )}
       </CardContent>
     </Card>
