@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ExampleCard } from "./ExampleCard";
 import { ExampleModal } from "./ExampleModal";
@@ -91,17 +90,18 @@ export function ExamplesTab() {
     <div className="flex flex-col flex-1 p-0 bg-[#f5f7fb]">
       <div className="flex flex-col w-full p-4">
         <div className="bg-white rounded-xl shadow-md w-full">
-          <div className="flex justify-between items-center p-4 border-b">
-            <h2 className="text-2xl font-bold text-blue-800">Обучающие примеры</h2>
+          <div className="flex justify-between items-center p-3 border-b">
+            <h2 className="text-xl font-bold text-blue-800">Обучающие примеры</h2>
             <Button 
               onClick={() => setIsModalOpen(true)} 
-              className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1"
+              className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1 px-2 py-1 h-8"
+              size="sm"
             >
-              <Plus className="h-4 w-4" /> Добавить пример
+              <Plus className="h-3 w-3" /> <span className="text-xs">Добавить</span>
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3">
             {examples.map(example => (
               <ExampleCard 
                 key={example.id}
