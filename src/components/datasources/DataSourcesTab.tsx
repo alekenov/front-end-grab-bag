@@ -1,7 +1,6 @@
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KnowledgeCard } from "./KnowledgeCard";
 
 export function DataSourcesTab() {
   return (
@@ -21,41 +20,25 @@ export function DataSourcesTab() {
       </div>
 
       <div className="grid gap-3">
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm">Доставка</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 pt-0 text-xs text-gray-600">
-            <p>Доставка ежедневно 9:00-21:00. По городу - 350₽. Бесплатно от 5000₽. Заказ в тот же день при оформлении до 19:00.</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm">Самовывоз</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 pt-0 text-xs text-gray-600">
-            <p>Доступен из двух магазинов: ТЦ "Центральный" (1 этаж), ТЦ "Радуга" (2 этаж). Готовность через 2 часа.</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm">Адреса магазинов</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 pt-0 text-xs text-gray-600">
-            <p>ТЦ "Центральный": ул. Ленина, 45<br />ТЦ "Радуга": пр. Мира, 78</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-sm">
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm">График работы</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 pt-0 text-xs text-gray-600">
-            <p>Пн-Пт: 9:00 - 21:00<br />Сб-Вс: 10:00 - 20:00<br />Без перерывов и выходных</p>
-          </CardContent>
-        </Card>
+        <KnowledgeCard
+          title="Доставка"
+          content="Доставка ежедневно 9:00-21:00. По городу - 350₽. Бесплатно от 5000₽. Заказ в тот же день при оформлении до 19:00."
+        />
+        
+        <KnowledgeCard
+          title="Самовывоз"
+          content="Доступен из двух магазинов: ТЦ 'Центральный' (1 этаж), ТЦ 'Радуга' (2 этаж). Готовность через 2 часа."
+        />
+        
+        <KnowledgeCard
+          title="Адреса магазинов"
+          content="ТЦ 'Центральный': ул. Ленина, 45\nТЦ 'Радуга': пр. Мира, 78"
+        />
+        
+        <KnowledgeCard
+          title="График работы"
+          content="Пн-Пт: 9:00 - 21:00\nСб-Вс: 10:00 - 20:00\nБез перерывов и выходных"
+        />
       </div>
     </div>
   );
