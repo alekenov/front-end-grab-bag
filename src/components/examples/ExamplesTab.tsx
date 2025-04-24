@@ -88,41 +88,43 @@ export function ExamplesTab() {
   };
   
   return (
-    <div className="flex flex-col flex-1 bg-gradient-to-br from-[#f5f7fb] to-[#e6e8f3] pt-0">
-      <div className="bg-white p-6 rounded-2xl shadow-lg mx-5 mt-0 border-2 border-blue-50">
-        <div className="flex justify-between items-center mb-6 pb-4 border-b border-blue-100">
-          <h2 className="text-2xl font-bold text-blue-800">Обучающие примеры</h2>
-          <Button 
-            onClick={() => setIsModalOpen(true)} 
-            className="bg-[#1a73e8] hover:bg-[#1558b3] transition-all duration-300 transform hover:scale-105"
-          >
-            <Plus className="h-4 w-4 mr-2" /> Добавить пример
-          </Button>
+    <div className="flex flex-col flex-1 p-0 bg-[#f5f7fb]">
+      <div className="flex flex-col w-full p-4">
+        <div className="bg-white rounded-xl shadow-md w-full">
+          <div className="flex justify-between items-center p-4 border-b">
+            <h2 className="text-2xl font-bold text-blue-800">Обучающие примеры</h2>
+            <Button 
+              onClick={() => setIsModalOpen(true)} 
+              className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1"
+            >
+              <Plus className="h-4 w-4" /> Добавить пример
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+            {examples.map(example => (
+              <ExampleCard 
+                key={example.id}
+                example={example}
+                categories={categories}
+                onEdit={() => handleEditExample(example)}
+                onDelete={() => handleDeleteExample(example.id)}
+              />
+            ))}
+          </div>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-          {examples.map(example => (
-            <ExampleCard 
-              key={example.id}
-              example={example}
-              categories={categories}
-              onEdit={() => handleEditExample(example)}
-              onDelete={() => handleDeleteExample(example.id)}
-            />
-          ))}
-        </div>
-        
-        <ExampleModal 
-          isOpen={isModalOpen} 
-          onClose={() => {
-            setIsModalOpen(false);
-            setEditingExample(null);
-          }}
-          onSave={handleSaveExample}
-          example={editingExample}
-          categories={categories}
-        />
       </div>
+      
+      <ExampleModal 
+        isOpen={isModalOpen} 
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingExample(null);
+        }}
+        onSave={handleSaveExample}
+        example={editingExample}
+        categories={categories}
+      />
     </div>
   );
 }
