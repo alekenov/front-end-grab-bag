@@ -37,26 +37,33 @@ export function MessageList({ messages }: MessageListProps) {
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col space-y-5">
       {Object.entries(messagesByDate).map(([date, dateMessages]) => (
-        <div key={date} className="mb-5">
-          <div className="text-center text-xs text-gray-500 mb-3">{date}</div>
-          <div className="space-y-4">
+        <div key={date} className="space-y-4">
+          <div className="text-center">
+            <span className="text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full">
+              {date}
+            </span>
+          </div>
+          <div className="space-y-3">
             {dateMessages.map((msg) => (
               <div 
                 key={msg.id} 
-                className={`flex flex-col max-w-[80%] ${
+                className={`flex flex-col max-w-[85%] md:max-w-[75%] ${
                   msg.role === 'USER' ? 'ml-auto items-end' : 'mr-auto items-start'
                 }`}
               >
-                <div className={`px-4 py-3 rounded-xl relative ${
-                  msg.role === 'USER' 
-                    ? 'bg-[#1a73e8] text-white rounded-br-sm' 
-                    : 'bg-white text-gray-800 rounded-bl-sm'
-                }`}>
+                <div 
+                  className={`px-4 py-2.5 rounded-2xl break-words ${
+                    msg.role === 'USER' 
+                      ? 'bg-[#1a73e8] text-white rounded-br-lg' 
+                      : 'bg-white text-gray-800 rounded-bl-lg shadow-sm border border-gray-100'
+                  }`}
+                  style={{ wordBreak: 'break-word' }}
+                >
                   {formatMessageContent(msg.content)}
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-[11px] text-gray-500 mt-1 px-1">
                   {formatTime(msg.timestamp)}
                 </div>
               </div>

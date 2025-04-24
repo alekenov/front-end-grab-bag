@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Send } from "lucide-react";
@@ -94,11 +93,11 @@ export function ChatView({ currentChatId }: ChatViewProps) {
 
   return (
     <>
-      <div className="p-4 bg-white border-b border-[#e1e4e8]">
-        <h2 className="text-lg font-semibold">{chatName || "Чат"}</h2>
+      <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8] flex items-center gap-4">
+        <h2 className="text-lg font-semibold truncate flex-1">{chatName || "Чат"}</h2>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto px-4 py-5 md:px-5">
         {messagesLoading ? (
           <div className="text-center text-gray-500">Загрузка сообщений...</div>
         ) : (
@@ -106,19 +105,20 @@ export function ChatView({ currentChatId }: ChatViewProps) {
         )}
       </div>
       
-      <div className="p-4 bg-white border-t border-[#e1e4e8] flex gap-3">
+      <div className="sticky bottom-0 p-3 md:p-4 bg-white border-t border-[#e1e4e8] flex gap-2">
         <Textarea 
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Введите сообщение..."
-          className="min-h-12 max-h-32 resize-none"
+          className="min-h-[44px] max-h-32 resize-none rounded-2xl"
           ref={textareaRef}
         />
         <Button 
           onClick={sendMessage} 
           size="icon" 
-          className="h-12 w-12 rounded-full bg-[#1a73e8] hover:bg-[#1558b3]"
+          className="h-11 w-11 shrink-0 rounded-full bg-[#1a73e8] hover:bg-[#1558b3]"
+          disabled={!message.trim()}
         >
           <Send className="h-5 w-5" />
         </Button>
