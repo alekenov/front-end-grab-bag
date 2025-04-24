@@ -1,10 +1,9 @@
 
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import './index.css';
 
 // Create a new window property to hold the app configuration
-// This allows us to access it from anywhere in the application
 declare global {
   interface Window {
     APP_CONFIG?: {
@@ -15,8 +14,7 @@ declare global {
   }
 }
 
-// Load APP_CONFIG from window object (set in frontend/assets/config.js)
-// Fallback if not found
+// Load APP_CONFIG from window object or use defaults
 if (!window.APP_CONFIG) {
   console.warn('APP_CONFIG not found, using default values');
   window.APP_CONFIG = {
@@ -26,4 +24,4 @@ if (!window.APP_CONFIG) {
   };
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById('root')!).render(<App />);
