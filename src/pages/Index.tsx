@@ -53,13 +53,13 @@ export default function Index() {
           onValueChange={(value) => setActiveTab(value as TabType)}
           className="flex-1 flex flex-col overflow-hidden"
         >
-          <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden data-[state=active]:flex">
+          <TabsContent value="chat">
             <ChatView currentChatId={currentChatId} />
           </TabsContent>
-          <TabsContent value="datasources" className="flex-1 flex flex-col overflow-hidden data-[state=active]:flex">
+          <TabsContent value="datasources">
             <DataSourcesTab />
           </TabsContent>
-          <TabsContent value="examples" className="flex-1 flex flex-col overflow-hidden data-[state=active]:flex">
+          <TabsContent value="examples">
             <ExamplesTab />
           </TabsContent>
         </Tabs>
