@@ -89,7 +89,7 @@ export function ExamplesTab() {
   
   return (
     <div className="flex flex-col flex-1 overflow-y-auto">
-      <div className="bg-white p-6 rounded-lg shadow-sm m-5 -mt-2">
+      <div className="bg-white p-6 rounded-lg shadow-sm m-5 -mt-12">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">Обучающие примеры</h2>
           <Button onClick={() => setIsModalOpen(true)} className="bg-[#1a73e8] hover:bg-[#1558b3]">
