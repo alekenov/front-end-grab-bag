@@ -8,14 +8,15 @@ import { Pencil, Check, X } from "lucide-react";
 interface KnowledgeCardProps {
   title: string;
   content: string;
+  onSave: (updatedContent: string) => void;
 }
 
-export function KnowledgeCard({ title, content }: KnowledgeCardProps) {
+export function KnowledgeCard({ title, content, onSave }: KnowledgeCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
 
   const handleSave = () => {
-    // В будущем тут можно добавить сохранение в API/базу данных
+    onSave(editedContent);
     setIsEditing(false);
   };
 
@@ -66,7 +67,7 @@ export function KnowledgeCard({ title, content }: KnowledgeCardProps) {
             </div>
           </div>
         ) : (
-          <p className="text-xs text-gray-600 whitespace-pre-wrap">{editedContent}</p>
+          <p className="text-xs text-gray-600 whitespace-pre-wrap">{content}</p>
         )}
       </CardContent>
     </Card>
