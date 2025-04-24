@@ -88,16 +88,19 @@ export function ExamplesTab() {
   };
   
   return (
-    <div className="flex flex-col flex-1 overflow-y-auto">
-      <div className="bg-white p-6 rounded-lg shadow-sm m-5 -mt-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Обучающие примеры</h2>
-          <Button onClick={() => setIsModalOpen(true)} className="bg-[#1a73e8] hover:bg-[#1558b3]">
+    <div className="flex flex-col flex-1 overflow-y-auto bg-gradient-to-br from-[#f5f7fb] to-[#e6e8f3]">
+      <div className="bg-white p-6 rounded-2xl shadow-lg m-5 border-2 border-blue-50">
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-blue-100">
+          <h2 className="text-2xl font-bold text-blue-800">Обучающие примеры</h2>
+          <Button 
+            onClick={() => setIsModalOpen(true)} 
+            className="bg-[#1a73e8] hover:bg-[#1558b3] transition-all duration-300 transform hover:scale-105"
+          >
             <Plus className="h-4 w-4 mr-2" /> Добавить пример
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
           {examples.map(example => (
             <ExampleCard 
               key={example.id}
