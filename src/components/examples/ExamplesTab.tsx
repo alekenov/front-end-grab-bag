@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { ExampleCard } from "./ExampleCard";
 import { ExampleModal } from "./ExampleModal";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 
 // Define and export types needed by other components
 export interface TrainingExample {
