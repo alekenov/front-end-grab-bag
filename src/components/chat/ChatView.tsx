@@ -1,23 +1,27 @@
 import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Send, User, Phone, Paperclip } from "lucide-react";
+import { Send, User, Phone, Paperclip, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageList } from "./MessageList";
 import { EmptyState } from "./EmptyState";
 import { useToast } from "@/hooks/use-toast";
 import { TEST_MESSAGES, TEST_CHATS } from '@/data/mockData';
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ChatList } from "./ChatList";
 
 interface ChatViewProps {
   currentChatId: string | null;
+  setCurrentChatId?: (id: string | null) => void;
 }
 
-export function ChatView({ currentChatId }: ChatViewProps) {
+export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const [message, setMessage] = useState("");
   const [chatName, setChatName] = useState("");
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const API_URL = window.APP_CONFIG?.API_URL || '/api';
+  const [searchQuery, setSearchQuery] = useState("");
   
   console.log('ChatView using API_URL:', API_URL, 'for chat ID:', currentChatId);
 
@@ -139,7 +143,37 @@ export function ChatView({ currentChatId }: ChatViewProps) {
   };
 
   if (!currentChatId) {
-    return <EmptyState />;
+    return (
+      <div className="flex flex-col h-full">
+        <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8] md:hidden">
+          <div className="flex items-center gap-2">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 px-2">
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Выбрать чат
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-full max-w-xs p-0">
+                <div className="flex flex-col h-full">
+                  <div className="p-4 border-b border-[#e1e4e8]">
+                    <h2 className="text-lg font-semibold">Список чатов</h2>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    <ChatList 
+                      searchQuery={searchQuery}
+                      currentChatId={currentChatId}
+                      setCurrentChatId={setCurrentChatId || (() => {})} 
+                    />
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+        <EmptyState />
+      </div>
+    );
   }
 
   if (chatError) {
@@ -154,6 +188,27 @@ export function ChatView({ currentChatId }: ChatViewProps) {
     <>
       <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8]">
         <div className="flex items-center gap-2 mb-2">
+          <Sheet>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon" className="h-8 w-8 mr-1">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-full max-w-xs p-0">
+              <div className="flex flex-col h-full">
+                <div className="p-4 border-b border-[#e1e4e8]">
+                  <h2 className="text-lg font-semibold">Список чатов</h2>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  <ChatList 
+                    searchQuery={searchQuery}
+                    currentChatId={currentChatId}
+                    setCurrentChatId={setCurrentChatId || (() => {})} 
+                  />
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
           <Phone size={18} className="text-gray-500" />
           <h2 className="text-lg font-semibold truncate flex-1">+7 (999) 123-45-67</h2>
         </div>

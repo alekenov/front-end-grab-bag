@@ -33,7 +33,7 @@ export default function Index() {
           className="flex-1 flex flex-col overflow-hidden"
         >
           <TabsContent value="chat">
-            <ChatView currentChatId={currentChatId} />
+            <ChatView currentChatId={currentChatId} setCurrentChatId={setCurrentChatId} />
           </TabsContent>
           <TabsContent value="datasources">
             <DataSourcesTab />
