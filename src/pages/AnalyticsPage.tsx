@@ -29,7 +29,7 @@ export default function AnalyticsPage() {
   
   return (
     <AppLayout title="Аналитика" activePage="analytics">
-      <div className="p-4 md:p-6">
+      <div className="p-4 md:p-6 h-full overflow-auto">
         <h1 className="text-xl font-semibold mb-4">Аналитика чатов</h1>
         
         <Card className="p-4 mb-6">

@@ -15,9 +15,7 @@ export function AppLayout({ children, title, activePage }: AppLayoutProps) {
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       <main className="flex-1 flex flex-col overflow-hidden bg-[#f5f7fb] pb-14 md:pb-0">
-        {/* Add left margin on desktop to prevent content overlapping with sidebar */}
-        <div className="hidden md:block md:ml-16" /> {/* Spacing for sidebar on desktop */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden md:pl-16">
           {children}
         </div>
       </main>
