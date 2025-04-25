@@ -1,7 +1,6 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Send } from "lucide-react";
+import { Send, User, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageList } from "./MessageList";
@@ -30,7 +29,6 @@ export function ChatView({ currentChatId }: ChatViewProps) {
         console.log('Fetching chat details from:', `${API_URL}/chats/${currentChatId}`);
         const response = await fetch(`${API_URL}/chats/${currentChatId}`);
         
-        // Log response for debugging
         console.log('Chat details response status:', response.status);
         const responseText = await response.text();
         console.log('Chat details response body:', responseText);
@@ -38,11 +36,9 @@ export function ChatView({ currentChatId }: ChatViewProps) {
         if (!response.ok) throw new Error('Ошибка загрузки деталей чата');
         
         try {
-          // Try to parse response as JSON
           return JSON.parse(responseText);
         } catch (parseError) {
           console.error('Failed to parse chat details as JSON:', parseError);
-          // Return a minimal mock object with the chat name
           return { name: TEST_CHATS.find(c => c.id === currentChatId)?.name || "Чат" };
         }
       } catch (error) {
@@ -72,7 +68,6 @@ export function ChatView({ currentChatId }: ChatViewProps) {
         console.log('Fetching messages from:', `${API_URL}/messages/${currentChatId}`);
         const response = await fetch(`${API_URL}/messages/${currentChatId}`);
         
-        // Log response for debugging
         console.log('Messages response status:', response.status);
         const responseText = await response.text();
         console.log('Messages response body:', responseText);
@@ -80,7 +75,6 @@ export function ChatView({ currentChatId }: ChatViewProps) {
         if (!response.ok) throw new Error('Ошибка загрузки сообщений');
         
         try {
-          // Try to parse response as JSON
           return JSON.parse(responseText);
         } catch (parseError) {
           console.error('Failed to parse messages as JSON:', parseError);
@@ -121,7 +115,6 @@ export function ChatView({ currentChatId }: ChatViewProps) {
     } catch (error) {
       console.error('Ошибка отправки сообщения:', error);
       
-      // Simulate message sending for testing
       const newMessage = {
         id: `temp-${Date.now()}`,
         content: message,
@@ -129,10 +122,8 @@ export function ChatView({ currentChatId }: ChatViewProps) {
         timestamp: new Date().toISOString()
       };
       
-      // Add message to local state and clear input
       setMessage("");
       
-      // Mock refetch by showing toast
       toast({
         title: "Сообщение отправлено",
         description: "Реального API нет, но сообщение было бы отправлено",
@@ -161,8 +152,20 @@ export function ChatView({ currentChatId }: ChatViewProps) {
 
   return (
     <>
-      <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8] flex items-center gap-4">
-        <h2 className="text-lg font-semibold truncate flex-1">{chatName || "Чат"}</h2>
+      <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8]">
+        <div className="flex items-center gap-2 mb-2">
+          <h2 className="text-lg font-semibold truncate flex-1">{chatName || "Чат"}</h2>
+        </div>
+        <div className="flex gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-1">
+            <User size={14} />
+            <span>Иван Петров</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Phone size={14} />
+            <span>+7 (999) 123-45-67</span>
+          </div>
+        </div>
       </div>
       
       <div className="flex-1 overflow-y-auto px-3 py-5 md:px-5 bg-[#f5f7fb] pb-[88px] md:pb-[72px]">
