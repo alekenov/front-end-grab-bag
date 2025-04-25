@@ -165,7 +165,7 @@ export function ChatView({ currentChatId }: ChatViewProps) {
         <h2 className="text-lg font-semibold truncate flex-1">{chatName || "Чат"}</h2>
       </div>
       
-      <div className="flex-1 overflow-y-auto px-3 py-5 md:px-5 bg-[#f5f7fb]">
+      <div className="flex-1 overflow-y-auto px-3 py-5 md:px-5 bg-[#f5f7fb] pb-[88px] md:pb-[72px]">
         {messagesLoading ? (
           <div className="text-center text-gray-500">Загрузка сообщений...</div>
         ) : (
@@ -173,7 +173,7 @@ export function ChatView({ currentChatId }: ChatViewProps) {
         )}
       </div>
       
-      <div className="sticky bottom-0 p-3 md:p-4 bg-white border-t border-[#e1e4e8] flex gap-2">
+      <div className="fixed left-0 right-0 bottom-14 md:sticky md:bottom-0 p-3 md:p-4 bg-white border-t border-[#e1e4e8] flex gap-2 z-20">
         <Textarea 
           value={message}
           onChange={(e) => setMessage(e.target.value)}
