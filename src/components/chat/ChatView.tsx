@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MessageList } from "./MessageList";
 import { EmptyState } from "./EmptyState";
 import { useToast } from "@/hooks/use-toast";
-import { TEST_MESSAGES } from '@/data/mockData';
+import { TEST_MESSAGES, TEST_CHATS } from '@/data/mockData';
 
 interface ChatViewProps {
   currentChatId: string | null;
