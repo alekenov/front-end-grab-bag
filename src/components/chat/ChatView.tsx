@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Send } from "lucide-react";
@@ -97,7 +98,7 @@ export function ChatView({ currentChatId }: ChatViewProps) {
         <h2 className="text-lg font-semibold truncate flex-1">{chatName || "Чат"}</h2>
       </div>
       
-      <div className="flex-1 overflow-y-auto px-4 py-5 md:px-5">
+      <div className="flex-1 overflow-y-auto px-3 py-5 md:px-5 bg-[#f5f7fb]">
         {messagesLoading ? (
           <div className="text-center text-gray-500">Загрузка сообщений...</div>
         ) : (
