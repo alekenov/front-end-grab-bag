@@ -36,7 +36,7 @@ export function KnowledgeCard({
 }: KnowledgeCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
-  const [editedTags, setEditedTags] = useState(tags);
+  const [editedTags, setEditedTags] = useState<string[]>(tags || []);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleSave = () => {
@@ -46,7 +46,7 @@ export function KnowledgeCard({
 
   const handleCancel = () => {
     setEditedContent(content);
-    setEditedTags(tags);
+    setEditedTags(tags || []);
     setIsEditing(false);
   };
 
@@ -121,7 +121,7 @@ export function KnowledgeCard({
           <div className="space-y-2">
             <p className="text-xs text-gray-600 whitespace-pre-wrap">{content}</p>
             <div className="flex flex-wrap gap-1">
-              {tags.map((tag) => (
+              {(tags || []).map((tag) => (
                 <Badge 
                   key={tag} 
                   variant="secondary"

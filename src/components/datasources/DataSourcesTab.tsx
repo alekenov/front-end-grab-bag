@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { KnowledgeCard } from "./KnowledgeCard";
@@ -7,6 +8,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TagSelector } from "./TagSelector";
 
 interface KnowledgeItem {
   id: string;
@@ -16,10 +18,11 @@ interface KnowledgeItem {
 }
 
 export function DataSourcesTab() {
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
+  const [newTags, setNewTags] = useState<string[]>([]);
   const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeItem[]>([
     {
       id: "1",
@@ -50,17 +53,27 @@ export function DataSourcesTab() {
   const { toast } = useToast();
   const allTags = ['Доставка', 'Самовывоз', 'Адреса', 'Время работы', 'Ассортимент', 'Уход'];
 
-  const filteredItems = selectedTag 
-    ? knowledgeItems.filter(item => item.tags.includes(selectedTag))
+  // Фильтрация элементов на основе выбранных тегов
+  const filteredItems = selectedTags.length > 0
+    ? knowledgeItems.filter(item => item.tags.some(tag => selectedTags.includes(tag)))
     : knowledgeItems;
 
-  const handleTagClick = (tag: string) => {
-    setSelectedTag(selectedTag === tag ? null : tag);
+  // Обработка выбора тега для фильтрации
+  const handleTagToggle = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag) 
+        : [...prev, tag]
+    );
   };
 
-  const handleUpdateKnowledgeItem = (id: string, updatedContent: string) => {
+  const clearTagFilter = () => {
+    setSelectedTags([]);
+  };
+
+  const handleUpdateKnowledgeItem = (id: string, updatedContent: string, updatedTags: string[]) => {
     setKnowledgeItems(prev => prev.map(item => 
-      item.id === id ? { ...item, content: updatedContent } : item
+      item.id === id ? { ...item, content: updatedContent, tags: updatedTags } : item
     ));
     
     toast({
@@ -77,10 +90,16 @@ export function DataSourcesTab() {
     });
   };
 
-  const [selectedNewTag, setSelectedNewTag] = useState<string>("");
+  const handleTagSelect = (tag: string) => {
+    if (newTags.includes(tag)) {
+      setNewTags(prev => prev.filter(t => t !== tag));
+    } else {
+      setNewTags([...newTags, tag]);
+    }
+  };
 
   const handleAddItem = () => {
-    if (!newTitle.trim() || !newContent.trim() || !selectedNewTag) {
+    if (!newTitle.trim() || !newContent.trim() || newTags.length === 0) {
       toast({
         variant: "destructive",
         title: "Ошибка",
@@ -93,13 +112,13 @@ export function DataSourcesTab() {
       id: Date.now().toString(),
       title: newTitle,
       content: newContent,
-      tags: [selectedNewTag]
+      tags: newTags
     };
 
     setKnowledgeItems(prev => [newItem, ...prev]);
     setNewTitle("");
     setNewContent("");
-    setSelectedNewTag("");
+    setNewTags([]);
     setIsAddDialogOpen(false);
 
     toast({
@@ -118,19 +137,14 @@ export function DataSourcesTab() {
         </Button>
       </div>
       
-      <div className="flex flex-wrap gap-2 mb-4">
-        {allTags.map((tag) => (
-          <Badge 
-            key={tag}
-            variant={selectedTag === tag ? "default" : "outline"} 
-            className={`px-3 py-1 text-xs cursor-pointer hover:bg-primary/10 transition-colors ${
-              selectedTag === tag ? 'bg-primary text-primary-foreground' : ''
-            }`}
-            onClick={() => handleTagClick(tag)}
-          >
-            {tag}
-          </Badge>
-        ))}
+      <div className="mb-4">
+        <TagSelector 
+          availableTags={allTags}
+          selectedTags={selectedTags}
+          onTagToggle={handleTagToggle}
+          onClear={clearTagFilter}
+          showClear={true}
+        />
       </div>
 
       <div className="grid gap-3">
@@ -139,7 +153,9 @@ export function DataSourcesTab() {
             <KnowledgeCard
               title={item.title}
               content={item.content}
-              onSave={(updatedContent) => handleUpdateKnowledgeItem(item.id, updatedContent)}
+              tags={item.tags}
+              availableTags={allTags}
+              onSave={(updatedContent, updatedTags) => handleUpdateKnowledgeItem(item.id, updatedContent, updatedTags)}
               onDelete={() => handleDeleteItem(item.id)}
             />
           </div>
@@ -178,20 +194,14 @@ export function DataSourcesTab() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Тег
+                Теги
               </label>
-              <Select value={selectedNewTag} onValueChange={setSelectedNewTag}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите тег" />
-                </SelectTrigger>
-                <SelectContent>
-                  {allTags.map((tag) => (
-                    <SelectItem key={tag} value={tag}>
-                      {tag}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <TagSelector
+                availableTags={allTags}
+                selectedTags={newTags}
+                onTagToggle={handleTagSelect}
+                showClear={false}
+              />
             </div>
           </div>
           <DialogFooter>
