@@ -1,5 +1,5 @@
 
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import ChatsPage from "@/pages/ChatsPage";
 import GuidePage from "@/pages/GuidePage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
@@ -16,6 +16,11 @@ const routes = createBrowserRouter([
   {
     path: "/analytics",
     element: <AnalyticsPage />,
+  },
+  {
+    // Add redirect for the old knowledge route
+    path: "/knowledge",
+    element: <Navigate to="/guide" replace />,
   },
 ]);
 
