@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Send, User, Phone } from "lucide-react";
+import { Send, User, Phone, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageList } from "./MessageList";
@@ -177,18 +177,42 @@ export function ChatView({ currentChatId }: ChatViewProps) {
       </div>
       
       <div className="fixed left-0 right-0 bottom-14 md:sticky md:bottom-0 p-3 md:p-4 bg-white border-t border-[#e1e4e8] flex gap-2 z-20">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-9 w-9 shrink-0 rounded-full hover:bg-gray-100"
+          onClick={() => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = (e) => {
+              const file = (e.target as HTMLInputElement).files?.[0];
+              if (file) {
+                console.log('Selected file:', file);
+                // Here you would handle the file upload
+                toast({
+                  title: "Изображение выбрано",
+                  description: "Функция загрузки изображений в разработке",
+                });
+              }
+            };
+            input.click();
+          }}
+        >
+          <Paperclip className="h-5 w-5 text-gray-500" />
+        </Button>
         <Textarea 
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Введите сообщение..."
-          className="min-h-[44px] max-h-32 resize-none rounded-2xl"
+          className="min-h-[36px] max-h-32 resize-none rounded-2xl"
           ref={textareaRef}
         />
         <Button 
           onClick={sendMessage} 
           size="icon" 
-          className="h-11 w-11 shrink-0 rounded-full bg-[#1a73e8] hover:bg-[#1558b3]"
+          className="h-9 w-9 shrink-0 rounded-full bg-[#1a73e8] hover:bg-[#1558b3]"
           disabled={!message.trim()}
         >
           <Send className="h-5 w-5" />
