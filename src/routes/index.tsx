@@ -1,7 +1,8 @@
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ChatsPage from "@/pages/ChatsPage";
-import KnowledgePage from "@/pages/KnowledgePage";
+import GuidePage from "@/pages/GuidePage";
+import AnalyticsPage from "@/pages/AnalyticsPage";
 
 const routes = createBrowserRouter([
   {
@@ -9,8 +10,12 @@ const routes = createBrowserRouter([
     element: <ChatsPage />,
   },
   {
-    path: "/knowledge",
-    element: <KnowledgePage />,
+    path: "/guide",
+    element: <GuidePage />,
+  },
+  {
+    path: "/analytics",
+    element: <AnalyticsPage />,
   },
 ]);
 

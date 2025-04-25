@@ -1,9 +1,9 @@
 
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { MessageSquare, Database } from "lucide-react";
+import { MessageSquare, BookOpen, ChartBar } from "lucide-react";
 
-type PageType = "chats" | "knowledge";
+type PageType = "chats" | "guide" | "analytics";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -28,13 +28,22 @@ export function AppLayout({ children, title, activePage }: AppLayoutProps) {
           <span className="text-xs mt-0.5">Чаты</span>
         </Link>
         <Link
-          to="/knowledge"
+          to="/guide"
           className={`flex flex-col items-center justify-center w-16 ${
-            activePage === "knowledge" ? "text-[#1a73e8]" : "text-gray-500"
+            activePage === "guide" ? "text-[#1a73e8]" : "text-gray-500"
           }`}
         >
-          <Database className="h-5 w-5" />
-          <span className="text-xs mt-0.5">База знаний</span>
+          <BookOpen className="h-5 w-5" />
+          <span className="text-xs mt-0.5">Гид</span>
+        </Link>
+        <Link
+          to="/analytics"
+          className={`flex flex-col items-center justify-center w-16 ${
+            activePage === "analytics" ? "text-[#1a73e8]" : "text-gray-500"
+          }`}
+        >
+          <ChartBar className="h-5 w-5" />
+          <span className="text-xs mt-0.5">Аналитика</span>
         </Link>
       </div>
       <div className="hidden md:flex fixed top-0 left-0 bottom-0 w-16 bg-white border-r flex-col items-center pt-6 z-50">
@@ -49,14 +58,24 @@ export function AppLayout({ children, title, activePage }: AppLayoutProps) {
           <MessageSquare className="h-6 w-6" />
         </Link>
         <Link
-          to="/knowledge"
+          to="/guide"
           className={`flex flex-col items-center justify-center w-12 h-12 mb-2 rounded-lg ${
-            activePage === "knowledge" 
+            activePage === "guide" 
               ? "bg-[#e8f0fe] text-[#1a73e8]" 
               : "text-gray-500 hover:bg-gray-100"
           }`}
         >
-          <Database className="h-6 w-6" />
+          <BookOpen className="h-6 w-6" />
+        </Link>
+        <Link
+          to="/analytics"
+          className={`flex flex-col items-center justify-center w-12 h-12 mb-2 rounded-lg ${
+            activePage === "analytics" 
+              ? "bg-[#e8f0fe] text-[#1a73e8]" 
+              : "text-gray-500 hover:bg-gray-100"
+          }`}
+        >
+          <ChartBar className="h-6 w-6" />
         </Link>
       </div>
       <div className="hidden md:block md:ml-16" /> {/* Spacing for sidebar */}

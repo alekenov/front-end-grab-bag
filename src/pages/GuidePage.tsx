@@ -5,13 +5,13 @@ import { KnowledgeBase } from "@/components/knowledge/KnowledgeBase";
 import { Examples } from "@/components/knowledge/Examples";
 import { AppLayout } from "@/components/layout/AppLayout";
 
-type KnowledgeTabType = "knowledge" | "examples";
+type GuideTabType = "knowledge" | "examples";
 
-export default function KnowledgePage() {
-  const [activeTab, setActiveTab] = useState<KnowledgeTabType>("knowledge");
+export default function GuidePage() {
+  const [activeTab, setActiveTab] = useState<GuideTabType>("knowledge");
 
   return (
-    <AppLayout title="База знаний" activePage="knowledge">
+    <AppLayout title="Гид" activePage="guide">
       <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8] flex gap-4">
         <button
           onClick={() => setActiveTab("knowledge")}
@@ -37,7 +37,7 @@ export default function KnowledgePage() {
       
       <Tabs 
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as KnowledgeTabType)}
+        onValueChange={(value) => setActiveTab(value as GuideTabType)}
         className=""
       >
         <TabsContent value="knowledge">
