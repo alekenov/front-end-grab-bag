@@ -1,13 +1,10 @@
 
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { KnowledgeCard } from "./KnowledgeCard";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { KnowledgeList } from "./KnowledgeList";
+import { AddKnowledgeDialog } from "./AddKnowledgeDialog";
 import { TagSelector } from "./TagSelector";
 
 interface KnowledgeItem {
@@ -20,9 +17,6 @@ interface KnowledgeItem {
 export function DataSourcesTab() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newContent, setNewContent] = useState("");
-  const [newTags, setNewTags] = useState<string[]>([]);
   const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeItem[]>([
     {
       id: "1",
@@ -53,22 +47,16 @@ export function DataSourcesTab() {
   const { toast } = useToast();
   const allTags = ['Доставка', 'Самовывоз', 'Адреса', 'Время работы', 'Ассортимент', 'Уход'];
 
-  // Фильтрация элементов на основе выбранных тегов
   const filteredItems = selectedTags.length > 0
     ? knowledgeItems.filter(item => item.tags.some(tag => selectedTags.includes(tag)))
     : knowledgeItems;
 
-  // Обработка выбора тега для фильтрации
   const handleTagToggle = (tag: string) => {
     setSelectedTags(prev => 
       prev.includes(tag) 
         ? prev.filter(t => t !== tag) 
         : [...prev, tag]
     );
-  };
-
-  const clearTagFilter = () => {
-    setSelectedTags([]);
   };
 
   const handleUpdateKnowledgeItem = (id: string, updatedContent: string, updatedTags: string[]) => {
@@ -90,16 +78,8 @@ export function DataSourcesTab() {
     });
   };
 
-  const handleTagSelect = (tag: string) => {
-    if (newTags.includes(tag)) {
-      setNewTags(prev => prev.filter(t => t !== tag));
-    } else {
-      setNewTags([...newTags, tag]);
-    }
-  };
-
-  const handleAddItem = () => {
-    if (!newTitle.trim() || !newContent.trim() || newTags.length === 0) {
+  const handleAddItem = (title: string, content: string, tags: string[]) => {
+    if (!title.trim() || !content.trim() || tags.length === 0) {
       toast({
         variant: "destructive",
         title: "Ошибка",
@@ -110,15 +90,12 @@ export function DataSourcesTab() {
 
     const newItem: KnowledgeItem = {
       id: Date.now().toString(),
-      title: newTitle,
-      content: newContent,
-      tags: newTags
+      title,
+      content,
+      tags
     };
 
     setKnowledgeItems(prev => [newItem, ...prev]);
-    setNewTitle("");
-    setNewContent("");
-    setNewTags([]);
     setIsAddDialogOpen(false);
 
     toast({
@@ -142,78 +119,24 @@ export function DataSourcesTab() {
           availableTags={allTags}
           selectedTags={selectedTags}
           onTagToggle={handleTagToggle}
-          onClear={clearTagFilter}
+          onClear={() => setSelectedTags([])}
           showClear={true}
         />
       </div>
 
-      <div className="grid gap-3">
-        {filteredItems.map((item) => (
-          <div key={item.id} className="relative group">
-            <KnowledgeCard
-              title={item.title}
-              content={item.content}
-              tags={item.tags}
-              availableTags={allTags}
-              onSave={(updatedContent, updatedTags) => handleUpdateKnowledgeItem(item.id, updatedContent, updatedTags)}
-              onDelete={() => handleDeleteItem(item.id)}
-            />
-          </div>
-        ))}
-      </div>
+      <KnowledgeList 
+        items={filteredItems}
+        availableTags={allTags}
+        onUpdate={handleUpdateKnowledgeItem}
+        onDelete={handleDeleteItem}
+      />
 
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Добавить новую запись</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="title" className="text-sm font-medium">
-                Заголовок
-              </label>
-              <Textarea
-                id="title"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Введите заголовок"
-                className="h-10"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="content" className="text-sm font-medium">
-                Содержание
-              </label>
-              <Textarea
-                id="content"
-                value={newContent}
-                onChange={(e) => setNewContent(e.target.value)}
-                placeholder="Введите текст"
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Теги
-              </label>
-              <TagSelector
-                availableTags={allTags}
-                selectedTags={newTags}
-                onTagToggle={handleTagSelect}
-                showClear={false}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              Отмена
-            </Button>
-            <Button onClick={handleAddItem}>
-              Добавить
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddKnowledgeDialog 
+        isOpen={isAddDialogOpen}
+        onClose={() => setIsAddDialogOpen(false)}
+        onAdd={handleAddItem}
+        availableTags={allTags}
+      />
     </div>
   );
 }
