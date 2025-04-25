@@ -1,4 +1,5 @@
 
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,9 +18,9 @@ export function AddKnowledgeDialog({
   onAdd,
   availableTags 
 }: AddKnowledgeDialogProps) {
-  const [newTitle, setNewTitle] = React.useState("");
-  const [newContent, setNewContent] = React.useState("");
-  const [newTags, setNewTags] = React.useState<string[]>([]);
+  const [newTitle, setNewTitle] = useState("");
+  const [newContent, setNewContent] = useState("");
+  const [newTags, setNewTags] = useState<string[]>([]);
 
   const handleAddItem = () => {
     onAdd(newTitle, newContent, newTags);
