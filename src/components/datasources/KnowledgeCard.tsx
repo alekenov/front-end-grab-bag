@@ -29,7 +29,7 @@ interface KnowledgeCardProps {
 export function KnowledgeCard({ 
   title, 
   content, 
-  tags,
+  tags = [], // Added default empty array to prevent undefined
   onSave, 
   onDelete,
   availableTags 
