@@ -154,16 +154,17 @@ export function ChatView({ currentChatId }: ChatViewProps) {
     <>
       <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8]">
         <div className="flex items-center gap-2 mb-2">
-          <h2 className="text-lg font-semibold truncate flex-1">{chatName || "Чат"}</h2>
+          <Phone size={18} className="text-gray-500" />
+          <h2 className="text-lg font-semibold truncate flex-1">+7 (999) 123-45-67</h2>
         </div>
-        <div className="flex gap-4 text-sm text-gray-600">
+        <div className="flex flex-wrap gap-2 items-center text-sm text-gray-600">
           <div className="flex items-center gap-1">
             <User size={14} />
             <span>Иван Петров</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Phone size={14} />
-            <span>+7 (999) 123-45-67</span>
+          <div className="flex gap-2">
+            <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">пионы</span>
+            <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">самовывоз</span>
           </div>
         </div>
       </div>
