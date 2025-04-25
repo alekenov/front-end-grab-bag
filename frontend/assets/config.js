@@ -14,3 +14,5 @@ window.APP_CONFIG = {
     ? 'development'
     : 'production'
 };
+
+console.log('APP_CONFIG loaded:', window.APP_CONFIG);

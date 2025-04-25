@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
@@ -57,20 +58,37 @@ const TEST_CHATS_OLD = [
 export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatListProps) {
   const { toast } = useToast();
   const API_URL = window.APP_CONFIG?.API_URL || '/api';
+  
+  console.log('Using API_URL:', API_URL);
 
   const { data: chats = [], isLoading, error, refetch } = useQuery({
     queryKey: ['chats'],
     queryFn: async () => {
       try {
+        console.log('Fetching chats from:', `${API_URL}/chats`);
         const response = await fetch(`${API_URL}/chats`);
-        if (!response.ok) throw new Error('Ошибка загрузки чатов');
-        return response.json() as Promise<Chat[]>;
+        
+        // Log response details for debugging
+        console.log('Chats response status:', response.status);
+        const responseText = await response.text();
+        console.log('Chats response body:', responseText);
+        
+        if (!response.ok) throw new Error(`Ошибка загрузки чатов: ${response.status}`);
+        
+        try {
+          // Try to parse the response as JSON
+          const data = JSON.parse(responseText);
+          return data as Chat[];
+        } catch (parseError) {
+          console.error('Failed to parse response as JSON:', parseError);
+          throw new Error('Invalid JSON response from server');
+        }
       } catch (fetchError) {
-        console.warn('Не удалось загрузить чаты, используем тестовые данные');
+        console.warn('Не удалось загрузить чаты, используем тестовые данные:', fetchError);
         return TEST_CHATS;
       }
     },
-    // Добавим fallback данные, если API не отвечает
+    // Всегда используем тестовые данные в качестве запасного варианта
     placeholderData: TEST_CHATS
   });
 
@@ -124,7 +142,20 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
   };
 
   if (isLoading) return <div className="p-4 text-center text-gray-500">Загрузка чатов...</div>;
-  if (error) return <div className="p-4 text-center text-red-500">Ошибка загрузки чатов</div>;
+  if (error) {
+    console.error('Error loading chats:', error);
+    return (
+      <div className="p-4 text-center">
+        <div className="text-red-500 mb-2">Ошибка загрузки чатов</div>
+        <button 
+          onClick={() => refetch()}
+          className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+        >
+          Попробовать снова
+        </button>
+      </div>
+    );
+  }
   if (filteredChats.length === 0) return <div className="p-4 text-center text-gray-500">Нет активных чатов</div>;
 
   return (
