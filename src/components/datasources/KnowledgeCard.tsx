@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Pencil, Check, X, Trash2 } from "lucide-react";
@@ -27,9 +26,8 @@ interface KnowledgeCardProps {
 }
 
 export function KnowledgeCard({ 
-  title, 
   content, 
-  tags = [], // Added default empty array to prevent undefined
+  tags = [], 
   onSave, 
   onDelete,
   availableTags 
@@ -60,26 +58,13 @@ export function KnowledgeCard({
 
   return (
     <Card className="border-0 shadow-sm">
-      <CardHeader className="p-3 flex flex-row items-center justify-between">
-        <CardTitle className="text-sm">{title}</CardTitle>
-        {!isEditing && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0"
-            onClick={() => setIsEditing(true)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-        )}
-      </CardHeader>
-      <CardContent className="p-3 pt-0">
+      <CardContent className="p-4">
         {isEditing ? (
           <div className="space-y-3">
             <Textarea
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
-              className="min-h-[80px] text-xs"
+              className="min-h-[80px] text-sm"
             />
             <div className="space-y-2">
               <label className="text-xs font-medium text-gray-500">
@@ -118,9 +103,9 @@ export function KnowledgeCard({
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
-            <p className="text-xs text-gray-600 whitespace-pre-wrap">{content}</p>
-            <div className="flex flex-wrap gap-1">
+          <div className="relative group">
+            <p className="text-sm text-gray-600 whitespace-pre-wrap mb-3">{content}</p>
+            <div className="flex flex-wrap gap-1 mb-2">
               {(tags || []).map((tag) => (
                 <Badge 
                   key={tag} 
@@ -131,6 +116,14 @@ export function KnowledgeCard({
                 </Badge>
               ))}
             </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="opacity-0 group-hover:opacity-100 transition-opacity absolute top-0 right-0"
+              onClick={() => setIsEditing(true)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
           </div>
         )}
       </CardContent>
