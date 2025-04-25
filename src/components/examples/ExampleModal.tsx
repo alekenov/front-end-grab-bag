@@ -76,7 +76,7 @@ export function ExampleModal({ isOpen, onClose, onSave, example, categories }: E
                 onValueChange={value => handleChange('category', value)}
                 required
               >
-                <SelectTrigger id="category">
+                <SelectTrigger id="category" className="text-sm">
                   <SelectValue placeholder="Выберите категорию" />
                 </SelectTrigger>
                 <SelectContent>
@@ -96,7 +96,7 @@ export function ExampleModal({ isOpen, onClose, onSave, example, categories }: E
                 value={formData.query}
                 onChange={e => handleChange('query', e.target.value)}
                 placeholder="Введите пример вопроса пользователя..."
-                className="min-h-[100px]"
+                className="min-h-[100px] text-sm"
                 required
               />
             </div>
@@ -108,13 +108,13 @@ export function ExampleModal({ isOpen, onClose, onSave, example, categories }: E
                 value={formData.response}
                 onChange={e => handleChange('response', e.target.value)}
                 placeholder="Введите пример ответа бота..."
-                className="min-h-[100px]"
+                className="min-h-[100px] text-sm"
                 required
               />
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button type="button" variant="outline" onClick={onClose}>
               Отмена
             </Button>

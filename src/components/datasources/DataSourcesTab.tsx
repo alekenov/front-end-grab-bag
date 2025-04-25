@@ -106,31 +106,37 @@ export function DataSourcesTab() {
   };
 
   return (
-    <div className="flex flex-col flex-1 overflow-y-auto p-2 md:p-4">
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-lg font-semibold">База знаний</h2>
-        <Button onClick={() => setIsAddDialogOpen(true)} size="sm">
-          <Plus className="h-4 w-4 mr-1" />
-          Добавить
-        </Button>
-      </div>
-      
-      <div className="mb-4">
-        <TagSelector 
-          availableTags={allTags}
-          selectedTags={selectedTags}
-          onTagToggle={handleTagToggle}
-          onClear={() => setSelectedTags([])}
-          showClear={true}
-        />
-      </div>
+    <div className="flex flex-col flex-1 overflow-y-auto p-0 bg-[#f5f7fb]">
+      <div className="flex flex-col w-full p-4">
+        <div className="bg-white rounded-xl shadow-sm w-full">
+          <div className="flex justify-between items-center p-4 border-b">
+            <h2 className="text-lg font-semibold">База знаний</h2>
+            <Button onClick={() => setIsAddDialogOpen(true)} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Добавить
+            </Button>
+          </div>
+          
+          <div className="p-4">
+            <div className="mb-4">
+              <TagSelector 
+                availableTags={allTags}
+                selectedTags={selectedTags}
+                onTagToggle={handleTagToggle}
+                onClear={() => setSelectedTags([])}
+                showClear={true}
+              />
+            </div>
 
-      <KnowledgeList 
-        items={filteredItems}
-        availableTags={allTags}
-        onUpdate={handleUpdateKnowledgeItem}
-        onDelete={handleDeleteItem}
-      />
+            <KnowledgeList 
+              items={filteredItems}
+              availableTags={allTags}
+              onUpdate={handleUpdateKnowledgeItem}
+              onDelete={handleDeleteItem}
+            />
+          </div>
+        </div>
+      </div>
 
       <AddKnowledgeDialog 
         isOpen={isAddDialogOpen}

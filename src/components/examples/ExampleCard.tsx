@@ -1,10 +1,5 @@
-
 import { useState } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader 
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,22 +31,20 @@ export function ExampleCard({ example, categories, onEdit, onDelete }: ExampleCa
 
   return (
     <>
-      <Card>
-        <CardHeader className="bg-[#f5f7fb] flex flex-row justify-between items-center py-3 px-4">
-          <div className="text-sm font-medium text-[#1a73e8] uppercase">
+      <Card className="border-0 shadow-sm">
+        <div className="bg-[#f5f7fb] flex justify-between items-center py-3 px-4">
+          <div className="text-sm font-medium text-primary">
             {getCategoryName(example.category)}
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={onEdit}>
               <Pencil className="h-4 w-4" />
-              <span className="sr-only">Редактировать</span>
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setShowDeleteDialog(true)}>
               <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Удалить</span>
             </Button>
           </div>
-        </CardHeader>
+        </div>
         <CardContent className="p-4 space-y-4">
           <div>
             <h4 className="text-sm font-medium text-gray-500 mb-2">Запрос пользователя:</h4>
@@ -59,7 +52,7 @@ export function ExampleCard({ example, categories, onEdit, onDelete }: ExampleCa
           </div>
           <div>
             <h4 className="text-sm font-medium text-gray-500 mb-2">Ответ бота:</h4>
-            <p className="text-sm text-[#1a73e8] whitespace-pre-wrap">{example.response}</p>
+            <p className="text-sm text-primary whitespace-pre-wrap">{example.response}</p>
           </div>
         </CardContent>
       </Card>
