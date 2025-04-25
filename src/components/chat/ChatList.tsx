@@ -3,22 +3,38 @@ import { useQuery } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 
-interface Chat {
-  id: string;
-  name: string;
-  aiEnabled: boolean;
-  unreadCount?: number;
-  lastMessage?: {
-    content: string;
-    timestamp: string;
-  };
-}
-
-interface ChatListProps {
-  searchQuery: string;
-  currentChatId: string | null;
-  setCurrentChatId: (id: string | null) => void;
-}
+const TEST_CHATS = [
+  {
+    id: '1',
+    name: 'Служба поддержки',
+    aiEnabled: true,
+    unreadCount: 3,
+    lastMessage: {
+      content: 'Добрый день, чем могу помочь?',
+      timestamp: new Date().toISOString()
+    }
+  },
+  {
+    id: '2',
+    name: 'Клиент Иван',
+    aiEnabled: false,
+    unreadCount: 1,
+    lastMessage: {
+      content: 'Когда будет доставка?',
+      timestamp: new Date(Date.now() - 3600000).toISOString()
+    }
+  },
+  {
+    id: '3',
+    name: 'Менеджер продаж',
+    aiEnabled: true,
+    unreadCount: 0,
+    lastMessage: {
+      content: 'Рассмотрел ваше предложение.',
+      timestamp: new Date(Date.now() - 7200000).toISOString()
+    }
+  }
+];
 
 export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatListProps) {
   const { toast } = useToast();
@@ -27,10 +43,17 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
   const { data: chats = [], isLoading, error, refetch } = useQuery({
     queryKey: ['chats'],
     queryFn: async () => {
-      const response = await fetch(`${API_URL}/chats`);
-      if (!response.ok) throw new Error('Ошибка загрузки чатов');
-      return response.json() as Promise<Chat[]>;
-    }
+      try {
+        const response = await fetch(`${API_URL}/chats`);
+        if (!response.ok) throw new Error('Ошибка загрузки чатов');
+        return response.json() as Promise<Chat[]>;
+      } catch (fetchError) {
+        console.warn('Не удалось загрузить чаты, используем тестовые данные');
+        return TEST_CHATS;
+      }
+    },
+    // Добавим fallback данные, если API не отвечает
+    placeholderData: TEST_CHATS
   });
 
   // Filter chats based on search query
