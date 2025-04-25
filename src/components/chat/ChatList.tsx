@@ -1,7 +1,7 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { TEST_CHATS } from '@/data/mockData';
 
 // Define interfaces for type safety
 interface Chat {
@@ -21,7 +21,7 @@ interface ChatListProps {
   setCurrentChatId: (id: string | null) => void;
 }
 
-const TEST_CHATS = [
+const TEST_CHATS_OLD = [
   {
     id: '1',
     name: 'Служба поддержки',

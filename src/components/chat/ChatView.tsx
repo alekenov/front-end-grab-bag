@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Send } from "lucide-react";
@@ -7,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MessageList } from "./MessageList";
 import { EmptyState } from "./EmptyState";
 import { useToast } from "@/hooks/use-toast";
+import { TEST_MESSAGES } from '@/data/mockData';
 
 interface ChatViewProps {
   currentChatId: string | null;
@@ -44,9 +44,14 @@ export function ChatView({ currentChatId }: ChatViewProps) {
     queryKey: ['messages', currentChatId],
     queryFn: async () => {
       if (!currentChatId) return [];
-      const response = await fetch(`${API_URL}/messages/${currentChatId}`);
-      if (!response.ok) throw new Error('Ошибка загрузки сообщений');
-      return response.json();
+      try {
+        const response = await fetch(`${API_URL}/messages/${currentChatId}`);
+        if (!response.ok) throw new Error('Ошибка загрузки сообщений');
+        return response.json();
+      } catch (error) {
+        console.warn('Используем тестовые сообщения');
+        return TEST_MESSAGES[currentChatId] || [];
+      }
     },
     enabled: !!currentChatId
   });
