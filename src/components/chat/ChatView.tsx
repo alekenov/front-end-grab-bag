@@ -6,7 +6,7 @@ import { MessageList } from "./MessageList";
 import { ChatHeader } from "./ChatHeader";
 import { MessageInput } from "./MessageInput";
 import { EmptyState } from "./EmptyState";
-import { Message } from "@/types/chat";
+import { Message, Chat } from "@/types/chat";
 import { getApiUrl, fetchWithFallback } from "@/utils/apiHelpers";
 import { TEST_MESSAGES, TEST_CHATS } from '@/data/mockData';
 
@@ -24,9 +24,13 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     queryKey: ['chat', currentChatId],
     queryFn: async () => {
       if (!currentChatId) return null;
-      return fetchWithFallback(
+      return fetchWithFallback<Chat>(
         `${API_URL}/chats/${currentChatId}`, 
-        { name: TEST_CHATS.find(c => c.id === currentChatId)?.name || "Чат" }
+        TEST_CHATS.find(c => c.id === currentChatId) || { 
+          id: currentChatId, 
+          name: "Чат",
+          aiEnabled: true
+        }
       );
     },
     enabled: !!currentChatId
