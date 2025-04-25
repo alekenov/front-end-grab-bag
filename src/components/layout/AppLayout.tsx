@@ -15,7 +15,11 @@ export function AppLayout({ children, title, activePage }: AppLayoutProps) {
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       <main className="flex-1 flex flex-col overflow-hidden bg-[#f5f7fb] pb-14 md:pb-0">
-        {children}
+        {/* Add left margin on desktop to prevent content overlapping with sidebar */}
+        <div className="hidden md:block md:ml-16" /> {/* Spacing for sidebar on desktop */}
+        <div className="flex-1 overflow-hidden">
+          {children}
+        </div>
       </main>
       <div className="md:hidden fixed bottom-0 left-0 right-0 h-14 bg-white border-t flex items-center justify-around px-2 z-50">
         <Link
@@ -78,7 +82,6 @@ export function AppLayout({ children, title, activePage }: AppLayoutProps) {
           <ChartBar className="h-6 w-6" />
         </Link>
       </div>
-      <div className="hidden md:block md:ml-16" /> {/* Spacing for sidebar */}
     </div>
   );
 }
