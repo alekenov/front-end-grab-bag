@@ -18,13 +18,12 @@ export function AddKnowledgeDialog({
   onAdd,
   availableTags 
 }: AddKnowledgeDialogProps) {
-  const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
   const [newTags, setNewTags] = useState<string[]>([]);
 
   const handleAddItem = () => {
-    onAdd(newTitle, newContent, newTags);
-    setNewTitle("");
+    // Добавляем пустой заголовок, так как он не используется
+    onAdd("", newContent, newTags);
     setNewContent("");
     setNewTags([]);
   };
@@ -44,18 +43,6 @@ export function AddKnowledgeDialog({
           <DialogTitle>Добавить новую запись</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium">
-              Заголовок
-            </label>
-            <Textarea
-              id="title"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="Введите заголовок"
-              className="h-10"
-            />
-          </div>
           <div className="space-y-2">
             <label htmlFor="content" className="text-sm font-medium">
               Содержание
