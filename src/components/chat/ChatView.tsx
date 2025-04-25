@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Send, User, Phone, Paperclip } from "lucide-react";
+import { Send, User, Phone, Paperclip, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageList } from "./MessageList";
@@ -13,7 +13,7 @@ interface ChatViewProps {
   setCurrentChatId?: (id: string | null) => void;
 }
 
-export function ChatView({ currentChatId }: ChatViewProps) {
+export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const [message, setMessage] = useState("");
   const [chatName, setChatName] = useState("");
   const { toast } = useToast();
@@ -154,18 +154,30 @@ export function ChatView({ currentChatId }: ChatViewProps) {
   return (
     <>
       <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8]">
-        <div className="flex items-center gap-2">
-          <Phone size={18} className="text-gray-500" />
-          <h2 className="text-lg font-semibold truncate flex-1">+7 (999) 123-45-67</h2>
-        </div>
-        <div className="flex flex-wrap gap-2 items-center text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <User size={14} />
-            <span>Иван Петров</span>
-          </div>
-          <div className="flex gap-2">
-            <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">пионы</span>
-            <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">самовывоз</span>
+        <div className="flex items-center gap-3 mb-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 shrink-0"
+            onClick={() => setCurrentChatId?.(null)}
+          >
+            <ArrowLeft className="h-5 w-5 text-gray-500" />
+          </Button>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <Phone size={18} className="text-gray-500" />
+              <h2 className="text-lg font-semibold truncate">+7 (999) 123-45-67</h2>
+            </div>
+            <div className="flex flex-wrap gap-2 items-center text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <User size={14} />
+                <span>Иван Петров</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">пионы</span>
+                <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">самовывоз</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
