@@ -3,6 +3,24 @@ import { useQuery } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 
+// Define interfaces for type safety
+interface Chat {
+  id: string;
+  name: string;
+  aiEnabled: boolean;
+  unreadCount?: number;
+  lastMessage?: {
+    content: string;
+    timestamp: string;
+  };
+}
+
+interface ChatListProps {
+  searchQuery: string;
+  currentChatId: string | null;
+  setCurrentChatId: (id: string | null) => void;
+}
+
 const TEST_CHATS = [
   {
     id: '1',
