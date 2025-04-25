@@ -79,18 +79,19 @@ export function DataSourcesTab() {
   };
 
   const handleAddItem = (title: string, content: string, tags: string[]) => {
-    if (!title.trim() || !content.trim() || tags.length === 0) {
+    // Убираем проверку на пустой заголовок
+    if (!content.trim() || tags.length === 0) {
       toast({
         variant: "destructive",
         title: "Ошибка",
-        description: "Заполните все поля",
+        description: "Заполните содержание и выберите хотя бы один тег",
       });
       return;
     }
 
     const newItem: KnowledgeItem = {
       id: Date.now().toString(),
-      title,
+      title, // Заголовок может быть пустым
       content,
       tags
     };
