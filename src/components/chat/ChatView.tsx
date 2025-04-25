@@ -154,7 +154,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   return (
     <>
       <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8]">
-        <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-center gap-3">
           <Button 
             variant="ghost" 
             size="icon" 
