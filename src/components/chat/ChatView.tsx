@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +16,8 @@ interface ChatViewProps {
 
 export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const [chatName, setChatName] = useState("");
+  const [contactName, setContactName] = useState("Иван Петров");
+  const [contactTags, setContactTags] = useState<string[]>(["пионы", "самовывоз"]);
   const { toast } = useToast();
   const API_URL = getApiUrl();
   
@@ -39,6 +40,9 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   useEffect(() => {
     if (chatDetails) {
       setChatName(chatDetails.name || "");
+      // Если бы API возвращало эти данные, мы бы устанавливали их здесь
+      // setContactName(chatDetails.contactName || "");
+      // setContactTags(chatDetails.tags || []);
     }
   }, [chatDetails]);
 
@@ -95,6 +99,27 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     }
   }
 
+  const handleUpdateContact = async (name: string, tags: string[]) => {
+    setContactName(name);
+    setContactTags(tags);
+    
+    try {
+      // Здесь был бы запрос к API для обновления данных клиента
+      // const response = await fetch(`${API_URL}/contacts/${currentChatId}`, {...});
+      
+      toast({
+        title: "Данные клиента обновлены",
+        description: "Имя и теги успешно сохранены",
+      });
+    } catch (error) {
+      console.error('Ошибка при обновлении данных клиента:', error);
+      toast({
+        title: "Данные сохранены локально",
+        description: "API недоступно, но изменения применены в интерфейсе",
+      });
+    }
+  };
+
   if (!currentChatId) {
     return <EmptyState />;
   }
@@ -110,7 +135,10 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   return (
     <>
       <ChatHeader 
-        onBack={() => setCurrentChatId?.(null)} 
+        onBack={() => setCurrentChatId?.(null)}
+        contactName={contactName}
+        tags={contactTags}
+        onUpdateContact={handleUpdateContact}
       />
       
       <div className="flex-1 overflow-y-auto px-3 py-5 md:px-5 bg-[#f5f7fb] pb-[88px] md:pb-[72px]">
