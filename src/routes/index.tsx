@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom"
 import ChatsPage from "@/pages/ChatsPage";
 import GuidePage from "@/pages/GuidePage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
+import ApiPage from "@/pages/ApiPage";
 
 const routes = createBrowserRouter([
   {
@@ -16,6 +17,10 @@ const routes = createBrowserRouter([
   {
     path: "/analytics",
     element: <AnalyticsPage />,
+  },
+  {
+    path: "/api",
+    element: <ApiPage />,
   },
   {
     // Add redirect for the old knowledge route
