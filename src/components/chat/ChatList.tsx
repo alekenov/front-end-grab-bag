@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ChatListItem } from "./ChatListItem";
 import { useChatApi } from "@/hooks/chat";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
 interface ChatListProps {
   searchQuery: string;
@@ -20,7 +22,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
     toggleAI 
   } = useChatApi();
   
-  // Filter chats based on search query
+  // Фильтрация чатов по поисковому запросу
   const filteredChats = chats.filter(chat => 
     chat.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     (chat.lastMessage && chat.lastMessage.content.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -28,7 +30,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
 
   const handleChatSelect = (id: string) => {
     setCurrentChatId(id);
-    // Close sheet on mobile devices when selecting a chat
+    // Закрываем sheet на мобильных устройствах при выборе чата
     const sheet = document.querySelector('[data-state="open"]');
     if (sheet) {
       const closeButton = sheet.querySelector('button[data-state]') as HTMLButtonElement;
@@ -36,44 +38,26 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
     }
   };
 
-  // Added fallback for demo chats if no real chats are available
-  const getDemoChats = () => {
-    return [
-      {
-        id: "demo-1",
-        name: "Анна Смирнова",
-        aiEnabled: true,
-        unreadCount: 2,
-        lastMessage: {
-          content: "Добрый день! Интересует букет на день рождения",
-          timestamp: new Date().toISOString()
-        }
-      },
-      {
-        id: "demo-2",
-        name: "Иван Петров",
-        aiEnabled: false,
-        unreadCount: 0,
-        lastMessage: {
-          content: "Спасибо за доставку! Всё очень понравилось",
-          timestamp: new Date(Date.now() - 86400000).toISOString()
-        }
-      }
-    ];
-  };
-
-  const displayChats = chats.length > 0 ? filteredChats : getDemoChats();
-
-  if (isLoadingChats) return <div className="p-4 text-center text-gray-500">Загрузка чатов...</div>;
+  if (isLoadingChats) {
+    return (
+      <div className="p-4 text-center text-gray-500 flex flex-col items-center gap-2">
+        <ReloadIcon className="h-5 w-5 animate-spin" />
+        <span>Загрузка чатов...</span>
+      </div>
+    );
+  }
   
   if (chatsError) {
-    console.error('Error loading chats:', chatsError);
+    console.error('Ошибка загрузки чатов:', chatsError);
     return (
-      <div className="p-4 text-center">
-        <div className="text-red-500 mb-2">Ошибка загрузки чатов</div>
+      <div className="p-4">
+        <Alert variant="destructive" className="mb-2">
+          <AlertTitle className="text-lg">Ошибка загрузки чатов</AlertTitle>
+          <AlertDescription>Не удалось загрузить список чатов</AlertDescription>
+        </Alert>
         <button 
           onClick={() => refetchChats()}
-          className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          className="w-full px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
         >
           Попробовать снова
         </button>
@@ -81,11 +65,25 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
     );
   }
   
-  if (displayChats.length === 0) return <div className="p-4 text-center text-gray-500">Нет активных чатов</div>;
+  if (filteredChats.length === 0 && searchQuery) {
+    return (
+      <div className="p-4 text-center text-gray-500">
+        Нет чатов, соответствующих запросу "{searchQuery}"
+      </div>
+    );
+  }
+  
+  if (filteredChats.length === 0) {
+    return (
+      <div className="p-4 text-center text-gray-500">
+        Нет активных чатов
+      </div>
+    );
+  }
 
   return (
     <ul className="list-none">
-      {displayChats.map((chat) => (
+      {filteredChats.map((chat) => (
         <ChatListItem
           key={chat.id}
           chat={chat}

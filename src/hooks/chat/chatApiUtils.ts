@@ -2,17 +2,20 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/chat";
 
-// URL Edge Function API
+// URL для API Edge Function
 export const CHAT_API_URL = "https://dkohweivbdwweyvyvcbc.supabase.co/functions/v1/chat-api";
 
-// Utility function to parse product data
+// Анонимный токен доступа для использования, когда нет сессии
+export const ANON_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrb2h3ZWl2YmR3d2V5dnl2Y2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM1NjU4OTYsImV4cCI6MjA0OTE0MTg5Nn0.5mQbONpvpBmRkwYO8ZSxnRupYAQ36USXIZWeQxKQLxs";
+
+// Утилита разбора данных о продукте
 export const parseProductData = (productData: any) => {
-  // If productData is a string, try to parse it
+  // Если productData — строка, пробуем распарсить её
   const data = typeof productData === 'string'
     ? JSON.parse(productData)
     : productData;
   
-  // Verify the data has the required structure
+  // Проверяем, что данные имеют требуемую структуру
   if (data && 
       typeof data === 'object' && 
       'id' in data && 
@@ -29,30 +32,42 @@ export const parseProductData = (productData: any) => {
   return null;
 };
 
-// Get current auth session - Fixed to handle anonymous access 
+// Получение текущей сессии аутентификации с обработкой анонимного доступа
 export const getAuthSession = async () => {
   try {
-    const { data: sessionData } = await supabase.auth.getSession();
+    console.log('Получение сессии авторизации...');
     
-    // Use anon key as fallback if no session
-    const accessToken = sessionData?.session?.access_token || 
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrb2h3ZWl2YmR3d2V5dnl2Y2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM1NjU4OTYsImV4cCI6MjA0OTE0MTg5Nn0.5mQbONpvpBmRkwYO8ZSxnRupYAQ36USXIZWeQxKQLxs';
+    const { data: sessionData, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.warn('Ошибка получения сессии:', error.message);
+      return {
+        accessToken: ANON_TOKEN,
+        session: null
+      };
+    }
+    
+    // Используем анонимный ключ, если нет сессии
+    const accessToken = sessionData?.session?.access_token || ANON_TOKEN;
+    
+    console.log(`Токен получен: ${accessToken.substring(0, 15)}...`);
     
     return {
       accessToken,
       session: sessionData?.session
     };
   } catch (error) {
-    console.error('Error getting auth session:', error);
-    // Return anon key as fallback
+    console.error('Ошибка получения сессии:', error);
+    
+    // Возвращаем анонимный ключ в случае ошибки
     return {
-      accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrb2h3ZWl2YmR3d2V5dnl2Y2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM1NjU4OTYsImV4cCI6MjA0OTE0MTg5Nn0.5mQbONpvpBmRkwYO8ZSxnRupYAQ36USXIZWeQxKQLxs',
+      accessToken: ANON_TOKEN,
       session: null
     };
   }
 };
 
-// Format message from Supabase response
+// Форматирование сообщения из ответа Supabase
 export const formatSupabaseMessage = (msg: any): Message => {
   const result: Message = {
     id: msg.id,
@@ -61,7 +76,7 @@ export const formatSupabaseMessage = (msg: any): Message => {
     timestamp: msg.created_at || new Date().toISOString()
   };
   
-  // Add product data if available
+  // Добавляем данные о продукте, если они доступны
   if (msg.has_product && msg.product_data) {
     const productData = parseProductData(msg.product_data);
     if (productData) {

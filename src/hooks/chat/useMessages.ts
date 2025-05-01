@@ -4,6 +4,28 @@ import { Message } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 import { CHAT_API_URL, formatSupabaseMessage, getAuthSession } from "./chatApiUtils";
 import { useToast } from "@/hooks/use-toast";
+import { getApiUrl, fetchWithFallback } from "@/utils/apiHelpers";
+
+const DEMO_MESSAGES: Message[] = [
+  {
+    id: "demo-msg-1",
+    content: "Здравствуйте! Чем я могу помочь вам сегодня?",
+    role: "BOT",
+    timestamp: new Date(Date.now() - 4 * 60000).toISOString()
+  },
+  {
+    id: "demo-msg-2",
+    content: "Я хотел бы узнать о доставке цветов",
+    role: "USER",
+    timestamp: new Date(Date.now() - 3 * 60000).toISOString()
+  },
+  {
+    id: "demo-msg-3",
+    content: "Мы осуществляем доставку ежедневно с 9:00 до 21:00. Стандартная доставка занимает 2-3 часа с момента подтверждения заказа. Также доступна экспресс-доставка в течение 1 часа за дополнительную плату.",
+    role: "BOT",
+    timestamp: new Date(Date.now() - 2 * 60000).toISOString()
+  }
+];
 
 export const useMessages = (chatId: string | null) => {
   const { toast } = useToast();
@@ -13,49 +35,63 @@ export const useMessages = (chatId: string | null) => {
     queryFn: async (): Promise<Message[]> => {
       if (!chatId) return [];
       
+      // Для демо-чатов возвращаем демонстрационные сообщения
+      if (chatId.startsWith('demo-')) {
+        console.log('Возвращаем демо-сообщения для демо-чата');
+        return DEMO_MESSAGES;
+      }
+      
       try {
-        console.log('Fetching messages for chat ID:', chatId);
+        console.log('Загрузка сообщений для чата:', chatId);
         
-        // Try to get messages directly from Supabase
+        // Пытаемся получить сообщения напрямую из Supabase
         const { data: supabaseMessages, error: supabaseError } = await supabase
           .from('messages')
           .select('*')
           .eq('chat_id', chatId)
           .order('created_at', { ascending: true });
           
-        if (!supabaseError && supabaseMessages) {
+        if (!supabaseError && supabaseMessages && supabaseMessages.length > 0) {
           console.log('Получено сообщений из Supabase:', supabaseMessages.length);
           return supabaseMessages.map(formatSupabaseMessage);
         }
         
-        // Fallback to Edge Function if Supabase direct query fails
-        console.log('Trying to fetch messages via Edge Function API');
+        // Запасной вариант: используем Edge Function API
+        console.log('Пробуем получить сообщения через API');
         
-        // Get current session with fixed auth
+        // Получаем токен авторизации
         const { accessToken } = await getAuthSession();
         
-        const response = await fetch(`${CHAT_API_URL}/messages?chatId=${chatId}`, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        // Используем fetchWithFallback для надежности
+        const apiUrl = `${getApiUrl()}/messages?chatId=${chatId}`;
+        console.log(`Запрос к API: ${apiUrl}`);
         
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || "Не удалось загрузить сообщения");
+        const data = await fetchWithFallback<{ messages?: Message[] }>(
+          apiUrl,
+          { messages: [] },
+          {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        if (data.messages && data.messages.length > 0) {
+          console.log(`Получено ${data.messages.length} сообщений от API`);
+          return data.messages;
         }
         
-        const data = await response.json();
-        return data.messages || [];
+        // Если не удалось получить сообщения, возвращаем пустой массив
+        return [];
         
       } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error('Ошибка загрузки сообщений:', error);
         
-        // Display error toast to user
+        // Отображаем сообщение об ошибке
         toast({
           title: "Ошибка загрузки сообщений",
-          description: "Не удалось загрузить сообщения для выбранного чата.",
+          description: "Не удалось загрузить историю сообщений",
           variant: "destructive",
         });
         
@@ -63,7 +99,7 @@ export const useMessages = (chatId: string | null) => {
       }
     },
     enabled: !!chatId,
-    retry: 1, // Retry once in case of network issues
-    refetchOnWindowFocus: false // Prevent excessive refetching
+    retry: 1, // Одна повторная попытка в случае сетевых проблем
+    refetchOnWindowFocus: false // Предотвращаем частые запросы
   });
 };
