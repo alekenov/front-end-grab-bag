@@ -1,9 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/chat";
+import { getApiUrl } from "@/utils/apiHelpers";
 
 // URL для API Edge Function
-export const CHAT_API_URL = "https://dkohweivbdwweyvyvcbc.supabase.co/functions/v1/chat-api";
+export const CHAT_API_URL = `${getApiUrl()}`;
 
 // Анонимный токен доступа для использования, когда нет сессии
 export const ANON_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrb2h3ZWl2YmR3d2V5dnl2Y2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM1NjU4OTYsImV4cCI6MjA0OTE0MTg5Nn0.5mQbONpvpBmRkwYO8ZSxnRupYAQ36USXIZWeQxKQLxs";

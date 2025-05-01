@@ -1,10 +1,8 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Chat } from "@/types/chat";
-import { supabase } from "@/integrations/supabase/client";
-import { CHAT_API_URL, getAuthSession } from "./chatApiUtils";
 import { useToast } from "@/hooks/use-toast";
-import { getApiUrl, fetchWithFallback } from "@/utils/apiHelpers";
+import { CHAT_API_URL, getAuthSession } from "./chatApiUtils";
+import { fetchWithFallback } from "@/utils/apiHelpers";
 
 // Демо-чаты для отображения, когда API недоступен
 const DEMO_CHATS: Chat[] = [
@@ -40,18 +38,6 @@ const DEMO_CHATS: Chat[] = [
   }
 ];
 
-// Тип данных, возвращаемый SQL-функцией
-interface ChatWithLastMessage {
-  id: string;
-  name: string;
-  ai_enabled: boolean;
-  unread_count: number;
-  created_at: string;
-  updated_at: string;
-  last_message_content: string | null;
-  last_message_timestamp: string | null;
-}
-
 export const useChats = () => {
   const { toast } = useToast();
 
@@ -59,40 +45,16 @@ export const useChats = () => {
     queryKey: ['chats-api'],
     queryFn: async (): Promise<Chat[]> => {
       try {
-        console.log('Получение чатов оптимизированным способом...');
-        
-        // Сначала пробуем получить чаты вместе с последними сообщениями через SQL-функцию
-        const { data, error } = await supabase.rpc<ChatWithLastMessage>('get_chats_with_last_messages');
-        
-        if (!error && data && data.length > 0) {
-          console.log('Получено чатов из SQL-функции:', data.length);
-          
-          // Преобразуем данные в формат, ожидаемый фронтендом
-          return data.map(chat => ({
-            id: chat.id,
-            name: chat.name,
-            aiEnabled: chat.ai_enabled,
-            unreadCount: chat.unread_count || 0,
-            lastMessage: chat.last_message_content ? {
-              content: chat.last_message_content,
-              timestamp: chat.last_message_timestamp || new Date().toISOString()
-            } : undefined,
-            created_at: chat.created_at,
-            updated_at: chat.updated_at
-          }));
-        }
-        
-        // Если SQL-функция недоступна, используем API
-        console.log('SQL-функция недоступна, пробуем API...');
+        console.log('Получение чатов через API...');
         
         // Получаем сессию авторизации
         const { accessToken } = await getAuthSession();
         
-        // Используем fetchWithFallback для надежности
-        const apiUrl = `${getApiUrl()}/chats`;
+        // Используем API для получения чатов
+        const apiUrl = `${CHAT_API_URL}/chats`;
         console.log(`Запрос к API: ${apiUrl}`);
         
-        const apiData = await fetchWithFallback(
+        const apiData = await fetchWithFallback<{ chats?: Chat[] }>(
           apiUrl,
           { chats: DEMO_CHATS },
           {

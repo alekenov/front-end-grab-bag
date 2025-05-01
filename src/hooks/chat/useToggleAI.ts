@@ -1,8 +1,8 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { ToggleAIParams } from "./types";
+import { CHAT_API_URL, getAuthSession } from "./chatApiUtils";
 
 export const useToggleAI = () => {
   const { toast } = useToast();
@@ -11,13 +11,25 @@ export const useToggleAI = () => {
   return useMutation({
     mutationFn: async ({ chatId, enabled }: ToggleAIParams) => {
       try {
-        // Use Supabase client directly
-        const { error } = await supabase
-          .from('chats')
-          .update({ ai_enabled: enabled })
-          .eq('id', chatId);
-          
-        if (error) throw error;
+        console.log('Toggle AI via API');
+        
+        // Get current session for API
+        const { accessToken } = await getAuthSession();
+        
+        const response = await fetch(`${CHAT_API_URL}/toggle-ai`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ chatId, enabled })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Не удалось изменить настройки AI");
+        }
+        
         return { chatId, enabled };
       } catch (error) {
         console.error('Error toggling AI:', error);

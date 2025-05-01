@@ -1,10 +1,8 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { Message } from "@/types/chat";
-import { supabase } from "@/integrations/supabase/client";
-import { CHAT_API_URL, formatSupabaseMessage, getAuthSession } from "./chatApiUtils";
+import { CHAT_API_URL, getAuthSession } from "./chatApiUtils";
 import { useToast } from "@/hooks/use-toast";
-import { getApiUrl, fetchWithFallback } from "@/utils/apiHelpers";
+import { fetchWithFallback } from "@/utils/apiHelpers";
 
 const DEMO_MESSAGES: Message[] = [
   {
@@ -42,28 +40,13 @@ export const useMessages = (chatId: string | null) => {
       }
       
       try {
-        console.log('Загрузка сообщений для чата:', chatId);
-        
-        // Пытаемся получить сообщения напрямую из Supabase
-        const { data: supabaseMessages, error: supabaseError } = await supabase
-          .from('messages')
-          .select('*')
-          .eq('chat_id', chatId)
-          .order('created_at', { ascending: true });
-          
-        if (!supabaseError && supabaseMessages && supabaseMessages.length > 0) {
-          console.log('Получено сообщений из Supabase:', supabaseMessages.length);
-          return supabaseMessages.map(formatSupabaseMessage);
-        }
-        
-        // Запасной вариант: используем Edge Function API
-        console.log('Пробуем получить сообщения через API');
+        console.log('Загрузка сообщений для чата через API:', chatId);
         
         // Получаем токен авторизации
         const { accessToken } = await getAuthSession();
         
-        // Используем fetchWithFallback для надежности
-        const apiUrl = `${getApiUrl()}/messages?chatId=${chatId}`;
+        // Используем API для получения сообщений
+        const apiUrl = `${CHAT_API_URL}/messages?chatId=${chatId}`;
         console.log(`Запрос к API: ${apiUrl}`);
         
         const data = await fetchWithFallback<{ messages?: Message[] }>(

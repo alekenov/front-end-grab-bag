@@ -39,6 +39,9 @@ serve(async (req) => {
       case "send":
         return handleSendMessage(req);
       
+      case "toggle-ai":
+        return handleToggleAI(req);
+        
       default:
         return new Response(JSON.stringify({ error: "Неизвестный эндпоинт" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -126,17 +129,6 @@ async function handleMessages(req: Request, url: URL) {
     if (error) throw error;
     
     console.log(`Получено сообщений для чата ${chatId}:`, messages.length);
-    
-    // Логируем первое сообщение для отладки
-    if (messages.length > 0) {
-      console.log("Пример сообщения:", {
-        id: messages[0].id,
-        content: messages[0].content,
-        is_from_user: messages[0].is_from_user,
-        has_product: messages[0].has_product,
-        product_data: messages[0].product_data
-      });
-    }
 
     // Преобразование сообщений в формат, ожидаемый фронтендом
     const formattedMessages = messages.map(msg => ({
@@ -249,6 +241,67 @@ async function handleSendMessage(req: Request) {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
+  }
+
+  return new Response(
+    JSON.stringify({ error: "Метод не поддерживается" }),
+    {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 405,
+    }
+  );
+}
+
+// Обработчик переключения AI в чате
+async function handleToggleAI(req: Request) {
+  if (req.method === "POST") {
+    const { chatId, enabled } = await req.json();
+    
+    if (!chatId || enabled === undefined) {
+      return new Response(
+        JSON.stringify({ error: "Не указаны обязательные параметры" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
+
+    // Проверка существования чата
+    const { error: checkError } = await supabaseClient
+      .from("chats")
+      .select("id")
+      .eq("id", chatId)
+      .single();
+
+    if (checkError) {
+      return new Response(
+        JSON.stringify({ error: "Указанный чат не существует" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
+        }
+      );
+    }
+
+    // Обновление статуса AI
+    const { error: updateError } = await supabaseClient
+      .from("chats")
+      .update({ ai_enabled: enabled })
+      .eq("id", chatId);
+
+    if (updateError) throw updateError;
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: `AI ${enabled ? 'включен' : 'выключен'} для чата` 
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
   }
 
   return new Response(
