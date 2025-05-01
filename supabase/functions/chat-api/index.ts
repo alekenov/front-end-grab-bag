@@ -68,6 +68,8 @@ async function handleChats(req: Request, url: URL) {
       .order("updated_at", { ascending: false });
 
     if (error) throw error;
+    
+    console.log("Получено чатов:", data.length);
 
     // Получаем последние сообщения для каждого чата
     const chatsWithLastMessage = await Promise.all(
@@ -78,6 +80,8 @@ async function handleChats(req: Request, url: URL) {
           .eq("chat_id", chat.id)
           .order("created_at", { ascending: false })
           .limit(1);
+        
+        console.log(`Чат ${chat.id}: ${messages && messages.length > 0 ? 'есть сообщения' : 'нет сообщений'}`);
         
         return {
           ...chat,
@@ -127,6 +131,19 @@ async function handleMessages(req: Request, url: URL) {
       .order("created_at", { ascending: true });
 
     if (error) throw error;
+    
+    console.log(`Получено сообщений для чата ${chatId}:`, messages.length);
+    
+    // Логируем первое сообщение для отладки
+    if (messages.length > 0) {
+      console.log("Пример сообщения:", {
+        id: messages[0].id,
+        content: messages[0].content,
+        is_from_user: messages[0].is_from_user,
+        has_product: messages[0].has_product,
+        product_data: messages[0].product_data
+      });
+    }
 
     // Преобразование сообщений в формат, ожидаемый фронтендом
     const formattedMessages = messages.map(msg => ({
@@ -200,6 +217,8 @@ async function handleSendMessage(req: Request) {
         price: product.price
       } : null
     };
+    
+    console.log("Отправка сообщения:", messageData);
     
     const { data: newMessage, error: messageError } = await supabaseClient
       .from("messages")

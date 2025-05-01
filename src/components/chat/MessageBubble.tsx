@@ -9,6 +9,9 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ message, isMobile }: MessageBubbleProps) {
   const isUser = message.role === 'USER';
+  
+  // Проверяем наличие продукта
+  const hasProduct = !!message.product;
 
   return (
     <div 
@@ -16,6 +19,29 @@ export function MessageBubble({ message, isMobile }: MessageBubbleProps) {
         isUser ? 'ml-auto items-end' : 'mr-auto items-start'
       }`}
     >
+      {/* Если есть информация о продукте, отображаем её */}
+      {hasProduct && (
+        <div className={`px-4 py-2.5 mb-2 rounded-lg ${
+          isUser 
+            ? 'bg-white text-gray-800 shadow-sm border border-gray-100' 
+            : 'bg-white text-gray-800 shadow-sm border border-gray-100'
+        }`}>
+          <div className="flex items-center">
+            <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+              <img 
+                src={message.product?.imageUrl} 
+                alt="Товар" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="ml-3">
+              <p className="font-semibold">Букет</p>
+              <p className="text-[#1a73e8] font-medium">{message.product?.price} ₸</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div 
         className={`px-4 py-2.5 rounded-2xl break-words ${
           isUser 
@@ -34,6 +60,8 @@ export function MessageBubble({ message, isMobile }: MessageBubbleProps) {
 }
 
 function formatMessageContent(content: string): React.ReactNode {
+  if (!content) return ""; // Защита от undefined или null
+  
   // Replace URLs with actual links
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   const parts = content.split(urlRegex);

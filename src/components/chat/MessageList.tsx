@@ -15,6 +15,12 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
     const grouped: MessagesByDate = {};
     
     messages.forEach((message) => {
+      // Проверяем, что message.timestamp существует
+      if (!message.timestamp) {
+        console.warn('Message is missing timestamp:', message);
+        return;
+      }
+      
       const date = formatDate(message.timestamp);
       if (!grouped[date]) {
         grouped[date] = [];
@@ -33,6 +39,10 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
     return <div className="text-center text-gray-500">Нет сообщений</div>;
   }
 
+  // Логируем для отладки
+  console.log("Всего сообщений:", messages.length);
+  console.log("Группировка по датам:", Object.keys(messagesByDate));
+  
   return (
     <div className="flex flex-col space-y-5">
       {Object.entries(messagesByDate).map(([date, dateMessages]) => (
