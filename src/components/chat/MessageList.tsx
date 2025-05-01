@@ -53,10 +53,6 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
   if (!messages || messages.length === 0) {
     return <div className="text-center text-gray-500 py-6">Нет сообщений</div>;
   }
-
-  // Логируем для отладки
-  console.log("Всего сообщений:", messages.length);
-  console.log("Группировка по датам:", Object.keys(messagesByDate));
   
   return (
     <div className="flex flex-col space-y-5">

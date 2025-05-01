@@ -108,20 +108,40 @@ export function useChatApi() {
           if (!supabaseError && supabaseMessages) {
             console.log('Получено сообщений из Supabase:', supabaseMessages.length);
             
-            return supabaseMessages.map(msg => ({
-              id: msg.id,
-              content: msg.content || "",
-              role: msg.is_from_user ? "USER" : "BOT",
-              timestamp: msg.created_at || new Date().toISOString(),
-              product: msg.has_product && msg.product_data ? {
-                id: String(msg.product_data.id || ""),
-                imageUrl: msg.product_data.imageUrl || "",
-                price: Number(msg.product_data.price) || 0
-              } : undefined
-            }));
+            return supabaseMessages.map(msg => {
+              const result: Message = {
+                id: msg.id,
+                content: msg.content || "",
+                role: msg.is_from_user ? "USER" : "BOT",
+                timestamp: msg.created_at || new Date().toISOString()
+              };
+              
+              // Проверяем и обрабатываем данные о продукте, если они есть
+              if (msg.has_product && msg.product_data) {
+                // Проверяем, имеет ли product_data ожидаемую структуру
+                const productData = typeof msg.product_data === 'string'
+                  ? JSON.parse(msg.product_data)
+                  : msg.product_data;
+                
+                if (productData && 
+                    typeof productData === 'object' && 
+                    'id' in productData && 
+                    'imageUrl' in productData && 
+                    'price' in productData) {
+                  
+                  result.product = {
+                    id: String(productData.id),
+                    imageUrl: String(productData.imageUrl),
+                    price: Number(productData.price)
+                  };
+                }
+              }
+              
+              return result;
+            });
           }
           
-          // Если не получилось из Supabase, пробуем через Edge Function
+          // Если не получилось из Supabase, пробуем через Edge Function API
           console.log('Trying to fetch messages via Edge Function API');
           
           // Получаем текущую сессию для Edge Function
