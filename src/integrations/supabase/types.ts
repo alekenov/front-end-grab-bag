@@ -652,6 +652,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      get_chats_with_last_messages: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          name: string
+          ai_enabled: boolean
+          unread_count: number
+          created_at: string
+          updated_at: string
+          last_message_content: string
+          last_message_timestamp: string
+        }[]
+      }
       gtrgm_compress: {
         Args: { "": unknown }
         Returns: unknown

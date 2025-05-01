@@ -40,6 +40,18 @@ const DEMO_CHATS: Chat[] = [
   }
 ];
 
+// Тип данных, возвращаемый SQL-функцией
+interface ChatWithLastMessage {
+  id: string;
+  name: string;
+  ai_enabled: boolean;
+  unread_count: number;
+  created_at: string;
+  updated_at: string;
+  last_message_content: string | null;
+  last_message_timestamp: string | null;
+}
+
 export const useChats = () => {
   const { toast } = useToast();
 
@@ -50,7 +62,7 @@ export const useChats = () => {
         console.log('Получение чатов оптимизированным способом...');
         
         // Сначала пробуем получить чаты вместе с последними сообщениями через SQL-функцию
-        const { data, error } = await supabase.rpc('get_chats_with_last_messages');
+        const { data, error } = await supabase.rpc<ChatWithLastMessage>('get_chats_with_last_messages');
         
         if (!error && data && data.length > 0) {
           console.log('Получено чатов из SQL-функции:', data.length);
@@ -63,7 +75,7 @@ export const useChats = () => {
             unreadCount: chat.unread_count || 0,
             lastMessage: chat.last_message_content ? {
               content: chat.last_message_content,
-              timestamp: chat.last_message_timestamp
+              timestamp: chat.last_message_timestamp || new Date().toISOString()
             } : undefined,
             created_at: chat.created_at,
             updated_at: chat.updated_at
