@@ -1,14 +1,12 @@
 
-import { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { useChatDetails } from "./hooks/useChatDetails";
+import { useChatMessages } from "./hooks/useChatMessages";
+import { useContactDetails } from "./hooks/useContactDetails";
 import { MessageList } from "./MessageList";
 import { ChatHeader } from "./ChatHeader";
 import { MessageInput } from "./MessageInput";
 import { EmptyState } from "./EmptyState";
-import { Message, Chat, SupabaseChat, SupabaseMessage } from "@/types/chat";
 import { Product } from "@/types/product";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ChatViewProps {
   currentChatId: string | null;
@@ -16,219 +14,11 @@ interface ChatViewProps {
 }
 
 export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
-  const [chatName, setChatName] = useState("");
-  const [contactName, setContactName] = useState("Иван Петров");
-  const [contactTags, setContactTags] = useState<string[]>(["пионы", "самовывоз"]);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  // Получение информации о чате
-  const { data: chatDetails, error: chatError } = useQuery({
-    queryKey: ['chat', currentChatId],
-    queryFn: async () => {
-      if (!currentChatId) return null;
-      
-      try {
-        const { data, error } = await supabase
-          .from('chats')
-          .select('*')
-          .eq('id', currentChatId)
-          .single();
-          
-        if (error) {
-          console.error('Error fetching chat details:', error);
-          throw error;
-        }
-        
-        // Преобразуем данные из Supabase в формат нашего приложения
-        const supabaseChat = data as SupabaseChat;
-        const chat: Chat = {
-          id: supabaseChat.id,
-          name: supabaseChat.name,
-          aiEnabled: supabaseChat.ai_enabled,
-          unreadCount: supabaseChat.unread_count || 0,
-          created_at: supabaseChat.created_at || undefined,
-          updated_at: supabaseChat.updated_at || undefined
-        };
-        
-        return chat;
-      } catch (error) {
-        console.error('Error in chat details query:', error);
-        return null;
-      }
-    },
-    enabled: !!currentChatId
-  });
-
-  useEffect(() => {
-    if (chatDetails) {
-      setChatName(chatDetails.name || "");
-    }
-  }, [chatDetails]);
-
-  // Получение сообщений для текущего чата
-  const { 
-    data: messages = [],
-    isLoading: messagesLoading,
-    refetch: refetchMessages,
-    error: messagesError
-  } = useQuery({
-    queryKey: ['messages', currentChatId],
-    queryFn: async () => {
-      if (!currentChatId) return [];
-      
-      try {
-        console.log('Fetching messages for chat ID:', currentChatId);
-        
-        const { data, error } = await supabase
-          .from('messages')
-          .select('*')
-          .eq('chat_id', currentChatId)
-          .order('created_at', { ascending: true });
-          
-        if (error) {
-          console.error('Error fetching messages:', error);
-          throw error;
-        }
-        
-        console.log('Received messages:', data?.length || 0);
-        
-        // Преобразуем данные из Supabase в формат нашего приложения
-        return data.map((msg: SupabaseMessage) => {
-          const message: Message = {
-            id: msg.id,
-            content: msg.content || "",
-            timestamp: msg.created_at || new Date().toISOString(),
-            role: msg.is_from_user ? "USER" : "BOT"
-          };
-          
-          // Добавляем информацию о продукте, если она есть
-          if (msg.has_product && msg.product_data) {
-            try {
-              const productData = typeof msg.product_data === 'string' 
-                ? JSON.parse(msg.product_data) 
-                : msg.product_data;
-                
-              message.product = {
-                id: String(productData.id || ""),
-                imageUrl: productData.imageUrl || "",
-                price: Number(productData.price) || 0
-              };
-            } catch (e) {
-              console.error('Error parsing product data:', e);
-            }
-          }
-          
-          return message;
-        });
-      } catch (error) {
-        console.error('Error in messages query:', error);
-        return [];
-      }
-    },
-    enabled: !!currentChatId
-  });
-
-  // Мутация для отправки сообщения
-  const sendMessageMutation = useMutation({
-    mutationFn: async ({ 
-      content, 
-      product, 
-      chatId 
-    }: { 
-      content: string; 
-      product?: Product; 
-      chatId: string;
-    }) => {
-      const messageData = {
-        chat_id: chatId,
-        content,
-        is_from_user: true,
-        has_product: !!product,
-        product_data: product ? {
-          id: product.id,
-          imageUrl: product.imageUrl, 
-          price: product.price
-        } : null
-      };
-      
-      const { data, error } = await supabase
-        .from('messages')
-        .insert([messageData])
-        .select();
-        
-      if (error) throw error;
-      
-      // Для демонстрации добавим ответ от AI после небольшой задержки
-      if (chatDetails?.aiEnabled) {
-        setTimeout(async () => {
-          const aiResponse = product
-            ? `Спасибо за интерес к букету за ${product.price} ₸! Как вам помочь с выбором?`
-            : `Спасибо за ваше сообщение! Чем я могу вам помочь?`;
-            
-          await supabase
-            .from('messages')
-            .insert([{
-              chat_id: chatId,
-              content: aiResponse,
-              is_from_user: false
-            }]);
-            
-          refetchMessages();
-        }, 1000);
-      }
-      
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages', currentChatId] });
-    },
-    onError: (error) => {
-      console.error('Error sending message:', error);
-      toast({
-        title: "Ошибка отправки",
-        description: "Не удалось отправить сообщение",
-        variant: "destructive",
-      });
-    }
-  });
-
-  async function sendMessage(content: string, product?: Product) {
-    if (!currentChatId) return;
-    
-    try {
-      await sendMessageMutation.mutateAsync({ 
-        content, 
-        product, 
-        chatId: currentChatId 
-      });
-      
-      toast({
-        title: "Сообщение отправлено",
-        description: product ? "Товар добавлен в чат" : "Сообщение добавлено в чат",
-      });
-    } catch (error) {
-      console.error('Ошибка отправки сообщения:', error);
-    }
-  }
-
-  const handleUpdateContact = async (name: string, tags: string[]) => {
-    setContactName(name);
-    setContactTags(tags);
-    
-    try {
-      toast({
-        title: "Данные клиента обновлены",
-        description: "Имя и теги успешно сохранены",
-      });
-    } catch (error) {
-      console.error('Ошибка при обновлении данных клиента:', error);
-      toast({
-        title: "Данные сохранены локально",
-        description: "API недоступно, но изменения применены в интерфейсе",
-      });
-    }
-  };
+  // Use our custom hooks
+  const { chatDetails, chatError } = useChatDetails(currentChatId);
+  const { contactName, contactTags, handleUpdateContact } = useContactDetails();
+  const { messages, messagesLoading, messagesError, sendMessage } = 
+    useChatMessages(currentChatId, chatDetails?.aiEnabled);
 
   if (!currentChatId) {
     return <EmptyState />;
