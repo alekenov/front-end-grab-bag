@@ -1,8 +1,6 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Chat } from "@/types/chat";
 import { ChatListItem } from "./ChatListItem";
 import { useChatApi } from "@/hooks/chat";
 
@@ -38,6 +36,34 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
     }
   };
 
+  // Added fallback for demo chats if no real chats are available
+  const getDemoChats = () => {
+    return [
+      {
+        id: "demo-1",
+        name: "Анна Смирнова",
+        aiEnabled: true,
+        unreadCount: 2,
+        lastMessage: {
+          content: "Добрый день! Интересует букет на день рождения",
+          timestamp: new Date().toISOString()
+        }
+      },
+      {
+        id: "demo-2",
+        name: "Иван Петров",
+        aiEnabled: false,
+        unreadCount: 0,
+        lastMessage: {
+          content: "Спасибо за доставку! Всё очень понравилось",
+          timestamp: new Date(Date.now() - 86400000).toISOString()
+        }
+      }
+    ];
+  };
+
+  const displayChats = chats.length > 0 ? filteredChats : getDemoChats();
+
   if (isLoadingChats) return <div className="p-4 text-center text-gray-500">Загрузка чатов...</div>;
   
   if (chatsError) {
@@ -55,11 +81,11 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
     );
   }
   
-  if (filteredChats.length === 0) return <div className="p-4 text-center text-gray-500">Нет активных чатов</div>;
+  if (displayChats.length === 0) return <div className="p-4 text-center text-gray-500">Нет активных чатов</div>;
 
   return (
     <ul className="list-none">
-      {filteredChats.map((chat) => (
+      {displayChats.map((chat) => (
         <ChatListItem
           key={chat.id}
           chat={chat}

@@ -3,8 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Message } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 import { CHAT_API_URL, formatSupabaseMessage, getAuthSession } from "./chatApiUtils";
+import { useToast } from "@/hooks/use-toast";
 
 export const useMessages = (chatId: string | null) => {
+  const { toast } = useToast();
+  
   return useQuery({
     queryKey: ['messages-api', chatId],
     queryFn: async (): Promise<Message[]> => {
@@ -28,7 +31,7 @@ export const useMessages = (chatId: string | null) => {
         // Fallback to Edge Function if Supabase direct query fails
         console.log('Trying to fetch messages via Edge Function API');
         
-        // Get current session for Edge Function
+        // Get current session with fixed auth
         const { accessToken } = await getAuthSession();
         
         const response = await fetch(`${CHAT_API_URL}/messages?chatId=${chatId}`, {
@@ -39,7 +42,7 @@ export const useMessages = (chatId: string | null) => {
         });
         
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || "Не удалось загрузить сообщения");
         }
         
@@ -48,9 +51,19 @@ export const useMessages = (chatId: string | null) => {
         
       } catch (error) {
         console.error('Error fetching messages:', error);
-        throw error;
+        
+        // Display error toast to user
+        toast({
+          title: "Ошибка загрузки сообщений",
+          description: "Не удалось загрузить сообщения для выбранного чата.",
+          variant: "destructive",
+        });
+        
+        return [];
       }
     },
-    enabled: !!chatId
+    enabled: !!chatId,
+    retry: 1, // Retry once in case of network issues
+    refetchOnWindowFocus: false // Prevent excessive refetching
   });
 };

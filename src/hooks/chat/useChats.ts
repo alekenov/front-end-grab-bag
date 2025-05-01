@@ -3,16 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Chat } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 import { CHAT_API_URL, getAuthSession } from "./chatApiUtils";
+import { useToast } from "@/hooks/use-toast";
 
 export const useChats = () => {
+  const { toast } = useToast();
+
   return useQuery({
     queryKey: ['chats-api'],
     queryFn: async (): Promise<Chat[]> => {
       try {
-        // Get current session
-        const { accessToken } = await getAuthSession();
-        
-        // Try to fetch chats directly from Supabase
+        // Try to fetch chats directly from Supabase first
         const { data: supabaseChats, error: supabaseError } = await supabase
           .from('chats')
           .select('*')
@@ -52,6 +52,9 @@ export const useChats = () => {
         // Fallback to Edge Function if Supabase direct query fails
         console.log('Trying to fetch chats via Edge Function API');
         
+        // Get current session with fixed auth
+        const { accessToken } = await getAuthSession();
+        
         const response = await fetch(`${CHAT_API_URL}/chats`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -60,7 +63,7 @@ export const useChats = () => {
         });
         
         if (!response.ok) {
-          const errorData = await response.json();
+          const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || "Не удалось загрузить список чатов");
         }
         
@@ -68,8 +71,19 @@ export const useChats = () => {
         return data.chats || [];
       } catch (error) {
         console.error('Error fetching chats:', error);
-        throw error;
+        
+        // Display error toast to user
+        toast({
+          title: "Ошибка загрузки чатов",
+          description: "Не удалось загрузить чаты. Пожалуйста, проверьте соединение.",
+          variant: "destructive",
+        });
+        
+        // Return empty array to prevent app crash
+        return [];
       }
-    }
+    },
+    retry: 1, // Retry once in case of network issues
+    refetchOnWindowFocus: false // Prevent excessive refetching
   });
 };

@@ -29,13 +29,27 @@ export const parseProductData = (productData: any) => {
   return null;
 };
 
-// Get current auth session
+// Get current auth session - Fixed to handle anonymous access 
 export const getAuthSession = async () => {
-  const { data: sessionData } = await supabase.auth.getSession();
-  return {
-    accessToken: sessionData?.session?.access_token || '',
-    session: sessionData?.session
-  };
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    
+    // Use anon key as fallback if no session
+    const accessToken = sessionData?.session?.access_token || 
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrb2h3ZWl2YmR3d2V5dnl2Y2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM1NjU4OTYsImV4cCI6MjA0OTE0MTg5Nn0.5mQbONpvpBmRkwYO8ZSxnRupYAQ36USXIZWeQxKQLxs';
+    
+    return {
+      accessToken,
+      session: sessionData?.session
+    };
+  } catch (error) {
+    console.error('Error getting auth session:', error);
+    // Return anon key as fallback
+    return {
+      accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrb2h3ZWl2YmR3d2V5dnl2Y2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM1NjU4OTYsImV4cCI6MjA0OTE0MTg5Nn0.5mQbONpvpBmRkwYO8ZSxnRupYAQ36USXIZWeQxKQLxs',
+      session: null
+    };
+  }
 };
 
 // Format message from Supabase response
