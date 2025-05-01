@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ChatListItem } from "./ChatListItem";
 import { useChatApi } from "@/hooks/chat";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { ReloadIcon } from "@radix-ui/react-icons";
+import { Loader } from "lucide-react"; // Use Loader from lucide-react instead of ReloadIcon
 
 interface ChatListProps {
   searchQuery: string;
@@ -41,7 +41,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
   if (isLoadingChats) {
     return (
       <div className="p-4 text-center text-gray-500 flex flex-col items-center gap-2">
-        <ReloadIcon className="h-5 w-5 animate-spin" />
+        <Loader className="h-5 w-5 animate-spin" />
         <span>Загрузка чатов...</span>
       </div>
     );
