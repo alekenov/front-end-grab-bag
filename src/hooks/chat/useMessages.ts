@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Message } from "@/types/chat";
 import { CHAT_API_URL, getAuthSession } from "./chatApiUtils";
@@ -45,7 +46,7 @@ export const useMessages = (chatId: string | null) => {
         // Получаем токен авторизации
         const { accessToken } = await getAuthSession();
         
-        // Используем API для получения сообщений
+        // Используем API для получения сообщений (прямой доступ к Supabase Edge Function)
         const apiUrl = `${CHAT_API_URL}/messages?chatId=${chatId}`;
         console.log(`Запрос к API: ${apiUrl}`);
         

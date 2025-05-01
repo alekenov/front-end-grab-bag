@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Chat } from "@/types/chat";
 import { useToast } from "@/hooks/use-toast";
@@ -50,7 +51,7 @@ export const useChats = () => {
         // Получаем сессию авторизации
         const { accessToken } = await getAuthSession();
         
-        // Используем API для получения чатов
+        // Используем API для получения чатов (прямой доступ к Supabase Edge Function)
         const apiUrl = `${CHAT_API_URL}/chats`;
         console.log(`Запрос к API: ${apiUrl}`);
         

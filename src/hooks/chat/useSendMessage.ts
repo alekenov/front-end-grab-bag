@@ -16,6 +16,7 @@ export const useSendMessage = () => {
         // Get current session for API
         const { accessToken } = await getAuthSession();
         
+        // Direct call to Supabase Edge Function
         const response = await fetch(`${CHAT_API_URL}/send`, {
           method: 'POST',
           headers: {
