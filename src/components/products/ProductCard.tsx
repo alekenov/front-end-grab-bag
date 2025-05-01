@@ -17,7 +17,7 @@ export function ProductCard({ product, onDelete, inChatMode = false }: ProductCa
   const navigate = useNavigate();
   
   const handleAddToChat = () => {
-    // Save the selected product to localStorage
+    // Сохраняем выбранный товар в localStorage
     try {
       localStorage.setItem("selected_product", JSON.stringify(product));
       
@@ -26,7 +26,7 @@ export function ProductCard({ product, onDelete, inChatMode = false }: ProductCa
         description: `Товар за ${product.price.toLocaleString()} ₸ добавлен в чат`,
       });
       
-      // Navigate back to chat if in chat selection mode
+      // Возвращаемся на страницу чата, если находимся в режиме выбора товара
       if (inChatMode) {
         navigate("/");
       }

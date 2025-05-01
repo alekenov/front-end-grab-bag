@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      chats: {
+        Row: {
+          ai_enabled: boolean | null
+          created_at: string | null
+          id: string
+          name: string
+          unread_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          name: string
+          unread_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          unread_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           content: string | null
@@ -210,6 +237,51 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string | null
+          has_product: boolean | null
+          id: string
+          is_from_user: boolean | null
+          product_data: Json | null
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string | null
+          has_product?: boolean | null
+          id?: string
+          is_from_user?: boolean | null
+          product_data?: Json | null
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string | null
+          has_product?: boolean | null
+          id?: string
+          is_from_user?: boolean | null
+          product_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_chat"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           id: number
@@ -325,6 +397,7 @@ export type Database = {
           category: string | null
           description: string | null
           id: number
+          image_url: string | null
           name: string
           price: number
           quantity: number
@@ -334,6 +407,7 @@ export type Database = {
           category?: string | null
           description?: string | null
           id?: number
+          image_url?: string | null
           name: string
           price: number
           quantity?: number
@@ -343,6 +417,7 @@ export type Database = {
           category?: string | null
           description?: string | null
           id?: number
+          image_url?: string | null
           name?: string
           price?: number
           quantity?: number

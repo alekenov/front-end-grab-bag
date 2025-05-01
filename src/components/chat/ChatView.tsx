@@ -1,15 +1,14 @@
 
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { MessageList } from "./MessageList";
 import { ChatHeader } from "./ChatHeader";
 import { MessageInput } from "./MessageInput";
 import { EmptyState } from "./EmptyState";
 import { Message, Chat } from "@/types/chat";
-import { getApiUrl, fetchWithFallback } from "@/utils/apiHelpers";
-import { TEST_MESSAGES, TEST_CHATS } from '@/data/mockData';
 import { Product } from "@/types/product";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ChatViewProps {
   currentChatId: string | null;
@@ -21,20 +20,26 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const [contactName, setContactName] = useState("Иван Петров");
   const [contactTags, setContactTags] = useState<string[]>(["пионы", "самовывоз"]);
   const { toast } = useToast();
-  const API_URL = getApiUrl();
+  const queryClient = useQueryClient();
   
+  // Получение информации о чате
   const { data: chatDetails, error: chatError } = useQuery({
     queryKey: ['chat', currentChatId],
     queryFn: async () => {
       if (!currentChatId) return null;
-      return fetchWithFallback<Chat>(
-        `${API_URL}/chats/${currentChatId}`, 
-        TEST_CHATS.find(c => c.id === currentChatId) || { 
-          id: currentChatId, 
-          name: "Чат",
-          aiEnabled: true
-        }
-      );
+      
+      const { data, error } = await supabase
+        .from('chats')
+        .select('*')
+        .eq('id', currentChatId)
+        .single();
+        
+      if (error) {
+        console.error('Error fetching chat details:', error);
+        throw error;
+      }
+      
+      return data as Chat;
     },
     enabled: !!currentChatId
   });
@@ -42,12 +47,10 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   useEffect(() => {
     if (chatDetails) {
       setChatName(chatDetails.name || "");
-      // Если бы API возвращало эти данные, мы бы устанавливали их здесь
-      // setContactName(chatDetails.contactName || "");
-      // setContactTags(chatDetails.tags || []);
     }
   }, [chatDetails]);
 
+  // Получение сообщений для текущего чата
   const { 
     data: messages = [],
     isLoading: messagesLoading,
@@ -57,59 +60,116 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     queryKey: ['messages', currentChatId],
     queryFn: async () => {
       if (!currentChatId) return [];
-      return fetchWithFallback<Message[]>(
-        `${API_URL}/messages/${currentChatId}`, 
-        TEST_MESSAGES[currentChatId] || []
-      );
+      
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('chat_id', currentChatId)
+        .order('created_at', { ascending: true });
+        
+      if (error) {
+        console.error('Error fetching messages:', error);
+        throw error;
+      }
+      
+      // Преобразуем данные в формат, ожидаемый приложением
+      return data.map(msg => ({
+        id: msg.id,
+        chatId: msg.chat_id,
+        content: msg.content,
+        timestamp: msg.created_at,
+        isFromUser: msg.is_from_user,
+        hasProduct: msg.has_product,
+        product: msg.has_product && msg.product_data ? {
+          id: msg.product_data.id,
+          imageUrl: msg.product_data.imageUrl,
+          price: msg.product_data.price
+        } : undefined
+      })) as Message[];
     },
     enabled: !!currentChatId
+  });
+
+  // Мутация для отправки сообщения
+  const sendMessageMutation = useMutation({
+    mutationFn: async ({ 
+      content, 
+      product, 
+      chatId 
+    }: { 
+      content: string; 
+      product?: Product; 
+      chatId: string;
+    }) => {
+      const messageData = {
+        chat_id: chatId,
+        content,
+        is_from_user: true,
+        has_product: !!product,
+        product_data: product ? {
+          id: product.id,
+          imageUrl: product.imageUrl, 
+          price: product.price
+        } : null
+      };
+      
+      const { data, error } = await supabase
+        .from('messages')
+        .insert([messageData])
+        .select();
+        
+      if (error) throw error;
+      
+      // Для демонстрации добавим ответ от AI после небольшой задержки
+      if (chatDetails?.aiEnabled) {
+        setTimeout(async () => {
+          const aiResponse = product
+            ? `Спасибо за интерес к букету за ${product.price} ₸! Как вам помочь с выбором?`
+            : `Спасибо за ваше сообщение! Чем я могу вам помочь?`;
+            
+          await supabase
+            .from('messages')
+            .insert([{
+              chat_id: chatId,
+              content: aiResponse,
+              is_from_user: false
+            }]);
+            
+          refetchMessages();
+        }, 1000);
+      }
+      
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages', currentChatId] });
+    },
+    onError: (error) => {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Ошибка отправки",
+        description: "Не удалось отправить сообщение",
+        variant: "destructive",
+      });
+    }
   });
 
   async function sendMessage(content: string, product?: Product) {
     if (!currentChatId) return;
     
     try {
-      // If there's a product, create a special product message
-      const messagePayload = product ? {
-        chatId: currentChatId,
-        content,
-        product: {
-          id: product.id,
-          imageUrl: product.imageUrl,
-          price: product.price
-        },
-        aiEnabled: chatDetails?.aiEnabled ?? true
-      } : {
-        chatId: currentChatId,
-        content,
-        aiEnabled: chatDetails?.aiEnabled ?? true
-      };
-      
-      const response = await fetch(`${API_URL}/messages`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(messagePayload),
+      await sendMessageMutation.mutateAsync({ 
+        content, 
+        product, 
+        chatId: currentChatId 
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error sending message:', errorText);
-        throw new Error('Ошибка отправки сообщения');
-      }
-      
-      refetchMessages();
-    } catch (error) {
-      console.error('Ошибка отправки сообщения:', error);
       
       toast({
         title: "Сообщение отправлено",
         description: product ? "Товар добавлен в чат" : "Сообщение добавлено в чат",
       });
-      
-      // Оптимистично обновляем UI
-      refetchMessages();
+    } catch (error) {
+      console.error('Ошибка отправки сообщения:', error);
     }
   }
 
@@ -118,9 +178,6 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     setContactTags(tags);
     
     try {
-      // Здесь был бы запрос к API для обновления данных клиента
-      // const response = await fetch(`${API_URL}/contacts/${currentChatId}`, {...});
-      
       toast({
         title: "Данные клиента обновлены",
         description: "Имя и теги успешно сохранены",

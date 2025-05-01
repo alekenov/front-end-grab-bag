@@ -1,8 +1,8 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { TEST_CHATS } from '@/data/mockData';
+import { supabase } from "@/integrations/supabase/client";
 
 // Define interfaces for type safety
 interface Chat {
@@ -22,108 +22,123 @@ interface ChatListProps {
   setCurrentChatId: (id: string | null) => void;
 }
 
-const TEST_CHATS_OLD = [
-  {
-    id: '1',
-    name: 'Служба поддержки',
-    aiEnabled: true,
-    unreadCount: 3,
-    lastMessage: {
-      content: 'Добрый день, чем могу помочь?',
-      timestamp: new Date().toISOString()
-    }
-  },
-  {
-    id: '2',
-    name: 'Клиент Иван',
-    aiEnabled: false,
-    unreadCount: 1,
-    lastMessage: {
-      content: 'Когда будет доставка?',
-      timestamp: new Date(Date.now() - 3600000).toISOString()
-    }
-  },
-  {
-    id: '3',
-    name: 'Менеджер продаж',
-    aiEnabled: true,
-    unreadCount: 0,
-    lastMessage: {
-      content: 'Рассмотрел ваше предложение.',
-      timestamp: new Date(Date.now() - 7200000).toISOString()
-    }
-  }
-];
-
 export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatListProps) {
   const { toast } = useToast();
-  const API_URL = window.APP_CONFIG?.API_URL || '/api';
+  const queryClient = useQueryClient();
   
-  console.log('Using API_URL:', API_URL);
-
-  const { data: chats = [], isLoading, error, refetch } = useQuery({
+  // Получение списка чатов
+  const { 
+    data: chats = [], 
+    isLoading, 
+    error, 
+    refetch 
+  } = useQuery({
     queryKey: ['chats'],
     queryFn: async () => {
       try {
-        console.log('Fetching chats from:', `${API_URL}/chats`);
-        const response = await fetch(`${API_URL}/chats`);
+        const { data: chatsData, error: chatsError } = await supabase
+          .from('chats')
+          .select('*')
+          .order('updated_at', { ascending: false });
+          
+        if (chatsError) throw chatsError;
         
-        // Log response details for debugging
-        console.log('Chats response status:', response.status);
-        const responseText = await response.text();
-        console.log('Chats response body:', responseText);
+        // Получаем последние сообщения для каждого чата
+        const chatsWithMessages = await Promise.all(
+          chatsData.map(async (chat) => {
+            // Запрашиваем последнее сообщение для этого чата
+            const { data: messagesData } = await supabase
+              .from('messages')
+              .select('content, created_at')
+              .eq('chat_id', chat.id)
+              .order('created_at', { ascending: false })
+              .limit(1);
+              
+            return {
+              id: chat.id,
+              name: chat.name,
+              aiEnabled: chat.ai_enabled,
+              unreadCount: chat.unread_count,
+              lastMessage: messagesData && messagesData.length > 0 ? {
+                content: messagesData[0].content,
+                timestamp: messagesData[0].created_at
+              } : undefined
+            };
+          })
+        );
         
-        if (!response.ok) throw new Error(`Ошибка загрузки чатов: ${response.status}`);
-        
-        try {
-          // Try to parse the response as JSON
-          const data = JSON.parse(responseText);
-          return data as Chat[];
-        } catch (parseError) {
-          console.error('Failed to parse response as JSON:', parseError);
-          throw new Error('Invalid JSON response from server');
-        }
-      } catch (fetchError) {
-        console.warn('Не удалось загрузить чаты, используем тестовые данные:', fetchError);
-        return TEST_CHATS;
+        return chatsWithMessages;
+      } catch (error) {
+        console.error('Error fetching chats:', error);
+        throw error;
       }
     },
-    // Всегда используем тестовые данные в качестве запасного варианта
-    placeholderData: TEST_CHATS
+    // Добавим запасной вариант с тестовыми данными
+    placeholderData: [
+      {
+        id: '1',
+        name: 'Служба поддержки',
+        aiEnabled: true,
+        unreadCount: 3,
+        lastMessage: {
+          content: 'Добрый день, чем могу помочь?',
+          timestamp: new Date().toISOString()
+        }
+      },
+      {
+        id: '2',
+        name: 'Клиент Иван',
+        aiEnabled: false,
+        unreadCount: 1,
+        lastMessage: {
+          content: 'Когда будет доставка?',
+          timestamp: new Date(Date.now() - 3600000).toISOString()
+        }
+      }
+    ]
   });
 
-  // Filter chats based on search query
-  const filteredChats = chats.filter(chat => 
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (chat.lastMessage && chat.lastMessage.content.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
-  async function toggleAI(chatId: string, enabled: boolean) {
-    try {
-      const response = await fetch(`${API_URL}/chats/${chatId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ aiEnabled: enabled }),
-      });
-
-      if (!response.ok) throw new Error('Ошибка обновления статуса AI');
-      
-      await refetch();
+  // Мутация для обновления статуса AI в чате
+  const toggleAIMutation = useMutation({
+    mutationFn: async ({ chatId, enabled }: { chatId: string; enabled: boolean }) => {
+      const { error } = await supabase
+        .from('chats')
+        .update({ ai_enabled: enabled })
+        .eq('id', chatId);
+        
+      if (error) throw error;
+      return { chatId, enabled };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
       toast({
-        title: `AI ${enabled ? 'включен' : 'выключен'}`,
-        description: `AI был ${enabled ? 'включен' : 'выключен'} для выбранного чата`,
+        title: `AI ${data.enabled ? 'включен' : 'выключен'}`,
+        description: `AI был ${data.enabled ? 'включен' : 'выключен'} для выбранного чата`,
       });
-    } catch (error) {
-      console.error('Ошибка переключения AI:', error);
+    },
+    onError: (error) => {
+      console.error('Error toggling AI:', error);
       toast({
         variant: "destructive",
         title: "Ошибка",
         description: "Не удалось изменить настройки AI",
       });
     }
+  });
+
+  async function toggleAI(chatId: string, enabled: boolean) {
+    try {
+      await toggleAIMutation.mutateAsync({ chatId, enabled });
+    } catch (error) {
+      console.error('Ошибка переключения AI:', error);
+    }
   }
+
+  // Фильтрация чатов на основе поискового запроса
+  const filteredChats = chats.filter(chat => 
+    chat.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (chat.lastMessage && chat.lastMessage.content.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   function formatTime(timestamp: string) {
     if (!timestamp) return '';
@@ -133,7 +148,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
 
   const handleChatSelect = (id: string) => {
     setCurrentChatId(id);
-    // Close sheet on mobile when selecting a chat
+    // Закрываем sheet на мобильных устройствах при выборе чата
     const sheet = document.querySelector('[data-state="open"]');
     if (sheet) {
       const closeButton = sheet.querySelector('button[data-state]') as HTMLButtonElement;
@@ -142,6 +157,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
   };
 
   if (isLoading) return <div className="p-4 text-center text-gray-500">Загрузка чатов...</div>;
+  
   if (error) {
     console.error('Error loading chats:', error);
     return (
@@ -156,6 +172,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
       </div>
     );
   }
+  
   if (filteredChats.length === 0) return <div className="p-4 text-center text-gray-500">Нет активных чатов</div>;
 
   return (
