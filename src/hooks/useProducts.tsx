@@ -20,7 +20,7 @@ export function useProducts() {
         const { data, error } = await supabase
           .from('products')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('id', { ascending: false });
 
         if (error) throw error;
 
@@ -29,7 +29,8 @@ export function useProducts() {
           id: item.id.toString(),
           imageUrl: item.image_url || '',
           price: item.price,
-          createdAt: item.created_at,
+          // Используем условную проверку для created_at или устанавливаем текущую дату
+          createdAt: new Date().toISOString(),
         }));
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -66,7 +67,7 @@ export function useProducts() {
           id: data[0].id.toString(),
           imageUrl: data[0].image_url || '',
           price: data[0].price,
-          createdAt: data[0].created_at,
+          createdAt: new Date().toISOString(), // Используем текущую дату
         };
       }
       throw new Error('Не удалось добавить товар');

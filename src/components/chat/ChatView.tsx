@@ -6,7 +6,7 @@ import { MessageList } from "./MessageList";
 import { ChatHeader } from "./ChatHeader";
 import { MessageInput } from "./MessageInput";
 import { EmptyState } from "./EmptyState";
-import { Message, Chat } from "@/types/chat";
+import { Message, Chat, SupabaseChat, SupabaseMessage } from "@/types/chat";
 import { Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -39,7 +39,18 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
         throw error;
       }
       
-      return data as Chat;
+      // Преобразуем данные из Supabase в формат нашего приложения
+      const supabaseChat = data as SupabaseChat;
+      const chat: Chat = {
+        id: supabaseChat.id,
+        name: supabaseChat.name,
+        aiEnabled: supabaseChat.ai_enabled,
+        unreadCount: supabaseChat.unread_count || 0,
+        created_at: supabaseChat.created_at || undefined,
+        updated_at: supabaseChat.updated_at || undefined
+      };
+      
+      return chat;
     },
     enabled: !!currentChatId
   });
@@ -72,20 +83,29 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
         throw error;
       }
       
-      // Преобразуем данные в формат, ожидаемый приложением
-      return data.map(msg => ({
-        id: msg.id,
-        chatId: msg.chat_id,
-        content: msg.content,
-        timestamp: msg.created_at,
-        isFromUser: msg.is_from_user,
-        hasProduct: msg.has_product,
-        product: msg.has_product && msg.product_data ? {
-          id: msg.product_data.id,
-          imageUrl: msg.product_data.imageUrl,
-          price: msg.product_data.price
-        } : undefined
-      })) as Message[];
+      // Преобразуем данные из Supabase в формат нашего приложения
+      return data.map((msg: SupabaseMessage) => {
+        const message: Message = {
+          id: msg.id,
+          content: msg.content,
+          timestamp: msg.created_at || new Date().toISOString(),
+          role: msg.is_from_user ? "USER" : "BOT"
+        };
+        
+        // Добавляем информацию о продукте, если она есть
+        if (msg.has_product && msg.product_data) {
+          const productData = msg.product_data as any;
+          if (typeof productData === 'object') {
+            message.product = {
+              id: productData.id?.toString() || "",
+              imageUrl: productData.imageUrl || "",
+              price: Number(productData.price) || 0
+            };
+          }
+        }
+        
+        return message;
+      });
     },
     enabled: !!currentChatId
   });
