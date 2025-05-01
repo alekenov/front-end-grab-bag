@@ -23,9 +23,13 @@ export function useChatApi() {
     queryKey: ['chats-api'],
     queryFn: async () => {
       try {
+        // Получаем текущую сессию
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token || '';
+        
         const response = await fetch(`${CHAT_API_URL}/chats`, {
           headers: {
-            'Authorization': `Bearer ${supabase.auth.session()?.access_token || ''}`,
+            'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
           }
         });
@@ -52,9 +56,13 @@ export function useChatApi() {
         if (!chatId) return [];
         
         try {
+          // Получаем текущую сессию
+          const { data: sessionData } = await supabase.auth.getSession();
+          const accessToken = sessionData?.session?.access_token || '';
+          
           const response = await fetch(`${CHAT_API_URL}/messages?chatId=${chatId}`, {
             headers: {
-              'Authorization': `Bearer ${supabase.auth.session()?.access_token || ''}`,
+              'Authorization': `Bearer ${accessToken}`,
               'Content-Type': 'application/json'
             }
           });
@@ -86,10 +94,14 @@ export function useChatApi() {
       content: string; 
       product?: Product;
     }) => {
+      // Получаем текущую сессию
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token || '';
+      
       const response = await fetch(`${CHAT_API_URL}/send`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${supabase.auth.session()?.access_token || ''}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ chatId, content, product })
