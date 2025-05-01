@@ -12,31 +12,46 @@ interface MessageListProps {
 export function MessageList({ messages, isLoading = false }: MessageListProps) {
   // Group messages by date
   const messagesByDate = useMemo(() => {
+    if (!messages || messages.length === 0) {
+      return {};
+    }
+    
     const grouped: MessagesByDate = {};
     
     messages.forEach((message) => {
-      // Проверяем, что message.timestamp существует
-      if (!message.timestamp) {
-        console.warn('Message is missing timestamp:', message);
+      // Проверяем, что message и message.timestamp существуют
+      if (!message || !message.timestamp) {
+        console.warn('Message is missing or has no timestamp:', message);
         return;
       }
       
-      const date = formatDate(message.timestamp);
-      if (!grouped[date]) {
-        grouped[date] = [];
+      try {
+        const date = formatDate(message.timestamp);
+        if (!grouped[date]) {
+          grouped[date] = [];
+        }
+        grouped[date].push(message);
+      } catch (error) {
+        console.error('Error formatting message date:', error, message);
       }
-      grouped[date].push(message);
     });
     
     return grouped;
   }, [messages]);
   
   if (isLoading) {
-    return <div className="text-center text-gray-500">Загрузка сообщений...</div>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-t-[#1a73e8] border-r-[#1a73e8] border-b-[#1a73e8] border-l-transparent rounded-full animate-spin mb-3"></div>
+          <div className="text-gray-500">Загрузка сообщений...</div>
+        </div>
+      </div>
+    );
   }
   
-  if (messages.length === 0) {
-    return <div className="text-center text-gray-500">Нет сообщений</div>;
+  if (!messages || messages.length === 0) {
+    return <div className="text-center text-gray-500 py-6">Нет сообщений</div>;
   }
 
   // Логируем для отладки
@@ -46,7 +61,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
   return (
     <div className="flex flex-col space-y-5">
       {Object.entries(messagesByDate).map(([date, dateMessages]) => (
-        <MessageGroup key={date} date={date} messages={dateMessages} />
+        <MessageGroup key={date} date={date} messages={dateMessages || []} />
       ))}
     </div>
   );

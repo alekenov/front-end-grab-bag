@@ -28,29 +28,34 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     queryFn: async () => {
       if (!currentChatId) return null;
       
-      const { data, error } = await supabase
-        .from('chats')
-        .select('*')
-        .eq('id', currentChatId)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('chats')
+          .select('*')
+          .eq('id', currentChatId)
+          .single();
+          
+        if (error) {
+          console.error('Error fetching chat details:', error);
+          throw error;
+        }
         
-      if (error) {
-        console.error('Error fetching chat details:', error);
-        throw error;
+        // Преобразуем данные из Supabase в формат нашего приложения
+        const supabaseChat = data as SupabaseChat;
+        const chat: Chat = {
+          id: supabaseChat.id,
+          name: supabaseChat.name,
+          aiEnabled: supabaseChat.ai_enabled,
+          unreadCount: supabaseChat.unread_count || 0,
+          created_at: supabaseChat.created_at || undefined,
+          updated_at: supabaseChat.updated_at || undefined
+        };
+        
+        return chat;
+      } catch (error) {
+        console.error('Error in chat details query:', error);
+        return null;
       }
-      
-      // Преобразуем данные из Supabase в формат нашего приложения
-      const supabaseChat = data as SupabaseChat;
-      const chat: Chat = {
-        id: supabaseChat.id,
-        name: supabaseChat.name,
-        aiEnabled: supabaseChat.ai_enabled,
-        unreadCount: supabaseChat.unread_count || 0,
-        created_at: supabaseChat.created_at || undefined,
-        updated_at: supabaseChat.updated_at || undefined
-      };
-      
-      return chat;
     },
     enabled: !!currentChatId
   });
@@ -72,40 +77,54 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     queryFn: async () => {
       if (!currentChatId) return [];
       
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('chat_id', currentChatId)
-        .order('created_at', { ascending: true });
+      try {
+        console.log('Fetching messages for chat ID:', currentChatId);
         
-      if (error) {
-        console.error('Error fetching messages:', error);
-        throw error;
-      }
-      
-      // Преобразуем данные из Supabase в формат нашего приложения
-      return data.map((msg: SupabaseMessage) => {
-        const message: Message = {
-          id: msg.id,
-          content: msg.content,
-          timestamp: msg.created_at || new Date().toISOString(),
-          role: msg.is_from_user ? "USER" : "BOT"
-        };
-        
-        // Добавляем информацию о продукте, если она есть
-        if (msg.has_product && msg.product_data) {
-          const productData = msg.product_data as any;
-          if (typeof productData === 'object') {
-            message.product = {
-              id: productData.id?.toString() || "",
-              imageUrl: productData.imageUrl || "",
-              price: Number(productData.price) || 0
-            };
-          }
+        const { data, error } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('chat_id', currentChatId)
+          .order('created_at', { ascending: true });
+          
+        if (error) {
+          console.error('Error fetching messages:', error);
+          throw error;
         }
         
-        return message;
-      });
+        console.log('Received messages:', data?.length || 0);
+        
+        // Преобразуем данные из Supabase в формат нашего приложения
+        return data.map((msg: SupabaseMessage) => {
+          const message: Message = {
+            id: msg.id,
+            content: msg.content || "",
+            timestamp: msg.created_at || new Date().toISOString(),
+            role: msg.is_from_user ? "USER" : "BOT"
+          };
+          
+          // Добавляем информацию о продукте, если она есть
+          if (msg.has_product && msg.product_data) {
+            try {
+              const productData = typeof msg.product_data === 'string' 
+                ? JSON.parse(msg.product_data) 
+                : msg.product_data;
+                
+              message.product = {
+                id: String(productData.id || ""),
+                imageUrl: productData.imageUrl || "",
+                price: Number(productData.price) || 0
+              };
+            } catch (e) {
+              console.error('Error parsing product data:', e);
+            }
+          }
+          
+          return message;
+        });
+      } catch (error) {
+        console.error('Error in messages query:', error);
+        return [];
+      }
     },
     enabled: !!currentChatId
   });
