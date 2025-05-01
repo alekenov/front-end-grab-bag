@@ -5,9 +5,10 @@ import { Product } from "@/types/product";
 interface ProductListProps {
   products: Product[];
   onDelete: (id: string) => void;
+  inChatMode?: boolean;
 }
 
-export function ProductList({ products, onDelete }: ProductListProps) {
+export function ProductList({ products, onDelete, inChatMode = false }: ProductListProps) {
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-48 text-gray-500">
@@ -24,6 +25,7 @@ export function ProductList({ products, onDelete }: ProductListProps) {
           key={product.id} 
           product={product}
           onDelete={onDelete}
+          inChatMode={inChatMode}
         />
       ))}
     </div>

@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { ProductList } from "@/components/products/ProductList";
@@ -11,6 +12,8 @@ import { NewProduct } from "@/types/product";
 export default function ProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { products, isLoading, addProduct, deleteProduct } = useProducts();
+  const location = useLocation();
+  const inChatMode = location.state?.fromChat || false;
 
   const handleAddProduct = (product: NewProduct) => {
     addProduct(product);
@@ -22,7 +25,9 @@ export default function ProductsPage() {
       <div className="relative h-full flex flex-col">
         <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8]">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl font-semibold text-[#1a73e8]">Товары</h1>
+            <h1 className="text-xl font-semibold text-[#1a73e8]">
+              {inChatMode ? "Выберите товар для чата" : "Товары"}
+            </h1>
           </div>
         </div>
         
@@ -35,17 +40,20 @@ export default function ProductsPage() {
             <ProductList 
               products={products}
               onDelete={deleteProduct}
+              inChatMode={inChatMode}
             />
           )}
         </div>
         
-        {/* Floating action button for adding products */}
-        <Button 
-          className="fixed right-4 bottom-20 md:bottom-4 h-14 w-14 rounded-full shadow-lg z-10"
-          onClick={() => setDialogOpen(true)}
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
+        {/* Floating action button for adding products (only show in normal mode) */}
+        {!inChatMode && (
+          <Button 
+            className="fixed right-4 bottom-20 md:bottom-4 h-14 w-14 rounded-full shadow-lg z-10"
+            onClick={() => setDialogOpen(true)}
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        )}
         
         <AddProductDialog 
           open={dialogOpen}

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -8,6 +9,7 @@ import { EmptyState } from "./EmptyState";
 import { Message, Chat } from "@/types/chat";
 import { getApiUrl, fetchWithFallback } from "@/utils/apiHelpers";
 import { TEST_MESSAGES, TEST_CHATS } from '@/data/mockData';
+import { Product } from "@/types/product";
 
 interface ChatViewProps {
   currentChatId: string | null;
@@ -63,20 +65,32 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     enabled: !!currentChatId
   });
 
-  async function sendMessage(content: string) {
+  async function sendMessage(content: string, product?: Product) {
     if (!currentChatId) return;
     
     try {
+      // If there's a product, create a special product message
+      const messagePayload = product ? {
+        chatId: currentChatId,
+        content,
+        product: {
+          id: product.id,
+          imageUrl: product.imageUrl,
+          price: product.price
+        },
+        aiEnabled: chatDetails?.aiEnabled ?? true
+      } : {
+        chatId: currentChatId,
+        content,
+        aiEnabled: chatDetails?.aiEnabled ?? true
+      };
+      
       const response = await fetch(`${API_URL}/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          chatId: currentChatId,
-          content,
-          aiEnabled: chatDetails?.aiEnabled ?? true
-        }),
+        body: JSON.stringify(messagePayload),
       });
 
       if (!response.ok) {
@@ -91,7 +105,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
       
       toast({
         title: "Сообщение отправлено",
-        description: "Реального API нет, но сообщение было бы отправлено",
+        description: product ? "Товар добавлен в чат" : "Сообщение добавлено в чат",
       });
       
       // Оптимистично обновляем UI

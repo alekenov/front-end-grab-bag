@@ -1,14 +1,15 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, Image, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useNavigate } from "react-router-dom";
+import { Product } from "@/types/product";
 
 interface MessageInputProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, product?: Product) => void;
   disabled?: boolean;
 }
 
@@ -17,6 +18,22 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const navigate = useNavigate();
+  
+  // Check for selected product in localStorage on component mount
+  useEffect(() => {
+    const selectedProductJson = localStorage.getItem("selected_product");
+    if (selectedProductJson) {
+      try {
+        const product = JSON.parse(selectedProductJson);
+        // Send the product to chat
+        onSendMessage(`Букет за ${product.price.toLocaleString()} ₸`, product);
+        // Clear the selected product from localStorage
+        localStorage.removeItem("selected_product");
+      } catch (error) {
+        console.error("Error parsing selected product:", error);
+      }
+    }
+  }, [onSendMessage]);
   
   const handleSend = () => {
     if (!message.trim() || disabled) return;
@@ -49,7 +66,7 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
   };
 
   const handleProductsNavigate = () => {
-    navigate('/products');
+    navigate('/products', { state: { fromChat: true } });
   };
 
   return (

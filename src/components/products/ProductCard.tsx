@@ -4,21 +4,40 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Plus } from "lucide-react";
 import { Product } from "@/types/product";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface ProductCardProps {
   product: Product;
   onDelete: (id: string) => void;
+  inChatMode?: boolean;
 }
 
-export function ProductCard({ product, onDelete }: ProductCardProps) {
+export function ProductCard({ product, onDelete, inChatMode = false }: ProductCardProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const handleAddToChat = () => {
-    // For now just show a toast notification
-    toast({
-      title: "Товар добавлен",
-      description: `Товар за ${product.price.toLocaleString()} ₸ добавлен в чат`,
-    });
+    // Save the selected product to localStorage
+    try {
+      localStorage.setItem("selected_product", JSON.stringify(product));
+      
+      toast({
+        title: "Товар добавлен",
+        description: `Товар за ${product.price.toLocaleString()} ₸ добавлен в чат`,
+      });
+      
+      // Navigate back to chat if in chat selection mode
+      if (inChatMode) {
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Error saving product:", error);
+      toast({
+        title: "Ошибка",
+        description: "Не удалось добавить товар в чат",
+        variant: "destructive",
+      });
+    }
   };
   
   return (
@@ -39,14 +58,16 @@ export function ProductCard({ product, onDelete }: ProductCardProps) {
       </div>
       <CardContent className="p-2 flex items-center justify-between">
         <div className="font-medium">{product.price.toLocaleString()} ₸</div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => onDelete(product.id)}
-          className="h-7 w-7 p-0"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+        {!inChatMode && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onDelete(product.id)}
+            className="h-7 w-7 p-0"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
