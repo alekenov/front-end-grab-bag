@@ -1,9 +1,11 @@
 
 import { useState, useRef } from "react";
-import { Send, Paperclip } from "lucide-react";
+import { Send, Paperclip, Image, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { useNavigate } from "react-router-dom";
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
@@ -14,6 +16,7 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
   const [message, setMessage] = useState("");
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const navigate = useNavigate();
   
   const handleSend = () => {
     if (!message.trim() || disabled) return;
@@ -45,16 +48,43 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
     input.click();
   };
 
+  const handleProductsNavigate = () => {
+    navigate('/products');
+  };
+
   return (
     <div className="fixed left-0 right-0 bottom-14 md:sticky md:bottom-0 p-3 md:p-4 bg-white border-t border-[#e1e4e8] flex gap-2 z-20">
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="h-9 w-9 shrink-0 rounded-full hover:bg-gray-100"
-        onClick={handleFileSelect}
-      >
-        <Paperclip className="h-5 w-5 text-gray-500" />
-      </Button>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-9 w-9 shrink-0 rounded-full hover:bg-gray-100"
+          >
+            <Paperclip className="h-5 w-5 text-gray-500" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-48 p-2">
+          <div className="flex flex-col gap-2">
+            <Button 
+              variant="ghost" 
+              className="justify-start gap-2" 
+              onClick={handleFileSelect}
+            >
+              <Image className="h-5 w-5" />
+              <span>Добавить медиа</span>
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="justify-start gap-2" 
+              onClick={handleProductsNavigate}
+            >
+              <ShoppingBag className="h-5 w-5" />
+              <span>Выбрать товар</span>
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
       <Textarea 
         value={message}
         onChange={(e) => setMessage(e.target.value)}
