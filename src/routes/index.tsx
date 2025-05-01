@@ -4,6 +4,7 @@ import ChatsPage from "@/pages/ChatsPage";
 import GuidePage from "@/pages/GuidePage";
 import AnalyticsPage from "@/pages/AnalyticsPage";
 import ApiPage from "@/pages/ApiPage";
+import ProductsPage from "@/pages/ProductsPage";
 
 const routes = createBrowserRouter([
   {
@@ -21,6 +22,10 @@ const routes = createBrowserRouter([
   {
     path: "/api",
     element: <ApiPage />,
+  },
+  {
+    path: "/products",
+    element: <ProductsPage />,
   },
   {
     // Add redirect for the old knowledge route

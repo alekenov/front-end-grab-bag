@@ -1,9 +1,9 @@
 
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { MessageSquare, BookOpen, ChartBar, Server } from "lucide-react";
+import { MessageSquare, BookOpen, ChartBar, Server, ShoppingBag } from "lucide-react";
 
-type PageType = "chats" | "guide" | "analytics" | "api";
+type PageType = "chats" | "guide" | "analytics" | "api" | "products";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -48,6 +48,15 @@ export function AppLayout({ children, title, activePage }: AppLayoutProps) {
           <span className="text-xs mt-0.5">Аналитика</span>
         </Link>
         <Link
+          to="/products"
+          className={`flex flex-col items-center justify-center w-16 ${
+            activePage === "products" ? "text-[#1a73e8]" : "text-gray-500"
+          }`}
+        >
+          <ShoppingBag className="h-5 w-5" />
+          <span className="text-xs mt-0.5">Товары</span>
+        </Link>
+        <Link
           to="/api"
           className={`flex flex-col items-center justify-center w-16 ${
             activePage === "api" ? "text-[#1a73e8]" : "text-gray-500"
@@ -87,6 +96,16 @@ export function AppLayout({ children, title, activePage }: AppLayoutProps) {
           }`}
         >
           <ChartBar className="h-6 w-6" />
+        </Link>
+        <Link
+          to="/products"
+          className={`flex flex-col items-center justify-center w-12 h-12 mb-2 rounded-lg ${
+            activePage === "products" 
+              ? "bg-[#e8f0fe] text-[#1a73e8]" 
+              : "text-gray-500 hover:bg-gray-100"
+          }`}
+        >
+          <ShoppingBag className="h-6 w-6" />
         </Link>
         <Link
           to="/api"

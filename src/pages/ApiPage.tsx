@@ -4,7 +4,7 @@ import { ApiDescription } from "@/components/api/ApiDescription";
 
 export default function ApiPage() {
   return (
-    <AppLayout title="API Документация" activePage="guide">
+    <AppLayout title="API Документация" activePage="api">
       <div className="h-full overflow-y-auto">
         <ApiDescription />
       </div>
