@@ -47,45 +47,31 @@ export const useChats = () => {
     queryKey: ['chats-api'],
     queryFn: async (): Promise<Chat[]> => {
       try {
-        // Сначала пробуем получить чаты напрямую из Supabase
-        let response = await supabase
-          .from('chats')
-          .select('*')
-          .order('updated_at', { ascending: false });
+        console.log('Получение чатов оптимизированным способом...');
+        
+        // Сначала пробуем получить чаты вместе с последними сообщениями через SQL-функцию
+        const { data, error } = await supabase.rpc('get_chats_with_last_messages');
+        
+        if (!error && data && data.length > 0) {
+          console.log('Получено чатов из SQL-функции:', data.length);
           
-        if (!response.error && response.data && response.data.length > 0) {
-          console.log('Получено чатов из Supabase:', response.data.length);
-          
-          // Получаем последнее сообщение для каждого чата
-          const chatsWithMessages = await Promise.all(
-            response.data.map(async (chat) => {
-              const { data: messages } = await supabase
-                .from('messages')
-                .select('content, created_at')
-                .eq('chat_id', chat.id)
-                .order('created_at', { ascending: false })
-                .limit(1);
-                
-              return {
-                id: chat.id,
-                name: chat.name,
-                aiEnabled: chat.ai_enabled,
-                unreadCount: chat.unread_count || 0,
-                lastMessage: messages && messages.length > 0 ? {
-                  content: messages[0].content || "",
-                  timestamp: messages[0].created_at || ""
-                } : undefined,
-                created_at: chat.created_at,
-                updated_at: chat.updated_at
-              };
-            })
-          );
-          
-          return chatsWithMessages;
+          // Преобразуем данные в формат, ожидаемый фронтендом
+          return data.map(chat => ({
+            id: chat.id,
+            name: chat.name,
+            aiEnabled: chat.ai_enabled,
+            unreadCount: chat.unread_count || 0,
+            lastMessage: chat.last_message_content ? {
+              content: chat.last_message_content,
+              timestamp: chat.last_message_timestamp
+            } : undefined,
+            created_at: chat.created_at,
+            updated_at: chat.updated_at
+          }));
         }
         
-        // Если не удалось получить через Supabase, пробуем API
-        console.log('Пробуем получить чаты через API...');
+        // Если SQL-функция недоступна, используем API
+        console.log('SQL-функция недоступна, пробуем API...');
         
         // Получаем сессию авторизации
         const { accessToken } = await getAuthSession();
@@ -94,7 +80,7 @@ export const useChats = () => {
         const apiUrl = `${getApiUrl()}/chats`;
         console.log(`Запрос к API: ${apiUrl}`);
         
-        const data = await fetchWithFallback(
+        const apiData = await fetchWithFallback(
           apiUrl,
           { chats: DEMO_CHATS },
           {
@@ -105,9 +91,9 @@ export const useChats = () => {
           }
         );
         
-        if (data.chats) {
-          console.log(`Получено ${data.chats.length} чатов от API`);
-          return data.chats;
+        if (apiData.chats) {
+          console.log(`Получено ${apiData.chats.length} чатов от API`);
+          return apiData.chats;
         }
         
         // Если всё равно не удалось, показываем демо-чаты

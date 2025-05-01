@@ -61,39 +61,32 @@ serve(async (req) => {
 // Обработчик запросов к чатам
 async function handleChats(req: Request, url: URL) {
   if (req.method === "GET") {
-    // Получение списка чатов с последними сообщениями
-    const { data, error } = await supabaseClient
-      .from("chats")
-      .select("*")
-      .order("updated_at", { ascending: false });
+    // Оптимизированный запрос: получаем чаты вместе с их последними сообщениями одним запросом
+    // Это решает проблему N+1 запросов
+    const { data, error } = await supabaseClient.rpc('get_chats_with_last_messages');
 
-    if (error) throw error;
+    if (error) {
+      console.error("Ошибка при получении чатов:", error);
+      throw error;
+    }
     
-    console.log("Получено чатов:", data.length);
+    console.log("Получено чатов с сообщениями:", data ? data.length : 0);
+    
+    // Преобразуем данные в формат, ожидаемый фронтендом
+    const formattedChats = data.map(chat => ({
+      id: chat.id,
+      name: chat.name,
+      aiEnabled: chat.ai_enabled,
+      unreadCount: chat.unread_count || 0,
+      lastMessage: chat.last_message_content ? {
+        content: chat.last_message_content,
+        timestamp: chat.last_message_timestamp
+      } : undefined,
+      created_at: chat.created_at,
+      updated_at: chat.updated_at
+    }));
 
-    // Получаем последние сообщения для каждого чата
-    const chatsWithLastMessage = await Promise.all(
-      data.map(async (chat) => {
-        const { data: messages } = await supabaseClient
-          .from("messages")
-          .select("content, created_at")
-          .eq("chat_id", chat.id)
-          .order("created_at", { ascending: false })
-          .limit(1);
-        
-        console.log(`Чат ${chat.id}: ${messages && messages.length > 0 ? 'есть сообщения' : 'нет сообщений'}`);
-        
-        return {
-          ...chat,
-          lastMessage: messages && messages.length > 0 ? {
-            content: messages[0].content,
-            timestamp: messages[0].created_at
-          } : undefined
-        };
-      })
-    );
-
-    return new Response(JSON.stringify({ chats: chatsWithLastMessage }), {
+    return new Response(JSON.stringify({ chats: formattedChats }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
