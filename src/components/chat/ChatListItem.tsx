@@ -1,55 +1,61 @@
 
-import { Switch } from "@/components/ui/switch";
+import { formatRelativeTime } from "@/utils/dateFormatters";
+import { Badge } from "@/components/ui/badge";
 import { Chat } from "@/types/chat";
-import { formatTime } from "@/utils/dateFormatters";
+import { Link } from "react-router-dom";
 
 interface ChatListItemProps {
   chat: Chat;
-  isActive: boolean;
-  onSelect: (id: string) => void;
-  onToggleAI: (chatId: string, enabled: boolean) => void;
+  isActive?: boolean;
+  onSelectChat: (id: string) => void;
 }
 
-export function ChatListItem({ chat, isActive, onSelect, onToggleAI }: ChatListItemProps) {
-  const handleToggleAI = (e: React.MouseEvent, checked: boolean) => {
-    e.stopPropagation();
-    onToggleAI(chat.id, checked);
+export function ChatListItem({ chat, isActive = false, onSelectChat }: ChatListItemProps) {
+  // Определяем текст последнего сообщения
+  const lastMessageContent = () => {
+    if (!chat.lastMessage) return "";
+    
+    // Проверяем, содержит ли последнее сообщение товар
+    if (chat.lastMessage.hasProduct) {
+      return `Товар: ${chat.lastMessage.price ? chat.lastMessage.price + " ₸" : ""}`;
+    }
+    
+    return chat.lastMessage.content;
   };
 
   return (
-    <li
-      className={`p-3 border-b border-[#f0f2f7] flex justify-between cursor-pointer transition-colors ${
-        isActive ? "bg-[#e8f0fe]" : "hover:bg-[#f5f7fb] active:bg-[#f0f2f7]"
+    <div
+      className={`p-3 cursor-pointer hover:bg-gray-50 flex items-center gap-3 border-b border-[#e1e4e8] transition-colors ${
+        isActive ? "bg-[#e8f0fe]" : ""
       }`}
-      onClick={() => onSelect(chat.id)}
+      onClick={() => onSelectChat(chat.id)}
     >
+      <div className="h-12 w-12 rounded-full bg-[#1a73e8] text-white flex items-center justify-center font-medium text-lg shrink-0">
+        {chat.name.charAt(0).toUpperCase()}
+      </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className="font-medium text-sm truncate">
-            {chat.name}
-          </span>
-          {chat.unreadCount && chat.unreadCount > 0 && (
-            <span className="shrink-0 bg-[#1a73e8] text-white text-xs font-medium px-1.5 py-0.5 rounded-full leading-none">
-              {chat.unreadCount}
+        <div className="flex items-center justify-between">
+          <span className="font-medium truncate">{chat.name}</span>
+          {chat.lastMessage?.timestamp && (
+            <span className="text-xs text-gray-500">
+              {formatRelativeTime(chat.lastMessage.timestamp)}
             </span>
           )}
         </div>
-        <span className="block text-xs text-gray-600 truncate">
-          {chat.lastMessage ? chat.lastMessage.content : "Нет сообщений"}
-        </span>
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-sm text-gray-600 truncate max-w-[190px]">
+            {lastMessageContent()}
+          </span>
+          {chat.unreadCount ? (
+            <Badge
+              variant="default"
+              className="ml-auto bg-[#1a73e8] text-[10px] h-5 min-w-5 flex items-center justify-center rounded-full px-1.5"
+            >
+              {chat.unreadCount}
+            </Badge>
+          ) : null}
+        </div>
       </div>
-      <div className="flex flex-col items-end ml-2.5 min-w-[60px]">
-        <span className="text-xs text-gray-500 mb-1">
-          {chat.lastMessage ? formatTime(chat.lastMessage.timestamp) : ""}
-        </span>
-        <Switch 
-          checked={chat.aiEnabled} 
-          onCheckedChange={(checked) => {
-            handleToggleAI(event as unknown as React.MouseEvent, checked);
-          }}
-          className="h-4 w-7 data-[state=checked]:bg-[#1a73e8]"
-        />
-      </div>
-    </li>
+    </div>
   );
 }

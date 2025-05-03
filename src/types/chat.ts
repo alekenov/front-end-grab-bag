@@ -23,6 +23,8 @@ export interface Chat {
   lastMessage?: {
     content: string;
     timestamp: string;
+    hasProduct?: boolean;
+    price?: number;
   };
   // Добавляем поля, соответствующие Supabase
   created_at?: string;
@@ -37,6 +39,10 @@ export interface SupabaseChat {
   unread_count: number | null;
   created_at: string | null;
   updated_at: string | null;
+  last_message_content?: string | null;
+  last_message_time?: string | null;
+  last_message_has_product?: boolean | null;
+  last_message_product_price?: number | null;
 }
 
 export interface SupabaseMessage {

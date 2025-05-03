@@ -29,7 +29,10 @@ export const useSendMessage = () => {
       }
     },
     onSuccess: (_, variables) => {
+      // Обновляем кэш сообщений для текущего чата
       queryClient.invalidateQueries({ queryKey: ['messages-api', variables.chatId] });
+      
+      // Обновляем список чатов для отображения последнего сообщения
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
       
       toast({

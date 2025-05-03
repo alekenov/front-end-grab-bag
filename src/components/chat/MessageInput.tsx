@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useNavigate } from "react-router-dom";
 import { Product } from "@/types/product";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface MessageInputProps {
   onSendMessage: (message: string, product?: Product) => void;
@@ -19,6 +20,7 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   // Check for selected product in localStorage on component mount
   useEffect(() => {
@@ -30,16 +32,22 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
         onSendMessage(`Букет за ${product.price.toLocaleString()} ₸`, product);
         // Clear the selected product from localStorage
         localStorage.removeItem("selected_product");
+        
+        // Инвалидируем кэш списка чатов, чтобы обновить последнее сообщение
+        queryClient.invalidateQueries({ queryKey: ['chats-api'] });
       } catch (error) {
         console.error("Error parsing selected product:", error);
       }
     }
-  }, [onSendMessage]);
+  }, [onSendMessage, queryClient]);
   
   const handleSend = () => {
     if (!message.trim() || disabled) return;
     onSendMessage(message);
     setMessage("");
+    
+    // Инвалидируем кэш списка чатов, чтобы обновить последнее сообщение
+    queryClient.invalidateQueries({ queryKey: ['chats-api'] });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
