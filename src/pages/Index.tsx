@@ -7,6 +7,7 @@ import { DataSourcesTab } from "@/components/datasources/DataSourcesTab";
 import { ExamplesTab } from "@/components/examples/ExamplesTab";
 import { Input } from "@/components/ui/input";
 import { MobileTabBar } from "@/components/navigation/MobileTabBar";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 export type TabType = "chat" | "datasources" | "examples";
 
@@ -14,14 +15,29 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState<TabType>("chat");
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
 
-  // Проверяем, есть ли сохраненный ID чата при возвращении с выбора товара
+  // Проверяем наличие параметра chatId в URL или сохраненный ID в localStorage
   useEffect(() => {
+    // Сначала проверяем URL-параметр chatId
+    const chatIdFromUrl = searchParams.get("chatId");
+    
+    if (chatIdFromUrl) {
+      console.log("Установка ID чата из URL:", chatIdFromUrl);
+      setCurrentChatId(chatIdFromUrl);
+      return;
+    }
+    
+    // Если в URL нет параметра, проверяем localStorage
     const savedChatId = localStorage.getItem("current_chat_id");
     if (savedChatId) {
+      console.log("Установка ID чата из localStorage:", savedChatId);
       setCurrentChatId(savedChatId);
+      // Очищаем localStorage, так как ID уже использован
+      localStorage.removeItem("current_chat_id");
     }
-  }, []);
+  }, [searchParams, location.search]); // Добавляем зависимость от location.search для реакции на изменение URL
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">

@@ -31,12 +31,15 @@ export function ProductCard({ product, onDelete, inChatMode = false }: ProductCa
         // Получаем ID сохраненного чата
         const currentChatId = localStorage.getItem("current_chat_id");
         
-        // Переходим на главную страницу с чатами
-        navigate("/");
-        
-        // Если есть сохраненный ID чата, удаляем его из localStorage
+        // ВАЖНО: Переходим на главную страницу с указанием ID чата в URL
         if (currentChatId) {
+          // Удаляем ID из localStorage
           localStorage.removeItem("current_chat_id");
+          // Переходим к конкретному чату на главной странице
+          navigate(`/?chatId=${currentChatId}`);
+        } else {
+          // Если по какой-то причине ID чата не был сохранен
+          navigate("/");
         }
       }
     } catch (error) {
