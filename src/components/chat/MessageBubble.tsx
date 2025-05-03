@@ -5,9 +5,10 @@ import { cn } from "@/lib/utils";
 
 interface MessageBubbleProps {
   message: Message;
+  isMobile?: boolean;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, isMobile }: MessageBubbleProps) {
   const isUser = message.role === "USER";
   const time = message.timestamp ? formatMessageTime(message.timestamp) : "--:--";
   
@@ -20,7 +21,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
         "px-4 py-3 rounded-lg max-w-[80%] relative group",
         isUser 
           ? "bg-[#e1f5fe] text-gray-800 rounded-tr-none" 
-          : "bg-white text-gray-800 rounded-tl-none shadow-sm"
+          : "bg-white text-gray-800 rounded-tl-none shadow-sm",
+        isMobile ? "max-w-[90%]" : "max-w-[80%]"
       )}>
         {message.product && (
           <div className="mb-2 p-2 bg-white rounded border border-gray-200">
