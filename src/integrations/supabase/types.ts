@@ -131,6 +131,7 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          source: string | null
           unread_count: number | null
           updated_at: string | null
         }
@@ -139,6 +140,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           name: string
+          source?: string | null
           unread_count?: number | null
           updated_at?: string | null
         }
@@ -147,6 +149,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           name?: string
+          source?: string | null
           unread_count?: number | null
           updated_at?: string | null
         }
@@ -566,6 +569,10 @@ export type Database = {
       hnswhandler: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      increment: {
+        Args: { row_id: string; table_name: string; column_name: string }
+        Returns: number
       }
       ivfflat_bit_support: {
         Args: { "": unknown }

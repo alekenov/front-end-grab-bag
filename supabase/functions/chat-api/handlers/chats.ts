@@ -32,7 +32,9 @@ export async function handleChats(req: Request, url: URL) {
         source: chat.source || "web", // Добавляем источник чата
         lastMessage: chat.last_message_content ? {
           content: chat.last_message_content,
-          timestamp: chat.last_message_timestamp
+          timestamp: chat.last_message_timestamp,
+          hasProduct: chat.last_message_has_product,
+          price: chat.last_message_product_price
         } : undefined,
         created_at: chat.created_at,
         updated_at: chat.updated_at
