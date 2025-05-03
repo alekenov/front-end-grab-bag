@@ -27,52 +27,69 @@ const DEMO_MESSAGES: Message[] = [
  * Хук для получения сообщений чата с использованием общего API-клиента
  */
 export const useMessages = (chatId: string | null) => {
-  const result = useApiQuery<Message[]>({
+  const result = useApiQuery<{ messages: Message[] }>({
     endpoint: chatId ? `chat-api/messages?chatId=${chatId}` : '',
     queryKey: ['messages-api', chatId],
     enabled: !!chatId,
     options: {
       requiresAuth: true,
-      fallbackData: chatId?.startsWith('demo-') ? DEMO_MESSAGES : []
+      fallbackData: chatId?.startsWith('demo-') 
+        ? { messages: DEMO_MESSAGES } 
+        : { messages: [] }
     },
     queryOptions: {
       retry: 1,
       refetchOnWindowFocus: true, // Обновлять при возврате на страницу
       refetchInterval: 5000, // Периодическое обновление каждые 5 секунд
       select: (data) => {
-        // Проверяем, что data существует и является массивом
+        // Проверяем, что data существует 
         if (!data) {
           console.warn('useMessages: No data received from API');
-          return chatId?.startsWith('demo-') ? DEMO_MESSAGES : [];
+          return chatId?.startsWith('demo-') 
+            ? { messages: DEMO_MESSAGES } 
+            : { messages: [] };
         }
         
-        if (!Array.isArray(data)) {
-          console.warn('useMessages: Received non-array data:', data);
-          
-          // Проверяем, есть ли вложенный массив messages
-          if (data && typeof data === 'object' && 'messages' in data && Array.isArray(data.messages)) {
-            return data.messages;
-          }
-          
-          return chatId?.startsWith('demo-') ? DEMO_MESSAGES : [];
+        // Если в data есть messages и это массив, используем его
+        if (data && typeof data === 'object' && 'messages' in data && Array.isArray(data.messages)) {
+          // Проверяем, что все сообщения имеют необходимые поля
+          return {
+            messages: data.messages.map(msg => ({
+              id: msg.id || `msg-${Date.now()}-${Math.random()}`,
+              content: msg.content || "",
+              role: msg.role || "BOT",
+              timestamp: msg.timestamp || new Date().toISOString(),
+              product: msg.product
+            }))
+          };
         }
         
-        // Проверяем, что все сообщения имеют необходимые поля
-        return data.map(msg => ({
-          id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-          content: msg.content || "",
-          role: msg.role || "BOT",
-          timestamp: msg.timestamp || new Date().toISOString(),
-          product: msg.product
-        }));
+        // Если data - массив (старый формат API), преобразуем его
+        if (Array.isArray(data)) {
+          return {
+            messages: data.map(msg => ({
+              id: msg.id || `msg-${Date.now()}-${Math.random()}`,
+              content: msg.content || "",
+              role: msg.role || "BOT",
+              timestamp: msg.timestamp || new Date().toISOString(),
+              product: msg.product
+            }))
+          };
+        }
+        
+        // Резервный вариант
+        return chatId?.startsWith('demo-') 
+          ? { messages: DEMO_MESSAGES } 
+          : { messages: [] };
       }
     },
     errorMessage: "Ошибка загрузки сообщений"
   });
   
-  // Убедимся, что возвращаем массив даже если data равна null или undefined
-  const safeData = Array.isArray(result.data) ? result.data : 
-                  (chatId?.startsWith('demo-') ? DEMO_MESSAGES : []);
+  // Убедимся, что возвращаем массив даже если data.messages равна null или undefined
+  const safeData = result.data?.messages 
+    ? result.data.messages 
+    : (chatId?.startsWith('demo-') ? DEMO_MESSAGES : []);
   
   return {
     ...result,
