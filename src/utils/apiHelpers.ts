@@ -2,7 +2,7 @@
 // Получаем базовый URL для API
 export const getApiUrl = () => {
   // Используем API из конфигурации или прямую ссылку на Supabase Edge Functions
-  return window.APP_CONFIG?.API_URL || 'https://dkohweivbdwweyvyvcbc.supabase.co/functions/v1';
+  return window.APP_CONFIG?.API_URL || 'https://xcheceveynzdugmgwrmi.supabase.co/functions/v1';
 };
 
 // Функция для надежной загрузки с API с резервными данными

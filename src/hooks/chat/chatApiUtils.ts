@@ -7,7 +7,7 @@ import { getApiUrl } from "@/utils/apiHelpers";
 export const CHAT_API_URL = `${getApiUrl()}/chat-api`;
 
 // Анонимный токен доступа для использования, когда нет сессии
-export const ANON_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrb2h3ZWl2YmR3d2V5dnl2Y2JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM1NjU4OTYsImV4cCI6MjA0OTE0MTg5Nn0.5mQbONpvpBmRkwYO8ZSxnRupYAQ36USXIZWeQxKQLxs";
+export const ANON_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjaGVjZXZleW56ZHVnbWd3cm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMTI3NTQsImV4cCI6MjA2MTY4ODc1NH0.EtTP-fNb5UrCs6nB_O8mds8oTTBJCeWh1CmfmzDiuds";
 
 // Утилита разбора данных о продукте
 export const parseProductData = (productData: any) => {

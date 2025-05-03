@@ -4,7 +4,6 @@ import { corsHeaders } from "../utils.ts";
 
 // Создаем клиент Supabase с сервисным ключом для полного доступа к API
 const supabaseClient = createClient(
-  // Используем переменные окружения для URL и ключей Supabase
   Deno.env.get("SUPABASE_URL") ?? "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
