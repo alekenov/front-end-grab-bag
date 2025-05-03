@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { getApiUrl } from "./apiHelpers";
 
@@ -120,19 +119,19 @@ export const apiClient: ApiClient = {
 
   // Вспомогательные методы для различных типов запросов
   get<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'GET' });
+    return this.request(endpoint, { ...options, method: 'GET' }) as Promise<T>;
   },
   
   post<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'POST', body });
+    return this.request(endpoint, { ...options, method: 'POST', body }) as Promise<T>;
   },
   
   put<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'PUT', body });
+    return this.request(endpoint, { ...options, method: 'PUT', body }) as Promise<T>;
   },
   
   delete<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method'> = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
+    return this.request(endpoint, { ...options, method: 'DELETE' }) as Promise<T>;
   }
 };
 

@@ -11,12 +11,16 @@ import { ChatApiHook } from "./types";
  * Объединяет все операции с чатами в одном месте
  */
 export function useChatApi(): ChatApiHook {
+  // Исправляем деструктуризацию данных, чтобы в chats всегда был массив
   const { 
-    data: chats = [], 
+    data, 
     isLoading: isLoadingChats,
     error: chatsError,
     refetch: refetchChats
   } = useChats();
+
+  // Обеспечиваем, что chats всегда будет массивом
+  const chats = Array.isArray(data) ? data : data?.chats || [];
 
   const sendMessageMutation = useSendMessage();
   const toggleAIMutation = useToggleAI();
