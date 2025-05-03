@@ -110,20 +110,20 @@ export const apiClient = {
   },
 
   // Вспомогательные методы для различных типов запросов
-  get<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'GET' });
+  get<TResponse>(endpoint: string, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<TResponse> {
+    return this.request<TResponse>(endpoint, { ...options, method: 'GET' });
   },
   
-  post<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'POST', body });
+  post<TResponse>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<TResponse> {
+    return this.request<TResponse>(endpoint, { ...options, method: 'POST', body });
   },
   
-  put<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'PUT', body });
+  put<TResponse>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<TResponse> {
+    return this.request<TResponse>(endpoint, { ...options, method: 'PUT', body });
   },
   
-  delete<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method'> = {}): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
+  delete<TResponse>(endpoint: string, options: Omit<ApiRequestOptions, 'method'> = {}): Promise<TResponse> {
+    return this.request<TResponse>(endpoint, { ...options, method: 'DELETE' });
   }
 };
 
