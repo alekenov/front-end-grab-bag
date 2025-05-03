@@ -1,5 +1,5 @@
 
-import { formatTime } from "@/utils/dateFormatters";
+import { formatMessageTime } from "@/utils/dateFormatters";
 import { Message } from "@/types/chat";
 
 interface MessageBubbleProps {
@@ -53,7 +53,7 @@ export function MessageBubble({ message, isMobile }: MessageBubbleProps) {
         {formatMessageContent(message.content)}
       </div>
       <div className="text-[11px] text-gray-500 mt-1 px-1">
-        {formatTime(message.timestamp)}
+        {formatMessageTime(message.timestamp)}
       </div>
     </div>
   );

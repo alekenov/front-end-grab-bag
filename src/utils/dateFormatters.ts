@@ -66,3 +66,6 @@ export const formatMessageTime = (dateString: string): string => {
     return "";
   }
 };
+
+// Alias for formatMessageTime to make the transition easier
+export const formatTime = formatMessageTime;

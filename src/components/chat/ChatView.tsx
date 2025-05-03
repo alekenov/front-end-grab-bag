@@ -77,11 +77,11 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     return () => clearInterval(intervalId);
   }, [currentChatId, chatApi, refetchMessages, queryClient]);
   
-  // Обработчик обновления контакта
-  const handleUpdateContact = (data: { name: string; tags: string[] }) => {
-    setName(data.name);
-    setTags(data.tags);
-    console.log("[ChatView] Contact updated:", data);
+  // Обработчик обновления контакта - изменен, чтобы соответствовать сигнатуре в ChatHeader
+  const handleUpdateContact = (name: string, tags: string[]) => {
+    setName(name);
+    setTags(tags);
+    console.log("[ChatView] Contact updated:", { name, tags });
   };
   
   // Обработчик отправки сообщения
