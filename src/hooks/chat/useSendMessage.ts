@@ -29,11 +29,15 @@ export const useSendMessage = () => {
       }
     },
     onSuccess: (_, variables) => {
+      console.log('Message sent successfully! Updating queries...');
+      
       // Обновляем кэш сообщений для текущего чата
       queryClient.invalidateQueries({ queryKey: ['messages-api', variables.chatId] });
       
       // Обновляем список чатов для отображения последнего сообщения
+      // Используем более агрессивное обновление через refetchQueries
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+      queryClient.refetchQueries({ queryKey: ['chats-api'] });
       
       toast({
         title: "Сообщение отправлено",

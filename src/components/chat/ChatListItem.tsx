@@ -17,7 +17,7 @@ export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI 
     
     // Проверяем, содержит ли последнее сообщение товар
     if (chat.lastMessage.hasProduct) {
-      return `Товар: ${chat.lastMessage.price ? chat.lastMessage.price + " ₸" : ""}`;
+      return `Букет за ${chat.lastMessage.price ? chat.lastMessage.price.toLocaleString() + " ₸" : ""}`;
     }
     
     return chat.lastMessage.content;

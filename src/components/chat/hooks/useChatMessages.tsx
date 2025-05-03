@@ -104,6 +104,10 @@ export function useChatMessages(currentChatId: string | null, chatAiEnabled: boo
       
       // После отправки сообщения обновляем список чатов
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+      // Принудительно обновляем список чатов
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['chats-api'] });
+      }, 300);
       
       // Demo AI response after delay
       if (chatAiEnabled) {
@@ -123,6 +127,7 @@ export function useChatMessages(currentChatId: string | null, chatAiEnabled: boo
           refetchMessages();
           // Обновляем список чатов после ответа бота
           queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+          queryClient.refetchQueries({ queryKey: ['chats-api'] });
         }, 1000);
       }
       

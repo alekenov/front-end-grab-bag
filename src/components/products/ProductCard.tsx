@@ -5,6 +5,7 @@ import { Trash2, Plus } from "lucide-react";
 import { Product } from "@/types/product";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ProductCardProps {
   product: Product;
@@ -15,6 +16,7 @@ interface ProductCardProps {
 export function ProductCard({ product, onDelete, inChatMode = false }: ProductCardProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   const handleAddToChat = () => {
     // Сохраняем выбранный товар в localStorage
@@ -25,6 +27,9 @@ export function ProductCard({ product, onDelete, inChatMode = false }: ProductCa
         title: "Товар добавлен",
         description: `Товар за ${product.price.toLocaleString()} ₸ добавлен в чат`,
       });
+      
+      // Инвалидируем кэш списка чатов, чтобы он обновился после добавления товара
+      queryClient.invalidateQueries({ queryKey: ['chats-api'] });
       
       // Возвращаемся на страницу чата, если находимся в режиме выбора товара
       if (inChatMode) {

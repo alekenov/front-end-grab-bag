@@ -78,8 +78,11 @@ export const useChats = () => {
     },
     queryOptions: {
       refetchOnWindowFocus: true, // Будем обновлять данные при фокусе окна
-      refetchInterval: 10000,      // Периодическое обновление каждые 10 секунд
+      refetchInterval: 5000,      // Более частое обновление каждые 5 секунд
+      staleTime: 2000,            // Считаем данные устаревшими через 2 секунды
       select: (data: any) => {
+        console.log('Processing chats data:', data);
+        
         // Если данные пришли от API в формате Supabase
         if (Array.isArray(data) && data.length > 0 && ('ai_enabled' in data[0])) {
           return { chats: mapSupabaseChatsToAppFormat(data as SupabaseChat[]) };

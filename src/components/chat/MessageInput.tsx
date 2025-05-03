@@ -33,8 +33,11 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
         // Clear the selected product from localStorage
         localStorage.removeItem("selected_product");
         
-        // Инвалидируем кэш списка чатов, чтобы обновить последнее сообщение
+        // Принудительно инвалидируем и обновляем кэш списка чатов
         queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+        setTimeout(() => {
+          queryClient.refetchQueries({ queryKey: ['chats-api'] });
+        }, 300);
       } catch (error) {
         console.error("Error parsing selected product:", error);
       }
@@ -46,8 +49,11 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
     onSendMessage(message);
     setMessage("");
     
-    // Инвалидируем кэш списка чатов, чтобы обновить последнее сообщение
+    // Принудительно инвалидируем и обновляем кэш списка чатов
     queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+    setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: ['chats-api'] });
+    }, 300);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
