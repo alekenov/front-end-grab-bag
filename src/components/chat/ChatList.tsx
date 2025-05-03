@@ -88,7 +88,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
           key={chat.id}
           chat={chat}
           isActive={chat.id === currentChatId}
-          onSelect={handleChatSelect}
+          onSelectChat={handleChatSelect}
           onToggleAI={toggleAI}
         />
       ))}

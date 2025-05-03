@@ -2,15 +2,15 @@
 import { formatRelativeTime } from "@/utils/dateFormatters";
 import { Badge } from "@/components/ui/badge";
 import { Chat } from "@/types/chat";
-import { Link } from "react-router-dom";
 
 interface ChatListItemProps {
   chat: Chat;
   isActive?: boolean;
   onSelectChat: (id: string) => void;
+  onToggleAI?: (chatId: string, enabled: boolean) => Promise<any>;
 }
 
-export function ChatListItem({ chat, isActive = false, onSelectChat }: ChatListItemProps) {
+export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI }: ChatListItemProps) {
   // Определяем текст последнего сообщения
   const lastMessageContent = () => {
     if (!chat.lastMessage) return "";

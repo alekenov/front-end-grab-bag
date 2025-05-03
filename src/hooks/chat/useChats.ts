@@ -74,8 +74,12 @@ export const useChats = () => {
     queryKey: ['chats-api'],
     options: {
       requiresAuth: true,
-      fallbackData: DEMO_CHATS,
-      transformResponse: (data: any) => {
+      fallbackData: DEMO_CHATS
+    },
+    queryOptions: {
+      refetchOnWindowFocus: true, // Будем обновлять данные при фокусе окна
+      refetchInterval: 10000,      // Периодическое обновление каждые 10 секунд
+      select: (data: any) => {
         // Если данные пришли от API в формате Supabase
         if (Array.isArray(data) && data.length > 0 && ('ai_enabled' in data[0])) {
           return { chats: mapSupabaseChatsToAppFormat(data as SupabaseChat[]) };
@@ -83,10 +87,6 @@ export const useChats = () => {
         // Если данные пришли в формате нашего приложения или в виде fallbackData
         return data;
       }
-    },
-    queryOptions: {
-      refetchOnWindowFocus: true, // Будем обновлять данные при фокусе окна
-      refetchInterval: 10000      // Периодическое обновление каждые 10 секунд
     },
     errorMessage: "Ошибка загрузки чатов"
   });
