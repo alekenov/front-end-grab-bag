@@ -28,7 +28,16 @@ export function ProductCard({ product, onDelete, inChatMode = false }: ProductCa
       
       // Возвращаемся на страницу чата, если находимся в режиме выбора товара
       if (inChatMode) {
+        // Получаем ID сохраненного чата
+        const currentChatId = localStorage.getItem("current_chat_id");
+        
+        // Переходим на главную страницу с чатами
         navigate("/");
+        
+        // Если есть сохраненный ID чата, удаляем его из localStorage
+        if (currentChatId) {
+          localStorage.removeItem("current_chat_id");
+        }
       }
     } catch (error) {
       console.error("Error saving product:", error);

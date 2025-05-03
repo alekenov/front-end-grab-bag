@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ChatList } from "@/components/chat/ChatList";
 import { ChatView } from "@/components/chat/ChatView";
@@ -14,6 +14,14 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState<TabType>("chat");
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Проверяем, есть ли сохраненный ID чата при возвращении с выбора товара
+  useEffect(() => {
+    const savedChatId = localStorage.getItem("current_chat_id");
+    if (savedChatId) {
+      setCurrentChatId(savedChatId);
+    }
+  }, []);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">

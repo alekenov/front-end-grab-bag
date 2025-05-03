@@ -45,7 +45,10 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
         <MessageList messages={messages} isLoading={messagesLoading} />
       </div>
       
-      <MessageInput onSendMessage={sendMessage} />
+      <MessageInput 
+        onSendMessage={sendMessage} 
+        currentChatId={currentChatId}
+      />
     </>
   );
 }

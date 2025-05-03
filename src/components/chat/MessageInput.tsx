@@ -11,9 +11,10 @@ import { Product } from "@/types/product";
 interface MessageInputProps {
   onSendMessage: (message: string, product?: Product) => void;
   disabled?: boolean;
+  currentChatId?: string | null;
 }
 
-export function MessageInput({ onSendMessage, disabled = false }: MessageInputProps) {
+export function MessageInput({ onSendMessage, disabled = false, currentChatId }: MessageInputProps) {
   const [message, setMessage] = useState("");
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -66,6 +67,10 @@ export function MessageInput({ onSendMessage, disabled = false }: MessageInputPr
   };
 
   const handleProductsNavigate = () => {
+    // Сохраняем ID текущего чата перед переходом на страницу товаров
+    if (currentChatId) {
+      localStorage.setItem("current_chat_id", currentChatId);
+    }
     navigate('/products', { state: { fromChat: true } });
   };
 
