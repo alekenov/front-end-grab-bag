@@ -22,11 +22,6 @@ export default function ChatsPage() {
       
       // Обновляем URL при выборе чата
       navigate(`/?chatId=${id}`, { replace: true });
-      
-      // При отсутствии чатов, создаем демо-чат
-      if (id.startsWith('demo-')) {
-        console.log("[ChatsPage] Using demo chat");
-      }
     } else {
       setCurrentChatId(null);
       navigate('/', { replace: true });
@@ -64,20 +59,8 @@ export default function ChatsPage() {
       
       // Очищаем localStorage, так как ID уже использован
       localStorage.removeItem("current_chat_id");
-    } else {
-      // Если нет сохраненного ID, создаем демо-чат
-      console.log("[ChatsPage] No chat ID found, using demo chat");
-      const demoId = `demo-${Date.now()}`;
-      setCurrentChatId(demoId);
-      navigate(`/?chatId=${demoId}`, { replace: true });
-      
-      // Показываем уведомление о демо-чате
-      toast({
-        title: "Демо-чат",
-        description: "Создан демонстрационный чат с примерами сообщений",
-      });
     }
-  }, [searchParams, navigate, toast]);
+  }, [searchParams, navigate]);
 
   return (
     <AppLayout title="Чаты" activePage="chats">

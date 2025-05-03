@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ChatListItem } from "./ChatListItem";
 import { useChatApi } from "@/hooks/chat";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Loader } from "lucide-react"; // Use Loader from lucide-react instead of ReloadIcon
+import { Loader } from "lucide-react";
 
 interface ChatListProps {
   searchQuery: string;
