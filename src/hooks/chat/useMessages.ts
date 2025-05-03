@@ -37,7 +37,16 @@ export const useMessages = (chatId: string | null) => {
     },
     queryOptions: {
       retry: 1,
-      refetchOnWindowFocus: false
+      refetchOnWindowFocus: false,
+      select: (data) => {
+        // Гарантируем, что data всегда будет массивом
+        if (!data) return [];
+        if (!Array.isArray(data)) {
+          console.warn('useMessages: Received non-array data:', data);
+          return [];
+        }
+        return data;
+      }
     },
     errorMessage: "Ошибка загрузки сообщений"
   });

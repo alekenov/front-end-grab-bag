@@ -65,14 +65,17 @@ export function useChatApi(): ChatApiHook {
    */
   const getMessages = (chatId: string | null) => {
     const { 
-      data = [], 
+      data, 
       isLoading, 
       error, 
       refetch 
     } = useMessages(chatId);
 
+    // Гарантируем, что всегда возвращается массив
+    const safeMessages = Array.isArray(data) ? data : [];
+
     return {
-      data,
+      data: safeMessages,
       isLoading,
       error,
       refetch

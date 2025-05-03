@@ -12,7 +12,7 @@ interface MessageListProps {
 export function MessageList({ messages, isLoading = false }: MessageListProps) {
   // Group messages by date
   const messagesByDate = useMemo(() => {
-    if (!messages || messages.length === 0) {
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return {};
     }
     
@@ -50,7 +50,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
     );
   }
   
-  if (!messages || messages.length === 0) {
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return <div className="text-center text-gray-500 py-6">Нет сообщений</div>;
   }
   
