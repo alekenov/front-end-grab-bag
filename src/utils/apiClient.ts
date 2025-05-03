@@ -14,6 +14,15 @@ export interface ApiRequestOptions {
   timeoutMs?: number;
 }
 
+// Интерфейс для API клиента со всеми методами
+export interface ApiClient {
+  request<T>(endpoint: string, options?: ApiRequestOptions): Promise<T>;
+  get<T>(endpoint: string, options?: Omit<ApiRequestOptions, 'method' | 'body'>): Promise<T>;
+  post<T>(endpoint: string, body: any, options?: Omit<ApiRequestOptions, 'method' | 'body'>): Promise<T>;
+  put<T>(endpoint: string, body: any, options?: Omit<ApiRequestOptions, 'method' | 'body'>): Promise<T>;
+  delete<T>(endpoint: string, options?: Omit<ApiRequestOptions, 'method'>): Promise<T>;
+}
+
 // Базовый URL API
 const API_BASE_URL = getApiUrl();
 
@@ -21,7 +30,7 @@ const API_BASE_URL = getApiUrl();
  * Универсальный API клиент для выполнения запросов к бэкенду
  * Автоматически обрабатывает авторизацию, ошибки и таймауты
  */
-export const apiClient = {
+export const apiClient: ApiClient = {
   /**
    * Выполняет запрос к API с обработкой ошибок и авторизацией
    */
@@ -110,20 +119,20 @@ export const apiClient = {
   },
 
   // Вспомогательные методы для различных типов запросов
-  get<TResponse>(endpoint: string, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<TResponse> {
-    return this.request<TResponse>(endpoint, { ...options, method: 'GET' });
+  get<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'GET' });
   },
   
-  post<TResponse>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<TResponse> {
-    return this.request<TResponse>(endpoint, { ...options, method: 'POST', body });
+  post<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'POST', body });
   },
   
-  put<TResponse>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<TResponse> {
-    return this.request<TResponse>(endpoint, { ...options, method: 'PUT', body });
+  put<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'PUT', body });
   },
   
-  delete<TResponse>(endpoint: string, options: Omit<ApiRequestOptions, 'method'> = {}): Promise<TResponse> {
-    return this.request<TResponse>(endpoint, { ...options, method: 'DELETE' });
+  delete<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method'> = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 };
 
