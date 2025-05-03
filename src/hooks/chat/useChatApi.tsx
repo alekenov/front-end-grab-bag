@@ -6,7 +6,7 @@ import { useSendMessage } from "./useSendMessage";
 import { useToggleAI } from "./useToggleAI";
 import { ChatApiHook } from "./types";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 /**
  * Хук для унифицированного доступа к API чатов
@@ -19,10 +19,10 @@ export function useChatApi(): ChatApiHook {
   // Настраиваем периодическое обновление данных
   useEffect(() => {
     const intervalId = setInterval(() => {
-      console.log("Periodic global chats refresh triggered");
+      console.log("[useChatApi] Periodic global chats refresh");
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
       queryClient.refetchQueries({ queryKey: ['chats-api'] });
-    }, 3000); // Обновляем каждые 3 секунды
+    }, 3000);
 
     return () => clearInterval(intervalId);
   }, [queryClient]);
@@ -40,6 +40,25 @@ export function useChatApi(): ChatApiHook {
 
   const sendMessageMutation = useSendMessage();
   const toggleAIMutation = useToggleAI();
+
+  // Функция для принудительного обновления списка чатов
+  const forceRefreshChats = useCallback(() => {
+    console.log("[useChatApi] Force refreshing chats");
+    queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+    queryClient.invalidateQueries({ queryKey: ['chats'] });
+    
+    // Серия обновлений с задержкой
+    setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: ['chats-api'] });
+      queryClient.refetchQueries({ queryKey: ['chats'] });
+    }, 300);
+    
+    setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: ['chats-api'] });
+      queryClient.refetchQueries({ queryKey: ['chats'] });
+      refetchChats();
+    }, 1000);
+  }, [queryClient, refetchChats]);
 
   /**
    * Получение сообщений для выбранного чата
@@ -64,33 +83,26 @@ export function useChatApi(): ChatApiHook {
    * Отправка сообщения с принудительным обновлением списка чатов
    */
   const sendMessage = async (chatId: string, content: string, product?: Product) => {
-    console.log("Sending message through useChatApi:", { chatId, content, product });
-    const result = await sendMessageMutation.mutateAsync({ chatId, content, product });
+    console.log("[useChatApi] Sending message:", { chatId, content, product });
     
-    // Максимально агрессивное обновление списка чатов
-    queryClient.invalidateQueries({ queryKey: ['chats-api'] });
-    queryClient.invalidateQueries({ queryKey: ['chats'] });
-    
-    // Серия обновлений с задержкой
-    setTimeout(() => {
-      queryClient.refetchQueries({ queryKey: ['chats-api'] });
-      queryClient.refetchQueries({ queryKey: ['chats'] });
-    }, 500);
-    
-    setTimeout(() => {
-      queryClient.refetchQueries({ queryKey: ['chats-api'] });
-      queryClient.refetchQueries({ queryKey: ['chats'] });
-      refetchChats();
-    }, 1500);
-    
-    return result;
+    try {
+      const result = await sendMessageMutation.mutateAsync({ chatId, content, product });
+      
+      // Принудительно обновляем список чатов
+      forceRefreshChats();
+      
+      return result;
+    } catch (error) {
+      console.error("[useChatApi] Error sending message:", error);
+      throw error;
+    }
   };
 
   return {
     chats,
     isLoadingChats,
     chatsError,
-    refetchChats,
+    refetchChats: forceRefreshChats,
     getMessages,
     // Используем нашу обертку для отправки сообщений
     sendMessage,

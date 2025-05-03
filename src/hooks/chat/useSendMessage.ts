@@ -15,37 +15,49 @@ export const useSendMessage = () => {
   return useMutation({
     mutationFn: async ({ chatId, content, product }: SendMessageParams) => {
       try {
-        console.log('Sending message via API');
+        console.log('[useSendMessage] Sending message via API', { chatId, content, hasProduct: !!product });
         
         // Используем унифицированный API-клиент
-        return await apiClient.post(
+        const response = await apiClient.post(
           `chat-api/send`, 
           { chatId, content, product },
           { requiresAuth: true }
         );
+        
+        console.log('[useSendMessage] API response:', response);
+        return response;
       } catch (error) {
-        console.error('Error sending message:', error);
+        console.error('[useSendMessage] Error sending message:', error);
         throw error;
       }
     },
     onSuccess: (_, variables) => {
-      console.log('Message sent successfully! Updating queries...');
+      console.log('[useSendMessage] Message sent successfully! Updating queries...');
       
-      // Обновляем кэш сообщений для текущего чата
+      // Сразу инвалидируем кэш сообщений для текущего чата
       queryClient.invalidateQueries({ queryKey: ['messages-api', variables.chatId] });
+      queryClient.invalidateQueries({ queryKey: ['messages', variables.chatId] });
       
-      // Максимально агрессивное обновление списка чатов
+      // Немедленно инвалидируем кэш списка чатов
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
       
-      // Принудительно обновляем список всех чатов
+      // Принудительно запрашиваем данные заново
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['messages-api', variables.chatId] });
+        queryClient.refetchQueries({ queryKey: ['messages', variables.chatId] });
+      }, 100);
+      
+      // Принудительно обновляем список чатов с задержкой
       setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['chats-api'] });
-      }, 500);
+        queryClient.refetchQueries({ queryKey: ['chats'] });
+      }, 300);
       
       setTimeout(() => {
-        // Повторное обновление через дополнительную задержку
         queryClient.refetchQueries({ queryKey: ['chats-api'] });
-      }, 1500);
+        queryClient.refetchQueries({ queryKey: ['chats'] });
+      }, 1000);
       
       toast({
         title: "Сообщение отправлено",
@@ -53,7 +65,7 @@ export const useSendMessage = () => {
       });
     },
     onError: (error) => {
-      console.error('Error sending message via API:', error);
+      console.error('[useSendMessage] Error sending message via API:', error);
       toast({
         title: "Ошибка отправки",
         description: "Не удалось отправить сообщение",

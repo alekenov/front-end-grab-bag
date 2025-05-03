@@ -2,6 +2,7 @@
 import { formatRelativeTime } from "@/utils/dateFormatters";
 import { Badge } from "@/components/ui/badge";
 import { Chat } from "@/types/chat";
+import { useEffect, useState } from "react";
 
 interface ChatListItemProps {
   chat: Chat;
@@ -11,17 +12,23 @@ interface ChatListItemProps {
 }
 
 export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI }: ChatListItemProps) {
-  // Определяем текст последнего сообщения
-  const lastMessageContent = () => {
-    if (!chat.lastMessage) return "";
+  const [lastMessage, setLastMessage] = useState<string>("");
+  
+  // Переформатируем lastMessage при изменении chat
+  useEffect(() => {
+    // Определяем текст последнего сообщения
+    if (!chat.lastMessage) {
+      setLastMessage("");
+      return;
+    }
     
     // Проверяем, содержит ли последнее сообщение товар
     if (chat.lastMessage.hasProduct) {
-      return `Букет за ${chat.lastMessage.price ? chat.lastMessage.price.toLocaleString() + " ₸" : ""}`;
+      setLastMessage(`Букет за ${chat.lastMessage.price ? chat.lastMessage.price.toLocaleString() + " ₸" : ""}`);
+    } else {
+      setLastMessage(chat.lastMessage.content);
     }
-    
-    return chat.lastMessage.content;
-  };
+  }, [chat]);
 
   return (
     <div
@@ -44,7 +51,7 @@ export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI 
         </div>
         <div className="flex items-center justify-between mt-1">
           <span className="text-sm text-gray-600 truncate max-w-[190px]">
-            {lastMessageContent()}
+            {lastMessage}
           </span>
           {chat.unreadCount ? (
             <Badge

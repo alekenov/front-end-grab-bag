@@ -29,7 +29,9 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
   ) : [];
 
   const handleChatSelect = (id: string) => {
+    console.log("[ChatList] Selecting chat:", id);
     setCurrentChatId(id);
+    
     // Закрываем sheet на мобильных устройствах при выборе чата
     const sheet = document.querySelector('[data-state="open"]');
     if (sheet) {
@@ -48,7 +50,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
   }
   
   if (chatsError) {
-    console.error('Ошибка загрузки чатов:', chatsError);
+    console.error('[ChatList] Ошибка загрузки чатов:', chatsError);
     return (
       <div className="p-4">
         <Alert variant="destructive" className="mb-2">

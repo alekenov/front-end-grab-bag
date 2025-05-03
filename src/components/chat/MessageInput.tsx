@@ -22,56 +22,66 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  // Check for selected product in localStorage on component mount
+  // Check for selected product in localStorage on component mount and changes
   useEffect(() => {
+    console.log("[MessageInput] Checking for selected product...");
     const selectedProductJson = localStorage.getItem("selected_product");
+    
     if (selectedProductJson) {
       try {
         const product = JSON.parse(selectedProductJson);
-        console.log("Sending product from localStorage:", product);
+        console.log("[MessageInput] Found product in localStorage:", product);
         
-        // Send the product to chat
-        onSendMessage(`Букет за ${product.price.toLocaleString()} ₸`, product);
-        // Clear the selected product from localStorage
-        localStorage.removeItem("selected_product");
-        
-        // Максимально агрессивное обновление кэша списка чатов
-        queryClient.invalidateQueries({ queryKey: ['chats-api'] });
-        queryClient.invalidateQueries({ queryKey: ['chats'] });
-        
-        setTimeout(() => {
-          queryClient.refetchQueries({ queryKey: ['chats-api'] });
-          queryClient.refetchQueries({ queryKey: ['chats'] });
-        }, 500);
-        
-        setTimeout(() => {
-          queryClient.refetchQueries({ queryKey: ['chats-api'] });
-          queryClient.refetchQueries({ queryKey: ['chats'] });
-        }, 1500);
+        if (currentChatId) {
+          // Send the product to chat
+          onSendMessage(`Букет за ${product.price.toLocaleString()} ₸`, product);
+          
+          // Clear the selected product from localStorage
+          localStorage.removeItem("selected_product");
+          console.log("[MessageInput] Product processed and removed from localStorage");
+          
+          // Force refresh queries
+          queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+          queryClient.invalidateQueries({ queryKey: ['chats'] });
+          queryClient.invalidateQueries({ queryKey: ['messages', currentChatId] });
+          queryClient.invalidateQueries({ queryKey: ['messages-api', currentChatId] });
+          
+          setTimeout(() => {
+            queryClient.refetchQueries({ queryKey: ['chats-api'] });
+            queryClient.refetchQueries({ queryKey: ['chats'] });
+            queryClient.refetchQueries({ queryKey: ['messages', currentChatId] });
+            queryClient.refetchQueries({ queryKey: ['messages-api', currentChatId] });
+          }, 300);
+        } else {
+          console.warn("[MessageInput] Cannot send product: currentChatId is null");
+        }
       } catch (error) {
-        console.error("Error parsing selected product:", error);
+        console.error("[MessageInput] Error parsing selected product:", error);
       }
     }
-  }, [onSendMessage, queryClient]);
+  }, [currentChatId, onSendMessage, queryClient]);
   
   const handleSend = () => {
     if (!message.trim() || disabled) return;
+    
+    console.log("[MessageInput] Sending message:", message);
     onSendMessage(message);
     setMessage("");
     
-    // Максимально агрессивное обновление кэша списка чатов
-    queryClient.invalidateQueries({ queryKey: ['chats-api'] });
-    queryClient.invalidateQueries({ queryKey: ['chats'] });
-    
-    setTimeout(() => {
-      queryClient.refetchQueries({ queryKey: ['chats-api'] });
-      queryClient.refetchQueries({ queryKey: ['chats'] });
-    }, 500);
-    
-    setTimeout(() => {
-      queryClient.refetchQueries({ queryKey: ['chats-api'] });
-      queryClient.refetchQueries({ queryKey: ['chats'] });
-    }, 1500);
+    // Force refresh queries
+    if (currentChatId) {
+      queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
+      queryClient.invalidateQueries({ queryKey: ['messages', currentChatId] });
+      queryClient.invalidateQueries({ queryKey: ['messages-api', currentChatId] });
+      
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['chats-api'] });
+        queryClient.refetchQueries({ queryKey: ['chats'] });
+        queryClient.refetchQueries({ queryKey: ['messages', currentChatId] });
+        queryClient.refetchQueries({ queryKey: ['messages-api', currentChatId] });
+      }, 300);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -88,7 +98,7 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        console.log('Selected file:', file);
+        console.log('[MessageInput] Selected file:', file);
         toast({
           title: "Изображение выбрано",
           description: "Функция загрузки изображений в разработке",
@@ -102,7 +112,7 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
     // Сохраняем ID текущего чата перед переходом на страницу товаров
     if (currentChatId) {
       localStorage.setItem("current_chat_id", currentChatId);
-      console.log("Saved current chat ID before navigation:", currentChatId);
+      console.log("[MessageInput] Saved current chat ID before navigation:", currentChatId);
     }
     navigate('/products', { state: { fromChat: true } });
   };
