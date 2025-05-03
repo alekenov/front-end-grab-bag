@@ -6,6 +6,7 @@ import { useSendMessage } from "./useSendMessage";
 import { useToggleAI } from "./useToggleAI";
 import { ChatApiHook } from "./types";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 /**
  * Хук для унифицированного доступа к API чатов
@@ -14,6 +15,17 @@ import { useQueryClient } from "@tanstack/react-query";
 export function useChatApi(): ChatApiHook {
   // Получаем QueryClient для управления кэшем
   const queryClient = useQueryClient();
+  
+  // Настраиваем периодическое обновление данных
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      console.log("Periodic global chats refresh triggered");
+      queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+      queryClient.refetchQueries({ queryKey: ['chats-api'] });
+    }, 3000); // Обновляем каждые 3 секунды
+
+    return () => clearInterval(intervalId);
+  }, [queryClient]);
   
   // Исправляем деструктуризацию данных, чтобы в chats всегда был массив
   const { 
@@ -52,10 +64,24 @@ export function useChatApi(): ChatApiHook {
    * Отправка сообщения с принудительным обновлением списка чатов
    */
   const sendMessage = async (chatId: string, content: string, product?: Product) => {
+    console.log("Sending message through useChatApi:", { chatId, content, product });
     const result = await sendMessageMutation.mutateAsync({ chatId, content, product });
     
-    // Принудительно обновляем список чатов после отправки сообщения
+    // Максимально агрессивное обновление списка чатов
     queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+    queryClient.invalidateQueries({ queryKey: ['chats'] });
+    
+    // Серия обновлений с задержкой
+    setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: ['chats-api'] });
+      queryClient.refetchQueries({ queryKey: ['chats'] });
+    }, 500);
+    
+    setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: ['chats-api'] });
+      queryClient.refetchQueries({ queryKey: ['chats'] });
+      refetchChats();
+    }, 1500);
     
     return result;
   };

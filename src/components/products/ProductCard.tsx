@@ -22,21 +22,24 @@ export function ProductCard({ product, onDelete, inChatMode = false }: ProductCa
     // Сохраняем выбранный товар в localStorage
     try {
       localStorage.setItem("selected_product", JSON.stringify(product));
+      console.log("Product saved to localStorage:", product);
       
       toast({
         title: "Товар добавлен",
         description: `Товар за ${product.price.toLocaleString()} ₸ добавлен в чат`,
       });
       
-      // Инвалидируем кэш списка чатов, чтобы он обновился после добавления товара
+      // Максимально агрессивное обновление кэша списка чатов
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
       
       // Возвращаемся на страницу чата, если находимся в режиме выбора товара
       if (inChatMode) {
         // Получаем ID сохраненного чата
         const currentChatId = localStorage.getItem("current_chat_id");
+        console.log("Retrieved currentChatId for navigation:", currentChatId);
         
-        // ВАЖНО: Переходим на главную страницу с указанием ID чата в URL
+        // Переходим на главную страницу с указанием ID чата в URL
         if (currentChatId) {
           // Удаляем ID из localStorage
           localStorage.removeItem("current_chat_id");

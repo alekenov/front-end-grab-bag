@@ -34,10 +34,18 @@ export const useSendMessage = () => {
       // Обновляем кэш сообщений для текущего чата
       queryClient.invalidateQueries({ queryKey: ['messages-api', variables.chatId] });
       
-      // Обновляем список чатов для отображения последнего сообщения
-      // Используем более агрессивное обновление через refetchQueries
+      // Максимально агрессивное обновление списка чатов
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
-      queryClient.refetchQueries({ queryKey: ['chats-api'] });
+      
+      // Принудительно обновляем список всех чатов
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['chats-api'] });
+      }, 500);
+      
+      setTimeout(() => {
+        // Повторное обновление через дополнительную задержку
+        queryClient.refetchQueries({ queryKey: ['chats-api'] });
+      }, 1500);
       
       toast({
         title: "Сообщение отправлено",

@@ -28,16 +28,26 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
     if (selectedProductJson) {
       try {
         const product = JSON.parse(selectedProductJson);
+        console.log("Sending product from localStorage:", product);
+        
         // Send the product to chat
         onSendMessage(`Букет за ${product.price.toLocaleString()} ₸`, product);
         // Clear the selected product from localStorage
         localStorage.removeItem("selected_product");
         
-        // Принудительно инвалидируем и обновляем кэш списка чатов
+        // Максимально агрессивное обновление кэша списка чатов
         queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+        queryClient.invalidateQueries({ queryKey: ['chats'] });
+        
         setTimeout(() => {
           queryClient.refetchQueries({ queryKey: ['chats-api'] });
-        }, 300);
+          queryClient.refetchQueries({ queryKey: ['chats'] });
+        }, 500);
+        
+        setTimeout(() => {
+          queryClient.refetchQueries({ queryKey: ['chats-api'] });
+          queryClient.refetchQueries({ queryKey: ['chats'] });
+        }, 1500);
       } catch (error) {
         console.error("Error parsing selected product:", error);
       }
@@ -49,11 +59,19 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
     onSendMessage(message);
     setMessage("");
     
-    // Принудительно инвалидируем и обновляем кэш списка чатов
+    // Максимально агрессивное обновление кэша списка чатов
     queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+    queryClient.invalidateQueries({ queryKey: ['chats'] });
+    
     setTimeout(() => {
       queryClient.refetchQueries({ queryKey: ['chats-api'] });
-    }, 300);
+      queryClient.refetchQueries({ queryKey: ['chats'] });
+    }, 500);
+    
+    setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: ['chats-api'] });
+      queryClient.refetchQueries({ queryKey: ['chats'] });
+    }, 1500);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -84,6 +102,7 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
     // Сохраняем ID текущего чата перед переходом на страницу товаров
     if (currentChatId) {
       localStorage.setItem("current_chat_id", currentChatId);
+      console.log("Saved current chat ID before navigation:", currentChatId);
     }
     navigate('/products', { state: { fromChat: true } });
   };

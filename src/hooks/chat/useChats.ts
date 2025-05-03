@@ -1,6 +1,8 @@
 
 import { useApiQuery } from "@/hooks/api/useApiQuery";
 import { Chat, SupabaseChat } from "@/types/chat";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 // Интерфейс для структуры ответа API чатов
 interface ChatsResponse {
@@ -69,6 +71,19 @@ const DEMO_CHATS: ChatsResponse = {
  * Хук для получения списка чатов с использованием общего API-клиента
  */
 export const useChats = () => {
+  const queryClient = useQueryClient();
+
+  // Настраиваем периодическое обновление данных
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      console.log("Periodic chats refetch triggered");
+      queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+      queryClient.refetchQueries({ queryKey: ['chats-api'] });
+    }, 5000); // Обновляем каждые 5 секунд
+
+    return () => clearInterval(intervalId);
+  }, [queryClient]);
+
   return useApiQuery<ChatsResponse>({
     endpoint: 'chat-api/chats',
     queryKey: ['chats-api'],
@@ -79,7 +94,7 @@ export const useChats = () => {
     queryOptions: {
       refetchOnWindowFocus: true, // Будем обновлять данные при фокусе окна
       refetchInterval: 5000,      // Более частое обновление каждые 5 секунд
-      staleTime: 2000,            // Считаем данные устаревшими через 2 секунды
+      staleTime: 1000,            // Считаем данные устаревшими уже через 1 секунду
       select: (data: any) => {
         console.log('Processing chats data:', data);
         

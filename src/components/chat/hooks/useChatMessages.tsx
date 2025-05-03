@@ -102,12 +102,15 @@ export function useChatMessages(currentChatId: string | null, chatAiEnabled: boo
         
       if (error) throw error;
       
-      // После отправки сообщения обновляем список чатов
+      // Более агрессивное обновление списка чатов после отправки
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
+      
       // Принудительно обновляем список чатов
       setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['chats-api'] });
-      }, 300);
+        queryClient.refetchQueries({ queryKey: ['chats'] });
+      }, 500);
       
       // Demo AI response after delay
       if (chatAiEnabled) {
@@ -127,7 +130,9 @@ export function useChatMessages(currentChatId: string | null, chatAiEnabled: boo
           refetchMessages();
           // Обновляем список чатов после ответа бота
           queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+          queryClient.invalidateQueries({ queryKey: ['chats'] });
           queryClient.refetchQueries({ queryKey: ['chats-api'] });
+          queryClient.refetchQueries({ queryKey: ['chats'] });
         }, 1000);
       }
       
@@ -135,6 +140,15 @@ export function useChatMessages(currentChatId: string | null, chatAiEnabled: boo
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages', currentChatId] });
+      
+      // Дополнительное обновление списка чатов
+      queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
+      
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['chats-api'] });
+        queryClient.refetchQueries({ queryKey: ['chats'] });
+      }, 1000);
     },
     onError: (error) => {
       console.error('Error sending message:', error);
