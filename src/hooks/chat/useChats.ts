@@ -40,16 +40,14 @@ const DEMO_CHATS: Chat[] = [
  * Хук для получения списка чатов с использованием общего API-клиента
  */
 export const useChats = () => {
-  return useApiQuery<{ chats: Chat[] }>({
+  return useApiQuery<Chat[]>({
     endpoint: 'chat-api/chats',
     queryKey: ['chats-api'],
     options: {
       requiresAuth: true,
-      fallbackData: { chats: DEMO_CHATS }
+      fallbackData: DEMO_CHATS
     },
     queryOptions: {
-      select: (data) => data.chats || DEMO_CHATS,
-      retry: 1,
       refetchOnWindowFocus: false
     },
     errorMessage: "Ошибка загрузки чатов"

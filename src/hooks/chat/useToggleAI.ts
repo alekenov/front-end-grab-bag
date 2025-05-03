@@ -4,6 +4,11 @@ import { useToast } from "@/hooks/use-toast";
 import { ToggleAIParams } from "./types";
 import { apiClient } from "@/utils/apiClient";
 
+interface ToggleAIResponse {
+  enabled: boolean;
+  chatId: string;
+}
+
 /**
  * Хук для включения/выключения ИИ в чате
  */
@@ -12,16 +17,17 @@ export const useToggleAI = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ chatId, enabled }: ToggleAIParams) => {
+    mutationFn: async ({ chatId, enabled }: ToggleAIParams): Promise<ToggleAIResponse> => {
       try {
         console.log('Toggle AI via API');
         
         // Используем унифицированный API-клиент
-        return await apiClient.post(
+        const response = await apiClient.post<ToggleAIResponse>(
           `chat-api/toggle-ai`, 
           { chatId, enabled },
           { requiresAuth: true }
         );
+        return response;
       } catch (error) {
         console.error('Error toggling AI:', error);
         throw error;

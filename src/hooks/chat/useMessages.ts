@@ -27,16 +27,15 @@ const DEMO_MESSAGES: Message[] = [
  * Хук для получения сообщений чата с использованием общего API-клиента
  */
 export const useMessages = (chatId: string | null) => {
-  return useApiQuery<{ messages: Message[] }>({
+  return useApiQuery<Message[]>({
     endpoint: chatId ? `chat-api/messages?chatId=${chatId}` : '',
     queryKey: ['messages-api', chatId],
     enabled: !!chatId,
     options: {
       requiresAuth: true,
-      fallbackData: { messages: chatId?.startsWith('demo-') ? DEMO_MESSAGES : [] }
+      fallbackData: chatId?.startsWith('demo-') ? DEMO_MESSAGES : []
     },
     queryOptions: {
-      select: (data) => data.messages || [],
       retry: 1,
       refetchOnWindowFocus: false
     },

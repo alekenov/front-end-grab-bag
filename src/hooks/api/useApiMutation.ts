@@ -28,7 +28,7 @@ export function useApiMutation<TData = unknown, TVariables = unknown>({
 }: UseApiMutationParams<TData, TVariables>): UseMutationResult<TData, Error, TVariables> {
   const { toast } = useToast();
 
-  return useMutation({
+  return useMutation<TData, Error, TVariables>({
     mutationFn: async (variables: TVariables) => {
       try {
         switch (method) {
@@ -46,6 +46,7 @@ export function useApiMutation<TData = unknown, TVariables = unknown>({
         throw error;
       }
     },
+    ...mutationOptions,
     onSuccess: (data, variables, context) => {
       if (successMessage) {
         toast({
@@ -68,7 +69,6 @@ export function useApiMutation<TData = unknown, TVariables = unknown>({
       if (mutationOptions.onError) {
         mutationOptions.onError(error, variables, context);
       }
-    },
-    ...mutationOptions
+    }
   });
 }

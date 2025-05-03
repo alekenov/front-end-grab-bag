@@ -31,7 +31,7 @@ export function useApiQuery<TData = unknown>({
   // Формируем ключ запроса на основе эндпоинта, если не предоставлен
   const finalQueryKey = queryKey || ['api', endpoint];
   
-  return useQuery({
+  return useQuery<TData, Error>({
     queryKey: finalQueryKey,
     queryFn: async () => {
       try {
@@ -42,17 +42,16 @@ export function useApiQuery<TData = unknown>({
       }
     },
     enabled,
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Ошибка",
-        description: errorMessage || error.message,
-      });
-      
-      if (queryOptions.onError) {
-        queryOptions.onError(error);
+    ...queryOptions,
+    meta: {
+      ...queryOptions.meta,
+      onError: (error: Error) => {
+        toast({
+          variant: "destructive",
+          title: "Ошибка",
+          description: errorMessage || error.message,
+        });
       }
-    },
-    ...queryOptions
+    }
   });
 }

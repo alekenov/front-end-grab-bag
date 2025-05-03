@@ -139,4 +139,3 @@ export const getAuthToken = async (): Promise<string | null> => {
     return null;
   }
 };
-

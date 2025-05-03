@@ -21,25 +21,24 @@ export function useProducts() {
     queryKey: ['products'],
     queryFn: async () => {
       try {
-        // Используем Supabase напрямую для получения товаров
-        const { data, error } = await apiClient.request('/rest/v1/products', {
+        // Используем apiClient для получения товаров
+        const response = await apiClient.request<Product[]>('/rest/v1/products', {
           method: 'GET',
           requiresAuth: true,
           headers: {
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
             'Range': '0-99'
-          }
+          },
+          fallbackData: []
         });
         
-        if (error) throw error;
-
         // Преобразуем данные в формат, ожидаемый приложением
-        return data.map((item: any) => ({
+        return response.map ? response.map((item: any) => ({
           id: item.id.toString(),
           imageUrl: item.image_url || '',
           price: item.price,
           createdAt: new Date().toISOString(),
-        })) as Product[];
+        })) : [];
       } catch (error) {
         console.error('Error fetching products:', error);
         
@@ -70,7 +69,7 @@ export function useProducts() {
         }
       });
       
-      if (result && result[0]) {
+      if (result && Array.isArray(result) && result[0]) {
         return {
           id: result[0].id.toString(),
           imageUrl: result[0].image_url || '',
