@@ -2,8 +2,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { SendMessageParams } from "./types";
-import { CHAT_API_URL, getAuthSession } from "./chatApiUtils";
+import { CHAT_API_URL } from "./chatApiUtils";
+import { apiClient } from "@/utils/apiClient";
 
+/**
+ * Хук для отправки сообщений в чат через API
+ */
 export const useSendMessage = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -13,25 +17,12 @@ export const useSendMessage = () => {
       try {
         console.log('Sending message via API');
         
-        // Get current session for API
-        const { accessToken } = await getAuthSession();
-        
-        // Direct call to Supabase Edge Function
-        const response = await fetch(`${CHAT_API_URL}/send`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ chatId, content, product })
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Не удалось отправить сообщение");
-        }
-        
-        return response.json();
+        // Используем унифицированный API-клиент
+        return await apiClient.post(
+          `chat-api/send`, 
+          { chatId, content, product },
+          { requiresAuth: true }
+        );
       } catch (error) {
         console.error('Error sending message:', error);
         throw error;

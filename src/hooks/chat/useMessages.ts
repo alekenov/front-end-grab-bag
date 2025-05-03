@@ -1,9 +1,6 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useApiQuery } from "@/hooks/api/useApiQuery";
 import { Message } from "@/types/chat";
-import { CHAT_API_URL, getAuthSession } from "./chatApiUtils";
-import { useToast } from "@/hooks/use-toast";
-import { fetchWithFallback } from "@/utils/apiHelpers";
 
 const DEMO_MESSAGES: Message[] = [
   {
@@ -26,64 +23,23 @@ const DEMO_MESSAGES: Message[] = [
   }
 ];
 
+/**
+ * Хук для получения сообщений чата с использованием общего API-клиента
+ */
 export const useMessages = (chatId: string | null) => {
-  const { toast } = useToast();
-  
-  return useQuery({
+  return useApiQuery<{ messages: Message[] }>({
+    endpoint: chatId ? `chat-api/messages?chatId=${chatId}` : '',
     queryKey: ['messages-api', chatId],
-    queryFn: async (): Promise<Message[]> => {
-      if (!chatId) return [];
-      
-      // Для демо-чатов возвращаем демонстрационные сообщения
-      if (chatId.startsWith('demo-')) {
-        console.log('Возвращаем демо-сообщения для демо-чата');
-        return DEMO_MESSAGES;
-      }
-      
-      try {
-        console.log('Загрузка сообщений для чата через API:', chatId);
-        
-        // Получаем токен авторизации
-        const { accessToken } = await getAuthSession();
-        
-        // Используем API для получения сообщений (прямой доступ к Supabase Edge Function)
-        const apiUrl = `${CHAT_API_URL}/messages?chatId=${chatId}`;
-        console.log(`Запрос к API: ${apiUrl}`);
-        
-        const data = await fetchWithFallback<{ messages?: Message[] }>(
-          apiUrl,
-          { messages: [] },
-          {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        if (data.messages && data.messages.length > 0) {
-          console.log(`Получено ${data.messages.length} сообщений от API`);
-          return data.messages;
-        }
-        
-        // Если не удалось получить сообщения, возвращаем пустой массив
-        return [];
-        
-      } catch (error) {
-        console.error('Ошибка загрузки сообщений:', error);
-        
-        // Отображаем сообщение об ошибке
-        toast({
-          title: "Ошибка загрузки сообщений",
-          description: "Не удалось загрузить историю сообщений",
-          variant: "destructive",
-        });
-        
-        return [];
-      }
-    },
     enabled: !!chatId,
-    retry: 1, // Одна повторная попытка в случае сетевых проблем
-    refetchOnWindowFocus: false // Предотвращаем частые запросы
+    options: {
+      requiresAuth: true,
+      fallbackData: { messages: chatId?.startsWith('demo-') ? DEMO_MESSAGES : [] }
+    },
+    queryOptions: {
+      select: (data) => data.messages || [],
+      retry: 1,
+      refetchOnWindowFocus: false
+    },
+    errorMessage: "Ошибка загрузки сообщений"
   });
 };

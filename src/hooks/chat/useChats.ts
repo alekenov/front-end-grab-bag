@@ -1,9 +1,6 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useApiQuery } from "@/hooks/api/useApiQuery";
 import { Chat } from "@/types/chat";
-import { useToast } from "@/hooks/use-toast";
-import { CHAT_API_URL, getAuthSession } from "./chatApiUtils";
-import { fetchWithFallback } from "@/utils/apiHelpers";
 
 // Демо-чаты для отображения, когда API недоступен
 const DEMO_CHATS: Chat[] = [
@@ -39,57 +36,22 @@ const DEMO_CHATS: Chat[] = [
   }
 ];
 
+/**
+ * Хук для получения списка чатов с использованием общего API-клиента
+ */
 export const useChats = () => {
-  const { toast } = useToast();
-
-  return useQuery({
+  return useApiQuery<{ chats: Chat[] }>({
+    endpoint: 'chat-api/chats',
     queryKey: ['chats-api'],
-    queryFn: async (): Promise<Chat[]> => {
-      try {
-        console.log('Получение чатов через API...');
-        
-        // Получаем сессию авторизации
-        const { accessToken } = await getAuthSession();
-        
-        // Используем API для получения чатов (прямой доступ к Supabase Edge Function)
-        const apiUrl = `${CHAT_API_URL}/chats`;
-        console.log(`Запрос к API: ${apiUrl}`);
-        
-        const apiData = await fetchWithFallback<{ chats?: Chat[] }>(
-          apiUrl,
-          { chats: DEMO_CHATS },
-          {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        if (apiData.chats) {
-          console.log(`Получено ${apiData.chats.length} чатов от API`);
-          return apiData.chats;
-        }
-        
-        // Если всё равно не удалось, показываем демо-чаты
-        console.log('Используем демо-чаты, так как API недоступен');
-        return DEMO_CHATS;
-        
-      } catch (error) {
-        console.error('Ошибка при загрузке чатов:', error);
-        
-        // Уведомление пользователя об ошибке
-        toast({
-          title: "Ошибка загрузки чатов",
-          description: "Отображаются демонстрационные данные",
-          variant: "destructive",
-        });
-        
-        // Возвращаем демо-чаты в случае ошибки
-        return DEMO_CHATS;
-      }
+    options: {
+      requiresAuth: true,
+      fallbackData: { chats: DEMO_CHATS }
     },
-    retry: 1, // Одна повторная попытка в случае сетевых проблем
-    refetchOnWindowFocus: false // Предотвращаем частые запросы
+    queryOptions: {
+      select: (data) => data.chats || DEMO_CHATS,
+      retry: 1,
+      refetchOnWindowFocus: false
+    },
+    errorMessage: "Ошибка загрузки чатов"
   });
 };
