@@ -17,6 +17,10 @@ export const useSendMessage = () => {
       try {
         console.log('[useSendMessage] Sending message via API', { chatId, content, hasProduct: !!product });
         
+        if (!content.trim()) {
+          throw new Error("Сообщение не может быть пустым");
+        }
+        
         // Используем унифицированный API-клиент
         const response = await apiClient.post(
           `chat-api/send`, 
@@ -42,22 +46,28 @@ export const useSendMessage = () => {
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
       queryClient.invalidateQueries({ queryKey: ['chats'] });
       
-      // Принудительно запрашиваем данные заново
+      // Принудительно запрашиваем данные заново с разной задержкой
+      // для гарантии обновления после обработки на сервере
       setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['messages-api', variables.chatId] });
         queryClient.refetchQueries({ queryKey: ['messages', variables.chatId] });
-      }, 100);
+      }, 300);
+      
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['messages-api', variables.chatId] });
+        queryClient.refetchQueries({ queryKey: ['messages', variables.chatId] });
+      }, 1000);
       
       // Принудительно обновляем список чатов с задержкой
       setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['chats-api'] });
         queryClient.refetchQueries({ queryKey: ['chats'] });
-      }, 300);
+      }, 500);
       
       setTimeout(() => {
         queryClient.refetchQueries({ queryKey: ['chats-api'] });
         queryClient.refetchQueries({ queryKey: ['chats'] });
-      }, 1000);
+      }, 1500);
       
       toast({
         title: "Сообщение отправлено",

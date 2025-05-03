@@ -7,6 +7,7 @@ import { useToggleAI } from "./useToggleAI";
 import { ChatApiHook } from "./types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useCallback } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * Хук для унифицированного доступа к API чатов
@@ -15,6 +16,7 @@ import { useEffect, useCallback } from "react";
 export function useChatApi(): ChatApiHook {
   // Получаем QueryClient для управления кэшем
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   
   // Настраиваем периодическое обновление данных
   useEffect(() => {
@@ -22,7 +24,7 @@ export function useChatApi(): ChatApiHook {
       console.log("[useChatApi] Periodic global chats refresh");
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
       queryClient.refetchQueries({ queryKey: ['chats-api'] });
-    }, 3000);
+    }, 10000); // Увеличил интервал обновления до 10 секунд
 
     return () => clearInterval(intervalId);
   }, [queryClient]);
@@ -36,7 +38,7 @@ export function useChatApi(): ChatApiHook {
   } = useChats();
 
   // Обеспечиваем, что chats всегда будет массивом
-  const chats = Array.isArray(data) ? data : data?.chats || [];
+  const chats = Array.isArray(data) ? data : (data?.chats || []);
 
   const sendMessageMutation = useSendMessage();
   const toggleAIMutation = useToggleAI();
@@ -47,7 +49,7 @@ export function useChatApi(): ChatApiHook {
     queryClient.invalidateQueries({ queryKey: ['chats-api'] });
     queryClient.invalidateQueries({ queryKey: ['chats'] });
     
-    // Серия обновлений с задержкой
+    // Серия обновлений с задержкой для гарантированного обновления данных
     setTimeout(() => {
       queryClient.refetchQueries({ queryKey: ['chats-api'] });
       queryClient.refetchQueries({ queryKey: ['chats'] });
@@ -88,15 +90,36 @@ export function useChatApi(): ChatApiHook {
   const sendMessage = async (chatId: string, content: string, product?: Product) => {
     console.log("[useChatApi] Sending message:", { chatId, content, product });
     
+    if (!content.trim()) {
+      console.warn("[useChatApi] Attempted to send empty message");
+      toast({
+        title: "Ошибка отправки",
+        description: "Нельзя отправить пустое сообщение",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const result = await sendMessageMutation.mutateAsync({ chatId, content, product });
       
-      // Принудительно обновляем список чатов
+      // Принудительно обновляем список чатов и сообщений
+      queryClient.invalidateQueries({ queryKey: ['messages-api', chatId] });
       forceRefreshChats();
+      
+      // Явно запрашиваем обновление сообщений
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['messages-api', chatId] });
+      }, 300);
       
       return result;
     } catch (error) {
       console.error("[useChatApi] Error sending message:", error);
+      toast({
+        title: "Ошибка отправки",
+        description: "Не удалось отправить сообщение",
+        variant: "destructive",
+      });
       throw error;
     }
   };

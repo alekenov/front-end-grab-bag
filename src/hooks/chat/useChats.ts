@@ -13,7 +13,7 @@ interface ChatsResponse {
 const mapSupabaseChatsToAppFormat = (chats: SupabaseChat[]): Chat[] => {
   return chats.map(chat => ({
     id: chat.id,
-    name: chat.name,
+    name: chat.name || "Новый контакт",
     aiEnabled: chat.ai_enabled,
     unreadCount: chat.unread_count || 0,
     lastMessage: chat.last_message_content || chat.last_message_time 
@@ -79,7 +79,7 @@ export const useChats = () => {
       console.log("Periodic chats refetch triggered");
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
       queryClient.refetchQueries({ queryKey: ['chats-api'] });
-    }, 5000); // Обновляем каждые 5 секунд
+    }, 10000); // Увеличил интервал обновления до 10 секунд
 
     return () => clearInterval(intervalId);
   }, [queryClient]);
@@ -93,17 +93,34 @@ export const useChats = () => {
     },
     queryOptions: {
       refetchOnWindowFocus: true, // Будем обновлять данные при фокусе окна
-      refetchInterval: 5000,      // Более частое обновление каждые 5 секунд
-      staleTime: 1000,            // Считаем данные устаревшими уже через 1 секунду
+      refetchInterval: 10000,      // Обновление каждые 10 секунд
+      staleTime: 5000,            // Считаем данные устаревшими через 5 секунд
       select: (data: any) => {
         console.log('Processing chats data:', data);
+        
+        // Если данных нет или некорректный формат, используем демо-данные
+        if (!data) {
+          console.warn('No chats data received, using demo chats');
+          return DEMO_CHATS;
+        }
         
         // Если данные пришли от API в формате Supabase
         if (Array.isArray(data) && data.length > 0 && ('ai_enabled' in data[0])) {
           return { chats: mapSupabaseChatsToAppFormat(data as SupabaseChat[]) };
         }
-        // Если данные пришли в формате нашего приложения или в виде fallbackData
-        return data;
+        // Если данные пришли в формате хотя бы с полем chats и это массив
+        if (data.chats && Array.isArray(data.chats)) {
+          return data as ChatsResponse;
+        }
+        
+        // Если данные пришли в другом формате, преобразуем в нужный
+        if (Array.isArray(data)) {
+          return { chats: data as Chat[] };
+        }
+        
+        // В крайнем случае возвращаем демо-данные
+        console.warn('Using demo chats due to incorrect data format:', data);
+        return DEMO_CHATS;
       }
     },
     errorMessage: "Ошибка загрузки чатов"

@@ -37,15 +37,34 @@ export const useMessages = (chatId: string | null) => {
     },
     queryOptions: {
       retry: 1,
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true, // Обновлять при возврате на страницу
+      refetchInterval: 5000, // Периодическое обновление каждые 5 секунд
       select: (data) => {
-        // Гарантируем, что data всегда будет массивом
-        if (!data) return [];
+        // Проверяем, что data существует и является массивом
+        if (!data) {
+          console.warn('useMessages: No data received from API');
+          return chatId?.startsWith('demo-') ? DEMO_MESSAGES : [];
+        }
+        
         if (!Array.isArray(data)) {
           console.warn('useMessages: Received non-array data:', data);
-          return [];
+          
+          // Проверяем, есть ли вложенный массив messages
+          if (data && typeof data === 'object' && 'messages' in data && Array.isArray(data.messages)) {
+            return data.messages;
+          }
+          
+          return chatId?.startsWith('demo-') ? DEMO_MESSAGES : [];
         }
-        return data;
+        
+        // Проверяем, что все сообщения имеют необходимые поля
+        return data.map(msg => ({
+          id: msg.id || `msg-${Date.now()}-${Math.random()}`,
+          content: msg.content || "",
+          role: msg.role || "BOT",
+          timestamp: msg.timestamp || new Date().toISOString(),
+          product: msg.product
+        }));
       }
     },
     errorMessage: "Ошибка загрузки сообщений"

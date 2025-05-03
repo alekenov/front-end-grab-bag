@@ -10,9 +10,9 @@ interface MessageListProps {
 }
 
 export function MessageList({ messages, isLoading = false }: MessageListProps) {
-  // Group messages by date
+  // Группируем сообщения по дате
   const messagesByDate = useMemo(() => {
-    // Гарантируем, что messages всегда будет массивом
+    // Убедимся, что messages всегда массив и не пустой
     const safeMessages = Array.isArray(messages) ? messages : [];
     
     if (safeMessages.length === 0) {
@@ -53,16 +53,30 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
     );
   }
   
-  // Гарантируем, что messages всегда будет массивом
+  // Проверяем, что messages массив и не пустой
   const safeMessages = Array.isArray(messages) ? messages : [];
   
   if (safeMessages.length === 0) {
-    return <div className="text-center text-gray-500 py-6">Нет сообщений</div>;
+    return (
+      <div className="text-center text-gray-500 py-6">
+        Нет сообщений
+      </div>
+    );
+  }
+  
+  // Проверяем, что объект messagesByDate не пустой
+  const messagesByDateEntries = Object.entries(messagesByDate);
+  if (messagesByDateEntries.length === 0) {
+    return (
+      <div className="text-center text-gray-500 py-6">
+        Ошибка форматирования сообщений
+      </div>
+    );
   }
   
   return (
     <div className="flex flex-col space-y-5">
-      {Object.entries(messagesByDate).map(([date, dateMessages]) => (
+      {messagesByDateEntries.map(([date, dateMessages]) => (
         <MessageGroup key={date} date={date} messages={dateMessages || []} />
       ))}
     </div>

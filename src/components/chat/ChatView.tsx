@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useChatApi } from "@/hooks/chat";
 import { MessageList } from "./MessageList";
 import { ChatHeader } from "./ChatHeader";
@@ -7,6 +7,7 @@ import { MessageInput } from "./MessageInput";
 import { EmptyState } from "./EmptyState";
 import { Product } from "@/types/product";
 import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatViewProps {
   currentChatId: string | null;
@@ -14,6 +15,7 @@ interface ChatViewProps {
 }
 
 export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const chatApi = useChatApi();
   const [name, setName] = useState("");
@@ -25,11 +27,33 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     isLoading: messagesLoading,
     error: messagesError,
     refetch: refetchMessages,
-  } = currentChatId ? chatApi.getMessages(currentChatId) : { data: [], isLoading: false, error: null, refetch: () => {} };
+  } = currentChatId ? chatApi.getMessages(currentChatId) : { data: [], isLoading: false, error: null, refetch: () => Promise.resolve() };
+  
+  // Принудительно обновляем данные при монтировании компонента
+  const forceRefresh = useCallback(() => {
+    if (!currentChatId) return;
+    
+    console.log("[ChatView] Force refreshing data for chat:", currentChatId);
+    
+    // Инвалидируем и обновляем данные
+    queryClient.invalidateQueries({ queryKey: ['messages-api', currentChatId] });
+    queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+    
+    // Явно запрашиваем обновление данных
+    setTimeout(() => {
+      refetchMessages();
+      chatApi.refetchChats();
+    }, 100);
+  }, [currentChatId, queryClient, refetchMessages, chatApi]);
   
   // Эффект для проверки товара в localStorage и обработка обновлений
   useEffect(() => {
     if (!currentChatId) return;
+    
+    console.log("[ChatView] Setting up chat view for:", currentChatId);
+    
+    // Форсируем обновление данных при монтировании компонента
+    forceRefresh();
     
     // Проверяем наличие продукта в localStorage
     const checkForProduct = () => {
@@ -44,18 +68,20 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
             currentChatId, 
             `Букет за ${product.price.toLocaleString()} ₸`, 
             product
-          );
-          
-          // Удаляем товар из localStorage
-          localStorage.removeItem("selected_product");
-          
-          // Принудительно обновляем список чатов
-          chatApi.refetchChats();
-          
-          // Обновляем сообщения текущего чата
-          setTimeout(() => {
-            refetchMessages();
-          }, 500);
+          ).then(() => {
+            toast({
+              title: "Товар добавлен",
+              description: `Букет за ${product.price.toLocaleString()} ₸ добавлен в чат`,
+            });
+            
+            // Удаляем товар из localStorage
+            localStorage.removeItem("selected_product");
+            
+            // Обновляем UI
+            forceRefresh();
+          }).catch(err => {
+            console.error("[ChatView] Error sending product message:", err);
+          });
         } catch (error) {
           console.error("[ChatView] Error processing selected product:", error);
         }
@@ -67,34 +93,43 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     
     // Настраиваем интервал для периодической проверки
     const intervalId = setInterval(() => {
-      console.log("[ChatView] Checking for product updates");
+      console.log("[ChatView] Checking for updates");
       refetchMessages();
       chatApi.refetchChats();
-    }, 3000);
+    }, 5000);
     
     // Очищаем интервал при размонтировании
-    return () => clearInterval(intervalId);
-  }, [currentChatId, chatApi, refetchMessages, queryClient]);
+    return () => {
+      clearInterval(intervalId);
+      console.log("[ChatView] Cleaning up for chat:", currentChatId);
+    };
+  }, [currentChatId, chatApi, refetchMessages, queryClient, forceRefresh, toast]);
   
-  // Обработчик обновления контакта - исправлен, чтобы соответствовать сигнатуре в ChatHeader
+  // Обработчик обновления контакта
   const handleUpdateContact = (name: string, tags: string[]) => {
     setName(name);
     setTags(tags);
     console.log("[ChatView] Contact updated:", { name, tags });
   };
   
-  // Обработчик отправки сообщения
+  // Обработчик отправки сообщения с обработкой ошибок
   const handleSendMessage = async (content: string, product?: Product) => {
-    if (!currentChatId) return;
+    if (!currentChatId || !content.trim()) return;
     
     try {
       await chatApi.sendMessage(currentChatId, content, product);
+      
       // Обновляем список сообщений
       setTimeout(() => {
-        refetchMessages();
+        forceRefresh();
       }, 300);
     } catch (error) {
       console.error("[ChatView] Error sending message:", error);
+      toast({
+        title: "Ошибка отправки",
+        description: "Не удалось отправить сообщение",
+        variant: "destructive",
+      });
     }
   };
 

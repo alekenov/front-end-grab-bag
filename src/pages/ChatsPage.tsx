@@ -1,19 +1,21 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChatListContainer } from "@/components/chat/ChatListContainer";
 import { ChatView } from "@/components/chat/ChatView";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ChatsPage() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Обработчик изменения ID текущего чата
-  const handleSetCurrentChatId = (id: string | null) => {
+  const handleSetCurrentChatId = useCallback((id: string | null) => {
     if (id) {
       console.log("[ChatsPage] Setting current chat ID:", id);
       setCurrentChatId(id);
@@ -38,7 +40,7 @@ export default function ChatsPage() {
       queryClient.refetchQueries({ queryKey: ['chats-api'] });
       queryClient.refetchQueries({ queryKey: ['chats'] });
     }, 300);
-  };
+  }, [navigate, queryClient]);
 
   // Проверяем наличие параметра chatId в URL или сохраненный ID в localStorage
   useEffect(() => {
@@ -68,8 +70,14 @@ export default function ChatsPage() {
       const demoId = `demo-${Date.now()}`;
       setCurrentChatId(demoId);
       navigate(`/?chatId=${demoId}`, { replace: true });
+      
+      // Показываем уведомление о демо-чате
+      toast({
+        title: "Демо-чат",
+        description: "Создан демонстрационный чат с примерами сообщений",
+      });
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, toast]);
 
   return (
     <AppLayout title="Чаты" activePage="chats">
