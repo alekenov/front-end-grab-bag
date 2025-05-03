@@ -110,19 +110,19 @@ export const apiClient = {
   },
 
   // Вспомогательные методы для различных типов запросов
-  async get<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
+  get<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'GET' });
   },
   
-  async post<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
+  post<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'POST', body });
   },
   
-  async put<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
+  put<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'PUT', body });
   },
   
-  async delete<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method'> = {}): Promise<T> {
+  delete<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method'> = {}): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 };
