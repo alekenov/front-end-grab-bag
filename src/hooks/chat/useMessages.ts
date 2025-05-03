@@ -27,7 +27,7 @@ const DEMO_MESSAGES: Message[] = [
  * Хук для получения сообщений чата с использованием общего API-клиента
  */
 export const useMessages = (chatId: string | null) => {
-  return useApiQuery<Message[]>({
+  const result = useApiQuery<Message[]>({
     endpoint: chatId ? `chat-api/messages?chatId=${chatId}` : '',
     queryKey: ['messages-api', chatId],
     enabled: !!chatId,
@@ -50,4 +50,13 @@ export const useMessages = (chatId: string | null) => {
     },
     errorMessage: "Ошибка загрузки сообщений"
   });
+  
+  // Убедимся, что возвращаем массив даже если data равна null или undefined
+  const safeData = Array.isArray(result.data) ? result.data : 
+                  (chatId?.startsWith('demo-') ? DEMO_MESSAGES : []);
+  
+  return {
+    ...result,
+    data: safeData
+  };
 };

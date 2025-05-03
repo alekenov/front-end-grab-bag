@@ -1,71 +1,85 @@
 
-import { format, formatDistance, isToday, isYesterday, parseISO } from "date-fns";
-import { ru } from "date-fns/locale";
-
 /**
- * Форматирует дату в зависимости от того, когда она была
+ * Форматирует дату для группировки сообщений
  */
 export const formatDate = (dateString: string): string => {
-  const date = typeof dateString === "string" 
-    ? parseISO(dateString) 
-    : new Date(dateString);
-  
-  if (isToday(date)) {
-    return "Сегодня";
-  } else if (isYesterday(date)) {
-    return "Вчера";
-  } else {
-    return format(date, "d MMMM", { locale: ru });
-  }
-};
-
-/**
- * Форматирует время для отображения в относительном формате
- * (только что, 5 минут назад, вчера и т.д.)
- */
-export const formatRelativeTime = (dateString: string): string => {
   try {
-    const date = typeof dateString === "string"
-      ? parseISO(dateString)
-      : new Date(dateString);
+    const date = new Date(dateString);
+    const today = new Date();
     
-    // Если дата в текущий день, возвращаем только время
-    if (isToday(date)) {
-      return format(date, "HH:mm");
-    } 
-    // Если вчера, возвращаем "Вчера"
-    else if (isYesterday(date)) {
-      return "Вчера";
-    } 
-    // Если в текущем году, возвращаем день и месяц
-    else if (date.getFullYear() === new Date().getFullYear()) {
-      return format(date, "d MMM", { locale: ru });
-    } 
-    // Иначе возвращаем полную дату
-    else {
-      return format(date, "dd.MM.yy", { locale: ru });
+    // Проверка на сегодня
+    if (date.toDateString() === today.toDateString()) {
+      return "Сегодня";
     }
+    
+    // Проверка на вчера
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return "Вчера";
+    }
+    
+    // Остальные даты
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
   } catch (error) {
-    console.error("Ошибка форматирования даты:", error, dateString);
-    return "";
+    console.error('Error formatting date:', error);
+    return "Неизвестная дата";
   }
 };
 
 /**
- * Форматирует время для отображения в чате
+ * Форматирует время для отображения в сообщении
  */
 export const formatMessageTime = (dateString: string): string => {
   try {
-    const date = typeof dateString === "string"
-      ? parseISO(dateString)
-      : new Date(dateString);
-    
-    return format(date, "HH:mm");
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
   } catch (error) {
-    console.error("Ошибка форматирования времени сообщения:", error, dateString);
-    return "";
+    console.error('Error formatting message time:', error);
+    return "--:--";
   }
 };
 
-// Alias for formatMessageTime to make the transition easier
+// Алиас для обратной совместимости
 export const formatTime = formatMessageTime;
+
+/**
+ * Форматирует относительное время для последнего сообщения в списке чатов
+ */
+export const formatRelativeTime = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) {
+      return "только что";
+    }
+    
+    if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} мин. назад`;
+    }
+    
+    if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} ч. назад`;
+    }
+    
+    if (diffInSeconds < 172800) {
+      return "вчера";
+    }
+    
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'numeric'
+    });
+  } catch (error) {
+    console.error('Error formatting relative time:', error);
+    return "неизвестно";
+  }
+};

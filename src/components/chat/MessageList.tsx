@@ -12,13 +12,16 @@ interface MessageListProps {
 export function MessageList({ messages, isLoading = false }: MessageListProps) {
   // Group messages by date
   const messagesByDate = useMemo(() => {
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    // Гарантируем, что messages всегда будет массивом
+    const safeMessages = Array.isArray(messages) ? messages : [];
+    
+    if (safeMessages.length === 0) {
       return {};
     }
     
     const grouped: MessagesByDate = {};
     
-    messages.forEach((message) => {
+    safeMessages.forEach((message) => {
       // Проверяем, что message и message.timestamp существуют
       if (!message || !message.timestamp) {
         console.warn('Message is missing or has no timestamp:', message);
@@ -50,7 +53,10 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
     );
   }
   
-  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+  // Гарантируем, что messages всегда будет массивом
+  const safeMessages = Array.isArray(messages) ? messages : [];
+  
+  if (safeMessages.length === 0) {
     return <div className="text-center text-gray-500 py-6">Нет сообщений</div>;
   }
   

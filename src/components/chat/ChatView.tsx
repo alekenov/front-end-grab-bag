@@ -6,7 +6,6 @@ import { ChatHeader } from "./ChatHeader";
 import { MessageInput } from "./MessageInput";
 import { EmptyState } from "./EmptyState";
 import { Product } from "@/types/product";
-import { Message } from "@/types/chat";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface ChatViewProps {
@@ -77,7 +76,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     return () => clearInterval(intervalId);
   }, [currentChatId, chatApi, refetchMessages, queryClient]);
   
-  // Обработчик обновления контакта - изменен, чтобы соответствовать сигнатуре в ChatHeader
+  // Обработчик обновления контакта - исправлен, чтобы соответствовать сигнатуре в ChatHeader
   const handleUpdateContact = (name: string, tags: string[]) => {
     setName(name);
     setTags(tags);
@@ -103,6 +102,9 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     return <EmptyState />;
   }
 
+  // Проверяем наличие demo в ID чата и создаем демо-сообщения если нужно
+  const isDemoChat = currentChatId.startsWith('demo-');
+
   if (messagesError) {
     console.error('[ChatView] Messages error:', messagesError);
   }
@@ -117,7 +119,10 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
       />
       
       <div className="flex-1 overflow-y-auto px-3 py-5 md:px-5 bg-[#f5f7fb] pb-[88px] md:pb-[72px]">
-        <MessageList messages={messages} isLoading={messagesLoading} />
+        <MessageList 
+          messages={messages} 
+          isLoading={messagesLoading && !isDemoChat} 
+        />
       </div>
       
       <MessageInput 

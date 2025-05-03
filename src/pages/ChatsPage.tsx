@@ -14,12 +14,19 @@ export default function ChatsPage() {
 
   // Обработчик изменения ID текущего чата
   const handleSetCurrentChatId = (id: string | null) => {
-    setCurrentChatId(id);
-    
-    // Обновляем URL при выборе чата
     if (id) {
+      console.log("[ChatsPage] Setting current chat ID:", id);
+      setCurrentChatId(id);
+      
+      // Обновляем URL при выборе чата
       navigate(`/?chatId=${id}`, { replace: true });
+      
+      // При отсутствии чатов, создаем демо-чат
+      if (id.startsWith('demo-')) {
+        console.log("[ChatsPage] Using demo chat");
+      }
     } else {
+      setCurrentChatId(null);
       navigate('/', { replace: true });
     }
     
@@ -55,6 +62,12 @@ export default function ChatsPage() {
       
       // Очищаем localStorage, так как ID уже использован
       localStorage.removeItem("current_chat_id");
+    } else {
+      // Если нет сохраненного ID, создаем демо-чат
+      console.log("[ChatsPage] No chat ID found, using demo chat");
+      const demoId = `demo-${Date.now()}`;
+      setCurrentChatId(demoId);
+      navigate(`/?chatId=${demoId}`, { replace: true });
     }
   }, [searchParams, navigate]);
 
