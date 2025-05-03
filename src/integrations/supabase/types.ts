@@ -9,6 +9,122 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      category_chunks: {
+        Row: {
+          category_id: number
+          created_at: string | null
+          embedding: string | null
+          id: number
+          text_chunk: string
+        }
+        Insert: {
+          category_id: number
+          created_at?: string | null
+          embedding?: string | null
+          id?: number
+          text_chunk: string
+        }
+        Update: {
+          category_id?: number
+          created_at?: string | null
+          embedding?: string | null
+          id?: number
+          text_chunk?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_chunks_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_customers: {
+        Row: {
+          chat_id: string | null
+          created_at: string | null
+          customer_id: string | null
+          id: string
+        }
+        Insert: {
+          chat_id?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+        }
+        Update: {
+          chat_id?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_customers_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_customers_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          ai_enabled: boolean | null
+          context: string | null
+          created_at: string | null
+          customer_id: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          ai_enabled?: boolean | null
+          context?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          ai_enabled?: boolean | null
+          context?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       chats: {
         Row: {
           ai_enabled: boolean | null
@@ -36,11 +152,49 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_history: {
+        Row: {
+          content: string
+          created_at: string | null
+          customer_id: string | null
+          id: string
+          metadata: Json | null
+          role: string
+          session_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          metadata?: Json | null
+          role: string
+          session_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          metadata?: Json | null
+          role?: string
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_history_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           content: string | null
           context: Json | null
-          created_at: string
+          created_at: string | null
           customer_id: string | null
           direction: string
           id: string
@@ -52,7 +206,7 @@ export type Database = {
         Insert: {
           content?: string | null
           context?: Json | null
-          created_at?: string
+          created_at?: string | null
           customer_id?: string | null
           direction: string
           id?: string
@@ -64,7 +218,7 @@ export type Database = {
         Update: {
           content?: string | null
           context?: Json | null
-          created_at?: string
+          created_at?: string | null
           customer_id?: string | null
           direction?: string
           id?: string
@@ -85,7 +239,7 @@ export type Database = {
       }
       customers: {
         Row: {
-          created_at: string
+          created_at: string | null
           first_name: string | null
           id: string
           last_interaction: string | null
@@ -93,10 +247,10 @@ export type Database = {
           metadata: Json | null
           opt_in: boolean | null
           phone: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           first_name?: string | null
           id?: string
           last_interaction?: string | null
@@ -104,10 +258,10 @@ export type Database = {
           metadata?: Json | null
           opt_in?: boolean | null
           phone: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           first_name?: string | null
           id?: string
           last_interaction?: string | null
@@ -115,131 +269,88 @@ export type Database = {
           metadata?: Json | null
           opt_in?: boolean | null
           phone?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
-      faq: {
+      customers_old: {
         Row: {
-          answer: string
           created_at: string | null
-          id: number
-          question: string
-          shop_id: string | null
-        }
-        Insert: {
-          answer: string
-          created_at?: string | null
-          id?: number
-          question: string
-          shop_id?: string | null
-        }
-        Update: {
-          answer?: string
-          created_at?: string | null
-          id?: number
-          question?: string
-          shop_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "faq_shop_id_fkey"
-            columns: ["shop_id"]
-            isOneToOne: false
-            referencedRelation: "shop_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      job_listings: {
-        Row: {
-          benefits: string[] | null
-          contact_email: string | null
-          contact_phone: string | null
-          created_at: string | null
-          description: string
-          education_level: string | null
-          employment: string | null
-          employment_type: string | null
-          experience_level: string | null
           id: string
-          is_active: boolean | null
-          location: string | null
-          position: string | null
-          requirements: string[] | null
-          responsibilities: string[] | null
-          salary: string | null
-          salary_range: Json | null
-          schedule: string | null
-          shop_id: string | null
-          shop_name: string | null
-          status: string | null
-          title: string
+          name: string | null
+          phone_number: string
           updated_at: string | null
         }
         Insert: {
-          benefits?: string[] | null
-          contact_email?: string | null
-          contact_phone?: string | null
           created_at?: string | null
-          description: string
-          education_level?: string | null
-          employment?: string | null
-          employment_type?: string | null
-          experience_level?: string | null
-          id?: string
-          is_active?: boolean | null
-          location?: string | null
-          position?: string | null
-          requirements?: string[] | null
-          responsibilities?: string[] | null
-          salary?: string | null
-          salary_range?: Json | null
-          schedule?: string | null
-          shop_id?: string | null
-          shop_name?: string | null
-          status?: string | null
-          title: string
+          id: string
+          name?: string | null
+          phone_number: string
           updated_at?: string | null
         }
         Update: {
-          benefits?: string[] | null
-          contact_email?: string | null
-          contact_phone?: string | null
           created_at?: string | null
-          description?: string
-          education_level?: string | null
-          employment?: string | null
-          employment_type?: string | null
-          experience_level?: string | null
           id?: string
-          is_active?: boolean | null
-          location?: string | null
-          position?: string | null
-          requirements?: string[] | null
-          responsibilities?: string[] | null
-          salary?: string | null
-          salary_range?: Json | null
-          schedule?: string | null
-          shop_id?: string | null
-          shop_name?: string | null
-          status?: string | null
-          title?: string
+          name?: string | null
+          phone_number?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "job_listings_shop_id_fkey"
-            columns: ["shop_id"]
-            isOneToOne: false
-            referencedRelation: "shop_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      example_categories: {
+        Row: {
+          created_at: number | null
+          description: string | null
+          id: string
+          name: string | null
+          updated_at: number | null
+        }
+        Insert: {
+          created_at?: number | null
+          description?: string | null
+          id?: string
+          name?: string | null
+          updated_at?: number | null
+        }
+        Update: {
+          created_at?: number | null
+          description?: string | null
+          id?: string
+          name?: string | null
+          updated_at?: number | null
+        }
+        Relationships: []
+      }
+      facebook_events: {
+        Row: {
+          event_data: Json
+          event_type: string
+          id: string
+          processed: boolean | null
+          processed_at: string | null
+          received_at: string | null
+        }
+        Insert: {
+          event_data: Json
+          event_type: string
+          id?: string
+          processed?: boolean | null
+          processed_at?: string | null
+          received_at?: string | null
+        }
+        Update: {
+          event_data?: Json
+          event_type?: string
+          id?: string
+          processed?: boolean | null
+          processed_at?: string | null
+          received_at?: string | null
+        }
+        Relationships: []
       }
       messages: {
         Row: {
-          chat_id: string
+          chat_id: string | null
           content: string
           created_at: string | null
           has_product: boolean | null
@@ -248,7 +359,7 @@ export type Database = {
           product_data: Json | null
         }
         Insert: {
-          chat_id: string
+          chat_id?: string | null
           content: string
           created_at?: string | null
           has_product?: boolean | null
@@ -257,7 +368,7 @@ export type Database = {
           product_data?: Json | null
         }
         Update: {
-          chat_id?: string
+          chat_id?: string | null
           content?: string
           created_at?: string | null
           has_product?: boolean | null
@@ -266,127 +377,11 @@ export type Database = {
           product_data?: Json | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_chat"
-            columns: ["chat_id"]
-            isOneToOne: false
-            referencedRelation: "chats"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "messages_chat_id_fkey"
             columns: ["chat_id"]
             isOneToOne: false
             referencedRelation: "chats"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      order_items: {
-        Row: {
-          id: number
-          order_id: number | null
-          price_at_time: number
-          product_id: number | null
-          quantity: number
-        }
-        Insert: {
-          id?: number
-          order_id?: number | null
-          price_at_time: number
-          product_id?: number | null
-          quantity: number
-        }
-        Update: {
-          id?: number
-          order_id?: number | null
-          price_at_time?: number
-          product_id?: number | null
-          quantity?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "order_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      orders: {
-        Row: {
-          created_at: string | null
-          id: number
-          status: string | null
-          total_amount: number | null
-          updated_at: string | null
-          user_id: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: number
-          status?: string | null
-          total_amount?: number | null
-          updated_at?: string | null
-          user_id?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: number
-          status?: string | null
-          total_amount?: number | null
-          updated_at?: string | null
-          user_id?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orders_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      posts: {
-        Row: {
-          author_id: number | null
-          content: string
-          created_at: string | null
-          id: number
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          author_id?: number | null
-          content: string
-          created_at?: string | null
-          id?: number
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          author_id?: number | null
-          content?: string
-          created_at?: string | null
-          id?: number
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "posts_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -400,7 +395,7 @@ export type Database = {
           image_url: string | null
           name: string
           price: number
-          quantity: number
+          quantity: number | null
         }
         Insert: {
           availability?: boolean | null
@@ -410,7 +405,7 @@ export type Database = {
           image_url?: string | null
           name: string
           price: number
-          quantity?: number
+          quantity?: number | null
         }
         Update: {
           availability?: boolean | null
@@ -420,222 +415,97 @@ export type Database = {
           image_url?: string | null
           name?: string
           price?: number
-          quantity?: number
+          quantity?: number | null
         }
         Relationships: []
       }
-      profiles: {
+      raw_messages: {
         Row: {
+          content: string | null
           created_at: string | null
-          id: string
-          phone: string | null
-          telegram_id: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id: string
-          phone?: string | null
-          telegram_id?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          phone?: string | null
-          telegram_id?: number | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      reviews: {
-        Row: {
-          author: string
-          comment: string
-          created_at: string | null
-          date: string
-          id: number
-          position: string | null
-          rating: number
+          message_id: string
+          message_type: string | null
+          phone_number: string | null
           response: string | null
-          shop_id: string | null
-        }
-        Insert: {
-          author: string
-          comment: string
-          created_at?: string | null
-          date: string
-          id?: number
-          position?: string | null
-          rating: number
-          response?: string | null
-          shop_id?: string | null
-        }
-        Update: {
-          author?: string
-          comment?: string
-          created_at?: string | null
-          date?: string
-          id?: number
-          position?: string | null
-          rating?: number
-          response?: string | null
-          shop_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reviews_shop_id_fkey"
-            columns: ["shop_id"]
-            isOneToOne: false
-            referencedRelation: "shop_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      shop_profiles: {
-        Row: {
-          about: string | null
-          benefits: string[] | null
-          created_at: string | null
-          description: string | null
-          email: string | null
-          employeecount: string | null
-          faq: Json | null
-          foundedyear: string | null
-          fulladdress: string | null
-          gallery: string[] | null
-          id: string
-          location: string | null
-          logo: string | null
-          name: string
-          phone: string | null
-          rating: number | null
-          review_count: number | null
-          reviews: Json | null
-          specialties: string[] | null
           updated_at: string | null
-          website: string | null
         }
         Insert: {
-          about?: string | null
-          benefits?: string[] | null
+          content?: string | null
           created_at?: string | null
-          description?: string | null
-          email?: string | null
-          employeecount?: string | null
-          faq?: Json | null
-          foundedyear?: string | null
-          fulladdress?: string | null
-          gallery?: string[] | null
-          id?: string
-          location?: string | null
-          logo?: string | null
-          name: string
-          phone?: string | null
-          rating?: number | null
-          review_count?: number | null
-          reviews?: Json | null
-          specialties?: string[] | null
+          message_id?: string
+          message_type?: string | null
+          phone_number?: string | null
+          response?: string | null
           updated_at?: string | null
-          website?: string | null
         }
         Update: {
-          about?: string | null
-          benefits?: string[] | null
+          content?: string | null
           created_at?: string | null
-          description?: string | null
-          email?: string | null
-          employeecount?: string | null
-          faq?: Json | null
-          foundedyear?: string | null
-          fulladdress?: string | null
-          gallery?: string[] | null
-          id?: string
-          location?: string | null
-          logo?: string | null
-          name?: string
-          phone?: string | null
-          rating?: number | null
-          review_count?: number | null
-          reviews?: Json | null
-          specialties?: string[] | null
+          message_id?: string
+          message_type?: string | null
+          phone_number?: string | null
+          response?: string | null
           updated_at?: string | null
-          website?: string | null
         }
         Relationships: []
       }
-      user_preferences: {
+      sessions: {
         Row: {
+          ai_enabled: number | null
+          context: string | null
           created_at: string | null
-          first_name: string | null
-          language_code: string | null
-          last_name: string | null
-          updated_at: string | null
-          user_id: number
-          username: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          first_name?: string | null
-          language_code?: string | null
-          last_name?: string | null
-          updated_at?: string | null
-          user_id: number
-          username?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          first_name?: string | null
-          language_code?: string | null
-          last_name?: string | null
-          updated_at?: string | null
-          user_id?: number
-          username?: string | null
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string
+          customer_id: string | null
           id: string
-          role: string
-          user_id: string
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
+          ai_enabled?: number | null
+          context?: string | null
+          created_at?: string | null
+          customer_id?: string | null
           id?: string
-          role: string
-          user_id: string
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
+          ai_enabled?: number | null
+          context?: string | null
+          created_at?: string | null
+          customer_id?: string | null
           id?: string
-          role?: string
-          user_id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
-      users: {
+      training_examples: {
         Row: {
-          created_at: string | null
-          first_name: string | null
-          id: number
-          last_name: string | null
-          username: string | null
+          category_id: string | null
+          created_at: number | null
+          enabled: number | null
+          id: string
+          query: string | null
+          response: string | null
+          tags: string | null
+          updated_at: number | null
         }
         Insert: {
-          created_at?: string | null
-          first_name?: string | null
-          id: number
-          last_name?: string | null
-          username?: string | null
+          category_id?: string | null
+          created_at?: number | null
+          enabled?: number | null
+          id?: string
+          query?: string | null
+          response?: string | null
+          tags?: string | null
+          updated_at?: number | null
         }
         Update: {
-          created_at?: string | null
-          first_name?: string | null
-          id?: number
-          last_name?: string | null
-          username?: string | null
+          category_id?: string | null
+          created_at?: number | null
+          enabled?: number | null
+          id?: string
+          query?: string | null
+          response?: string | null
+          tags?: string | null
+          updated_at?: number | null
         }
         Relationships: []
       }
@@ -648,42 +518,22 @@ export type Database = {
         Args: { "": string } | { "": unknown }
         Returns: unknown
       }
-      clean_expired_verification_codes: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       get_chats_with_last_messages: {
         Args: Record<PropertyKey, never>
         Returns: {
           id: string
           name: string
+          phone_number: string
           ai_enabled: boolean
           unread_count: number
+          source: string
           created_at: string
           updated_at: string
           last_message_content: string
           last_message_timestamp: string
+          last_message_has_product: boolean
+          last_message_product_price: number
         }[]
-      }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
       }
       halfvec_avg: {
         Args: { "": number[] }
@@ -717,14 +567,6 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
-      increment_job_view: {
-        Args: { job_id: number }
-        Returns: undefined
-      }
-      is_admin: {
-        Args: { uid: string }
-        Returns: boolean
-      }
       ivfflat_bit_support: {
         Args: { "": unknown }
         Returns: unknown
@@ -745,17 +587,30 @@ export type Database = {
         Args: { "": string } | { "": unknown } | { "": unknown }
         Returns: unknown
       }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
+      match_category_chunks: {
+        Args: {
+          query_embedding: string
+          match_threshold: number
+          match_count: number
+        }
+        Returns: {
+          id: number
+          category_id: number
+          text_chunk: string
+          similarity: number
+        }[]
       }
-      show_limit: {
+      migrate_conversations_to_chats: {
         Args: Record<PropertyKey, never>
-        Returns: number
+        Returns: undefined
       }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
+      migrate_data_to_supabase_tables: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      process_webhook: {
+        Args: { payload: Json }
+        Returns: Json
       }
       sparsevec_out: {
         Args: { "": unknown }
@@ -792,6 +647,10 @@ export type Database = {
       vector_typmod_in: {
         Args: { "": unknown[] }
         Returns: number
+      }
+      verify_webhook: {
+        Args: { mode: string; verify_token: string; challenge: string }
+        Returns: string
       }
     }
     Enums: {
