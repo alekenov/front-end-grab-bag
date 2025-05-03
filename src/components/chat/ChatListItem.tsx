@@ -4,6 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Chat } from "@/types/chat";
 import { useEffect, useState } from "react";
 
+// Иконки для разных источников чатов
+import { MessageSquare, MessagesSquare, Phone } from "lucide-react";
+
 interface ChatListItemProps {
   chat: Chat;
   isActive?: boolean;
@@ -29,6 +32,20 @@ export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI 
       setLastMessage(chat.lastMessage.content);
     }
   }, [chat]);
+  
+  // Определяем иконку в зависимости от источника
+  const getSourceIcon = () => {
+    switch (chat.source?.toLowerCase()) {
+      case 'whatsapp':
+        return <MessagesSquare size={14} className="text-green-500" />;
+      case 'telegram':
+        return <MessageSquare size={14} className="text-blue-500" />;
+      case 'phone':
+        return <Phone size={14} className="text-purple-500" />;
+      default:
+        return <MessageSquare size={14} className="text-gray-500" />;
+    }
+  };
 
   return (
     <div
@@ -42,7 +59,10 @@ export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI 
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
-          <span className="font-medium truncate">{chat.name}</span>
+          <div className="flex items-center gap-1">
+            {getSourceIcon()}
+            <span className="font-medium truncate">{chat.name}</span>
+          </div>
           {chat.lastMessage?.timestamp && (
             <span className="text-xs text-gray-500">
               {formatRelativeTime(chat.lastMessage.timestamp)}

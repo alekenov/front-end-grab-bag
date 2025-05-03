@@ -29,20 +29,24 @@ export interface Chat {
   // Добавляем поля, соответствующие Supabase
   created_at?: string;
   updated_at?: string;
+  // Добавляем источник чата (whatsapp, telegram, web и т.д.)
+  source?: string;
 }
 
 // Добавляем интерфейс для данных из Supabase
 export interface SupabaseChat {
   id: string;
   name: string;
+  phone_number?: string; // Добавлено для совместимости с WhatsApp
   ai_enabled: boolean;
   unread_count: number | null;
   created_at: string | null;
   updated_at: string | null;
   last_message_content?: string | null;
-  last_message_time?: string | null;
+  last_message_timestamp?: string | null;
   last_message_has_product?: boolean | null;
   last_message_product_price?: number | null;
+  source?: string | null; // Добавлен источник чата
 }
 
 export interface SupabaseMessage {

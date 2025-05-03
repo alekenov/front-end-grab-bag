@@ -13,19 +13,20 @@ interface ChatsResponse {
 const mapSupabaseChatsToAppFormat = (chats: SupabaseChat[]): Chat[] => {
   return chats.map(chat => ({
     id: chat.id,
-    name: chat.name || "Новый контакт",
-    aiEnabled: chat.ai_enabled,
+    name: chat.name || chat.phone_number || "Новый контакт",
+    aiEnabled: chat.ai_enabled || false,
     unreadCount: chat.unread_count || 0,
-    lastMessage: chat.last_message_content || chat.last_message_time 
+    lastMessage: chat.last_message_content || chat.last_message_timestamp 
       ? {
           content: chat.last_message_content || "",
-          timestamp: chat.last_message_time || new Date().toISOString(),
+          timestamp: chat.last_message_timestamp || new Date().toISOString(),
           hasProduct: chat.last_message_has_product || false,
           price: chat.last_message_product_price || 0
         }
       : undefined,
     created_at: chat.created_at || undefined,
-    updated_at: chat.updated_at || undefined
+    updated_at: chat.updated_at || undefined,
+    source: chat.source || "web" // Добавляем источник чата
   }));
 };
 
@@ -40,7 +41,8 @@ const DEMO_CHATS: ChatsResponse = {
       lastMessage: {
         content: "Добрый день! Интересует букет на день рождения",
         timestamp: new Date().toISOString()
-      }
+      },
+      source: "web"
     },
     {
       id: "demo-2",
@@ -52,7 +54,8 @@ const DEMO_CHATS: ChatsResponse = {
         timestamp: new Date(Date.now() - 86400000).toISOString(),
         hasProduct: true,
         price: 10000
-      }
+      },
+      source: "whatsapp"
     },
     {
       id: "demo-3",
@@ -62,7 +65,8 @@ const DEMO_CHATS: ChatsResponse = {
       lastMessage: {
         content: "Когда можно ожидать доставку?",
         timestamp: new Date(Date.now() - 30 * 60000).toISOString()
-      }
+      },
+      source: "telegram"
     }
   ]
 };
