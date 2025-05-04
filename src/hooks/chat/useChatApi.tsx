@@ -29,16 +29,21 @@ export function useChatApi(): ChatApiHook {
     return () => clearInterval(intervalId);
   }, [queryClient]);
   
-  // Исправляем деструктуризацию данных, чтобы в chats всегда был массив
+  // Получаем данные о чатах
   const { 
-    data, 
+    data: chatsData, 
     isLoading: isLoadingChats,
     error: chatsError,
     refetch: refetchChats
   } = useChats();
 
+  // Проверяем структуру данных и извлекаем массив чатов
+  // Добавляем логирование для отладки
+  console.log("[useChatApi] Raw chats data:", chatsData);
+  
   // Обеспечиваем, что chats всегда будет массивом
-  const chats = Array.isArray(data) ? data : (data?.chats || []);
+  const chats = chatsData?.chats || [];
+  console.log("[useChatApi] Processed chats:", chats);
 
   const sendMessageMutation = useSendMessage();
   const toggleAIMutation = useToggleAI();

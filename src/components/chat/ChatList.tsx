@@ -22,11 +22,16 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
     toggleAI 
   } = useChatApi();
   
-  // Фильтрация чатов по поисковому запросу (с проверкой на существование массива chats)
+  // Отладочный вывод для проверки данных
+  console.log('ChatList received chats:', chats);
+  
+  // Фильтрация чатов по поисковому запросу
   const filteredChats = Array.isArray(chats) ? chats.filter(chat => 
     chat.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     (chat.lastMessage && chat.lastMessage.content.toLowerCase().includes(searchQuery.toLowerCase()))
   ) : [];
+  
+  console.log('ChatList filtered chats:', filteredChats);
 
   const handleChatSelect = (id: string) => {
     console.log("[ChatList] Selecting chat:", id);

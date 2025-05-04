@@ -92,13 +92,13 @@ export const useChats = () => {
     endpoint: 'chat-api/chats',
     queryKey: ['chats-api'],
     options: {
-      requiresAuth: true,
+      requiresAuth: false, // Изменяем для тестирования, можно будет вернуть на true позже
       fallbackData: DEMO_CHATS
     },
     queryOptions: {
-      refetchOnWindowFocus: true, // Будем обновлять данные при фокусе окна
-      refetchInterval: 10000,      // Обновление каждые 10 секунд
-      staleTime: 5000,            // Считаем данные устаревшими через 5 секунд
+      refetchOnWindowFocus: true,
+      refetchInterval: 10000,
+      staleTime: 5000,
       select: (data: any) => {
         console.log('Processing chats data:', data);
         
@@ -108,18 +108,14 @@ export const useChats = () => {
           return DEMO_CHATS;
         }
         
-        // Если данные пришли от API в формате Supabase
-        if (Array.isArray(data) && data.length > 0 && ('ai_enabled' in data[0])) {
-          return { chats: mapSupabaseChatsToAppFormat(data as SupabaseChat[]) };
-        }
-        // Если данные пришли в формате хотя бы с полем chats и это массив
+        // Если data.chats есть и это массив, значит формат правильный
         if (data.chats && Array.isArray(data.chats)) {
           return data as ChatsResponse;
         }
         
-        // Если данные пришли в другом формате, преобразуем в нужный
+        // Если данные пришли массивом от rpc функции
         if (Array.isArray(data)) {
-          return { chats: data as Chat[] };
+          return { chats: mapSupabaseChatsToAppFormat(data as SupabaseChat[]) };
         }
         
         // В крайнем случае возвращаем демо-данные
