@@ -1,10 +1,9 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/chat";
 import { getApiUrl } from "@/utils/apiHelpers";
 
 // URL для API Edge Function (прямой доступ к Supabase Edge Functions)
-export const CHAT_API_URL = `${getApiUrl()}/chat-api`;
+export const CHAT_API_URL = `${getApiUrl()}/test-api`;
 
 // Анонимный токен доступа для использования, когда нет сессии
 export const ANON_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjaGVjZXZleW56ZHVnbWd3cm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMTI3NTQsImV4cCI6MjA2MTY4ODc1NH0.EtTP-fNb5UrCs6nB_O8mds8oTTBJCeWh1CmfmzDiuds";

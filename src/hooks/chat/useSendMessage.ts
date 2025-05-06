@@ -23,7 +23,7 @@ export const useSendMessage = () => {
         
         // Используем унифицированный API-клиент
         const response = await apiClient.post(
-          `chat-api/send`, 
+          `messages/send`, 
           { chatId, content, product },
           { requiresAuth: true }
         );

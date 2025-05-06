@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { ToggleAIParams } from "./types";
@@ -23,7 +22,7 @@ export const useToggleAI = () => {
         
         // Используем унифицированный API-клиент
         const response = await apiClient.post<ToggleAIResponse>(
-          `chat-api/toggle-ai`, 
+          `chats/toggle-ai`, 
           { chatId, enabled },
           { requiresAuth: true }
         );
