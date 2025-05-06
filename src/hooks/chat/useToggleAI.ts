@@ -24,7 +24,7 @@ export const useToggleAI = () => {
         // Используем унифицированный API-клиент
         const response = await apiClient.post<ToggleAIResponse>(
           `chat-api/toggle-ai`, 
-          { chatId, enabled },
+          { chatId, enabled }, 
           { requiresAuth: true }
         );
         return response;

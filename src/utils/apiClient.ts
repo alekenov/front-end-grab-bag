@@ -23,27 +23,29 @@ export const apiClient = {
    * @returns Promise с результатом запроса
    */
   async get<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
-    return this.sendRequest<T>(endpoint, { ...options, method: 'GET' });
+    return this.request(endpoint, { ...options, method: 'GET' });
   },
 
   /**
    * Отправка POST запроса
    * @param endpoint Эндпоинт API
+   * @param body Тело запроса
    * @param options Дополнительные опции запроса
    * @returns Promise с результатом запроса
    */
-  async post<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
-    return this.sendRequest<T>(endpoint, { ...options, method: 'POST' });
+  async post<T = any>(endpoint: string, body?: any, options: ApiRequestOptions = {}): Promise<T> {
+    return this.request(endpoint, { ...options, method: 'POST', body });
   },
 
   /**
    * Отправка PUT запроса
    * @param endpoint Эндпоинт API
+   * @param body Тело запроса
    * @param options Дополнительные опции запроса
    * @returns Promise с результатом запроса
    */
-  async put<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
-    return this.sendRequest<T>(endpoint, { ...options, method: 'PUT' });
+  async put<T = any>(endpoint: string, body?: any, options: ApiRequestOptions = {}): Promise<T> {
+    return this.request(endpoint, { ...options, method: 'PUT', body });
   },
 
   /**
@@ -53,16 +55,16 @@ export const apiClient = {
    * @returns Promise с результатом запроса
    */
   async delete<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
-    return this.sendRequest<T>(endpoint, { ...options, method: 'DELETE' });
+    return this.request(endpoint, { ...options, method: 'DELETE' });
   },
 
   /**
-   * Внутренний метод для отправки запросов
+   * Универсальный метод для отправки запросов
    * @param endpoint Эндпоинт API
    * @param options Опции запроса
    * @returns Promise с результатом запроса
    */
-  async sendRequest<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
+  async request<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
     const {
       method = 'GET',
       requiresAuth = true,
