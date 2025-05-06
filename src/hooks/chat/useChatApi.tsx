@@ -1,4 +1,3 @@
-
 import { Product } from "@/types/product";
 import { useChats } from "./useChats";
 import { useMessages } from "./useMessages";
@@ -71,18 +70,19 @@ export function useChatApi(): ChatApiHook {
    * Получение сообщений для выбранного чата
    */
   const getMessages = (chatId: string | null) => {
+    console.log('[DEBUG] useChatApi.getMessages вызван с chatId:', chatId);
+    
     const { 
-      data, 
+      data = [], 
       isLoading, 
       error, 
       refetch 
     } = useMessages(chatId);
 
-    // Гарантируем, что всегда возвращается массив
-    const safeMessages = Array.isArray(data) ? data : [];
-
+    console.log('[DEBUG] useChatApi.getMessages получены данные от useMessages:', data);
+    
     return {
-      data: safeMessages,
+      data,
       isLoading,
       error,
       refetch

@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback } from "react";
 import { useChatApi } from "@/hooks/chat";
 import { MessageList } from "./MessageList";
@@ -8,6 +7,7 @@ import { EmptyState } from "./EmptyState";
 import { Product } from "@/types/product";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useCustomerByChatId } from "@/hooks/customer/useCustomer";
 
 interface ChatViewProps {
   currentChatId: string | null;
@@ -21,13 +21,27 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const [name, setName] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   
+  // Отладочная информация о текущем чате
+  console.log('[DEBUG] ChatView - currentChatId:', currentChatId);
+  
   // Получаем детали чата
+  const currentChat = chatApi.chats.find(chat => chat.id === currentChatId);
+  console.log('[DEBUG] ChatView - текущий чат:', currentChat);
+  
+  // Получаем данные клиента по ID чата
+  const { data: customer, isLoading: customerLoading } = useCustomerByChatId(currentChatId);
+  console.log('[DEBUG] ChatView - данные клиента:', customer);
+
   const {
     data: messages = [],
     isLoading: messagesLoading,
     error: messagesError,
     refetch: refetchMessages,
   } = currentChatId ? chatApi.getMessages(currentChatId) : { data: [], isLoading: false, error: null, refetch: () => Promise.resolve() };
+  
+  // Логируем информацию о загруженных сообщениях
+  console.log('[DEBUG] ChatView - Загружено сообщений:', messages.length);
+  console.log('[DEBUG] ChatView - messagesError:', messagesError);
   
   // Принудительно обновляем данные при монтировании компонента
   const forceRefresh = useCallback(() => {
@@ -146,11 +160,21 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
 
   return (
     <>
+      {/* Хедер с информацией о контакте */}
       <ChatHeader 
-        onBack={() => setCurrentChatId?.(null)}
-        contactName={name || "Новый контакт"}
+        phoneNumber={customer?.phone || ""} 
+        contactName={currentChat?.name} 
         tags={tags}
-        onUpdateContact={handleUpdateContact}
+        onBack={() => setCurrentChatId && setCurrentChatId(null)}
+        onUpdateContact={(name, tags) => {
+          setName(name);
+          setTags(tags);
+          // Здесь будет вызов API для обновления данных контакта
+          toast({
+            title: "Данные обновлены",
+            description: "Информация о контакте сохранена"
+          });
+        }}
       />
       
       <div className="flex-1 overflow-y-auto px-3 py-5 md:px-5 bg-[#f5f7fb] pb-[88px] md:pb-[72px]">

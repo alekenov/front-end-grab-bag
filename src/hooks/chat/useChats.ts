@@ -1,8 +1,9 @@
-
-import { useApiQuery } from "@/hooks/api/useApiQuery";
 import { Chat, SupabaseChat } from "@/types/chat";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 // Интерфейс для структуры ответа API чатов
 interface ChatsResponse {
@@ -26,7 +27,8 @@ const mapSupabaseChatsToAppFormat = (chats: SupabaseChat[]): Chat[] => {
       : undefined,
     created_at: chat.created_at || undefined,
     updated_at: chat.updated_at || undefined,
-    source: chat.source || "web" // Добавляем источник чата
+    source: chat.source || "web", // Добавляем источник чата
+    phone_number: chat.phone_number // Добавляем номер телефона контакта
   }));
 };
 
@@ -42,7 +44,8 @@ const DEMO_CHATS: ChatsResponse = {
         content: "Добрый день! Интересует букет на день рождения",
         timestamp: new Date().toISOString()
       },
-      source: "web"
+      source: "web",
+      phone_number: "+7 (701) 555-1234"
     },
     {
       id: "demo-2",
@@ -55,7 +58,8 @@ const DEMO_CHATS: ChatsResponse = {
         hasProduct: true,
         price: 10000
       },
-      source: "whatsapp"
+      source: "whatsapp",
+      phone_number: "+7 (702) 666-7890"
     },
     {
       id: "demo-3",
@@ -66,7 +70,8 @@ const DEMO_CHATS: ChatsResponse = {
         content: "Когда можно ожидать доставку?",
         timestamp: new Date(Date.now() - 30 * 60000).toISOString()
       },
-      source: "telegram"
+      source: "telegram",
+      phone_number: "+7 (777) 123-4567"
     }
   ]
 };
@@ -76,6 +81,7 @@ const DEMO_CHATS: ChatsResponse = {
  */
 export const useChats = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Настраиваем периодическое обновление данных
   useEffect(() => {
@@ -88,41 +94,35 @@ export const useChats = () => {
     return () => clearInterval(intervalId);
   }, [queryClient]);
 
-  return useApiQuery<ChatsResponse>({
-    endpoint: 'chat-api/chats',
+  // Используем прямой Supabase клиент вместо обычного API
+  return useQuery<ChatsResponse, Error>({
     queryKey: ['chats-api'],
-    options: {
-      requiresAuth: false, // Изменяем для тестирования, можно будет вернуть на true позже
-      fallbackData: DEMO_CHATS
-    },
-    queryOptions: {
-      refetchOnWindowFocus: true,
-      refetchInterval: 10000,
-      staleTime: 5000,
-      select: (data: any) => {
-        console.log('Processing chats data:', data);
-        
-        // Если данных нет или некорректный формат, используем демо-данные
-        if (!data) {
-          console.warn('No chats data received, using demo chats');
-          return DEMO_CHATS;
+    queryFn: async () => {
+      try {
+        // Запрос к Supabase напрямую
+        console.log('[DEBUG] Запрос чатов напрямую через Supabase клиент');
+        const { data, error } = await supabase
+          .from('chats')
+          .select('*')
+          .order('updated_at', { ascending: false });
+
+        if (error) {
+          console.error('[DEBUG] Ошибка Supabase запроса:', error);
+          throw error;
         }
+
+        console.log('[DEBUG] Получено чатов из Supabase:', data?.length || 0);
+        return { chats: mapSupabaseChatsToAppFormat(data as SupabaseChat[]) };
+      } catch (error) {
+        console.error('[DEBUG] Ошибка при получении чатов:', error);
         
-        // Если data.chats есть и это массив, значит формат правильный
-        if (data.chats && Array.isArray(data.chats)) {
-          return data as ChatsResponse;
-        }
-        
-        // Если данные пришли массивом от rpc функции
-        if (Array.isArray(data)) {
-          return { chats: mapSupabaseChatsToAppFormat(data as SupabaseChat[]) };
-        }
-        
-        // В крайнем случае возвращаем демо-данные
-        console.warn('Using demo chats due to incorrect data format:', data);
+        // В случае ошибки используем демо-данные
+        console.log('[DEBUG] Используем демо-данные из-за ошибки');
         return DEMO_CHATS;
       }
     },
-    errorMessage: "Ошибка загрузки чатов"
+    refetchOnWindowFocus: true,
+    refetchInterval: 10000,
+    staleTime: 5000
   });
 };

@@ -1,4 +1,3 @@
-
 export interface Message {
   id: string;
   content: string;
@@ -31,6 +30,8 @@ export interface Chat {
   updated_at?: string;
   // Добавляем источник чата (whatsapp, telegram, web и т.д.)
   source?: string;
+  // Добавляем номер телефона контакта
+  phone_number?: string;
 }
 
 // Добавляем интерфейс для данных из Supabase

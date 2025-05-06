@@ -1,7 +1,8 @@
+import { Message, SupabaseMessage } from "@/types/chat";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
-import { useApiQuery } from "@/hooks/api/useApiQuery";
-import { Message } from "@/types/chat";
-
+// Демо-сообщения для случая, если не удалось получить реальные данные
 const DEMO_MESSAGES: Message[] = [
   {
     id: "demo-msg-1",
@@ -24,75 +25,72 @@ const DEMO_MESSAGES: Message[] = [
 ];
 
 /**
- * Хук для получения сообщений чата с использованием общего API-клиента
+ * Хук для получения сообщений чата через Supabase
  */
 export const useMessages = (chatId: string | null) => {
-  const result = useApiQuery<{ messages: Message[] }>({
-    endpoint: chatId ? `chat-api/messages?chatId=${chatId}` : '',
-    queryKey: ['messages-api', chatId],
-    enabled: !!chatId,
-    options: {
-      requiresAuth: true,
-      fallbackData: chatId?.startsWith('demo-') 
-        ? { messages: DEMO_MESSAGES } 
-        : { messages: [] }
-    },
-    queryOptions: {
-      retry: 1,
-      refetchOnWindowFocus: true, // Обновлять при возврате на страницу
-      refetchInterval: 5000, // Периодическое обновление каждые 5 секунд
-      select: (data) => {
-        // Проверяем, что data существует 
-        if (!data) {
-          console.warn('useMessages: No data received from API');
-          return chatId?.startsWith('demo-') 
-            ? { messages: DEMO_MESSAGES } 
-            : { messages: [] };
+  const result = useQuery({
+    queryKey: ['messages', chatId],
+    queryFn: async () => {
+      // Если chatId не предоставлен
+      if (!chatId) {
+        console.log('[DEBUG] useMessages: Не указан ID чата');
+        return [];
+      }
+      
+      try {
+        console.log('[DEBUG] useMessages: Запрос сообщений для чата', chatId);
+        
+        // Запрос данных из Supabase
+        const { data, error } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('chat_id', chatId)
+          .order('created_at', { ascending: true });
+        
+        // Логирование ошибок
+        if (error) {
+          console.error('[DEBUG] useMessages: Ошибка запроса:', error);
+          throw error;
         }
         
-        // Если в data есть messages и это массив, используем его
-        if (data && typeof data === 'object' && 'messages' in data && Array.isArray(data.messages)) {
-          // Проверяем, что все сообщения имеют необходимые поля
-          return {
-            messages: data.messages.map(msg => ({
-              id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-              content: msg.content || "",
-              role: msg.role || "BOT",
-              timestamp: msg.timestamp || new Date().toISOString(),
-              product: msg.product
-            }))
-          };
+        // Если данные отсутствуют
+        if (!data || data.length === 0) {
+          console.log('[DEBUG] useMessages: Сообщения не найдены');
+          return [];
         }
         
-        // Если data - массив (старый формат API), преобразуем его
-        if (Array.isArray(data)) {
-          return {
-            messages: data.map(msg => ({
-              id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-              content: msg.content || "",
-              role: msg.role || "BOT",
-              timestamp: msg.timestamp || new Date().toISOString(),
-              product: msg.product
-            }))
-          };
+        console.log('[DEBUG] useMessages: Получено сообщений:', data.length);
+        console.log('[DEBUG] useMessages: Первое сообщение:', data[0]);
+        
+        // Преобразуем данные в формат приложения
+        return data.map((msg: any) => ({
+          id: msg.id || `msg-${Date.now()}-${Math.random()}`,
+          content: msg.content || '',
+          timestamp: msg.created_at || new Date().toISOString(),
+          role: msg.is_from_user ? 'USER' as const : 'BOT' as const,
+          // Если есть данные о продукте
+          ...(msg.has_product && msg.product_data ? {
+            product: typeof msg.product_data === 'string' 
+              ? JSON.parse(msg.product_data) 
+              : msg.product_data
+          } : {})
+        }));
+      } catch (error) {
+        console.error('[DEBUG] useMessages: Критическая ошибка:', error);
+        
+        // При ошибке возвращаем демо-данные
+        if (chatId.startsWith('demo-')) {
+          return DEMO_MESSAGES;
         }
         
-        // Резервный вариант
-        return chatId?.startsWith('demo-') 
-          ? { messages: DEMO_MESSAGES } 
-          : { messages: [] };
+        return [];
       }
     },
-    errorMessage: "Ошибка загрузки сообщений"
+    enabled: !!chatId,
+    refetchOnWindowFocus: true,
+    refetchInterval: 5000,
+    retry: 1
   });
   
-  // Убедимся, что возвращаем массив даже если data.messages равна null или undefined
-  const safeData = result.data?.messages 
-    ? result.data.messages 
-    : (chatId?.startsWith('demo-') ? DEMO_MESSAGES : []);
-  
-  return {
-    ...result,
-    data: safeData
-  };
+  return result;
 };
