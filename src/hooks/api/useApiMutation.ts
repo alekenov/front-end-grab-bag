@@ -1,6 +1,5 @@
-
-import { useMutation, UseMutationOptions, UseMutationResult } from "@tanstack/react-query";
-import { apiClient, ApiRequestOptions } from "@/utils/apiClient";
+import { useMutation, type UseMutationOptions, type UseMutationResult } from "@tanstack/react-query";
+import { apiClient, type ApiRequestOptions } from "@/utils/apiClient";
 import { useToast } from "@/hooks/use-toast";
 
 /**
@@ -31,18 +30,34 @@ export function useApiMutation<TData = unknown, TVariables = unknown>({
   return useMutation<TData, Error, TVariables>({
     mutationFn: async (variables: TVariables) => {
       try {
+        const operationName = method === 'POST' ? 'создания' : method === 'PUT' ? 'обновления' : 'удаления';
+        console.log(`📤 Начало операции ${operationName} (${method} запрос к ${endpoint})`);
+        
+        let result: TData;
+        
         switch (method) {
           case 'POST':
-            return await apiClient.post<TData>(endpoint, variables, options);
+            result = await apiClient.post<TData>(endpoint, variables, options);
+            break;
           case 'PUT':
-            return await apiClient.put<TData>(endpoint, variables, options);
+            result = await apiClient.put<TData>(endpoint, variables, options);
+            break;
           case 'DELETE':
-            return await apiClient.delete<TData>(`${endpoint}${variables ? `/${variables}` : ''}`, options);
+            result = await apiClient.delete<TData>(`${endpoint}${variables ? `/${variables}` : ''}`, options);
+            break;
           default:
-            return await apiClient.post<TData>(endpoint, variables, options);
+            result = await apiClient.post<TData>(endpoint, variables, options);
         }
+        
+        console.log(`✅ Успешное завершение операции ${operationName}`);
+        return result;
       } catch (error) {
-        console.error(`Ошибка ${method} запроса к ${endpoint}:`, error);
+        // Улучшенное логирование ошибок
+        if (error instanceof Error) {
+          console.error(`🔴 Ошибка ${method} запроса к ${endpoint}: ${error.message}`);
+        } else {
+          console.error(`🔴 Неизвестная ошибка ${method} запроса к ${endpoint}:`, error);
+        }
         throw error;
       }
     },
@@ -60,10 +75,15 @@ export function useApiMutation<TData = unknown, TVariables = unknown>({
       }
     },
     onError: (error, variables, context) => {
+      // Более детальное сообщение об ошибке
+      const errorDetails = error instanceof Error 
+        ? error.message 
+        : "Неизвестная ошибка";
+        
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: errorMessage || error.message || "Произошла ошибка",
+        title: "Ошибка API",
+        description: errorMessage || errorDetails || "Произошла ошибка при обращении к серверу",
       });
       
       if (mutationOptions.onError) {

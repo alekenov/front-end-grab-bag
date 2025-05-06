@@ -1,6 +1,5 @@
-
-import { useQuery, UseQueryOptions, UseQueryResult } from "@tanstack/react-query";
-import { apiClient, ApiRequestOptions } from "@/utils/apiClient";
+import { useQuery, type UseQueryOptions, type UseQueryResult } from "@tanstack/react-query";
+import { apiClient, type ApiRequestOptions } from "@/utils/apiClient";
 import { useToast } from "@/hooks/use-toast";
 
 /**
@@ -10,9 +9,10 @@ interface UseApiQueryParams<TData = unknown> {
   endpoint: string;
   enabled?: boolean;
   options?: Omit<ApiRequestOptions, 'method'>;
-  queryOptions?: Omit<UseQueryOptions<TData, Error, TData>, 'queryKey' | 'queryFn'>;
+  queryOptions?: Omit<UseQueryOptions<TData, Error>, 'queryKey' | 'queryFn'>;
   queryKey?: string[];
   errorMessage?: string;
+  showToast?: boolean;  // Флаг для отображения уведомления об ошибке
 }
 
 /**
@@ -24,7 +24,8 @@ export function useApiQuery<TData = unknown>({
   options = {},
   queryOptions = {},
   queryKey,
-  errorMessage = "Ошибка загрузки данных"
+  errorMessage = "Ошибка загрузки данных",
+  showToast = true,  // По умолчанию показывать уведомление
 }: UseApiQueryParams<TData>): UseQueryResult<TData, Error> {
   const { toast } = useToast();
   
@@ -35,23 +36,21 @@ export function useApiQuery<TData = unknown>({
     queryKey: finalQueryKey,
     queryFn: async () => {
       try {
+        // Делаем запрос к API
         return await apiClient.get<TData>(endpoint, options);
       } catch (error) {
-        console.error(`Ошибка GET запроса к ${endpoint}:`, error);
-        throw error;
+        // Более подробное логирование ошибок
+        if (error instanceof Error) {
+          console.error(`🔴 Ошибка GET запроса к ${endpoint}: ${error.message}`);
+        } else {
+          console.error(`🔴 Неизвестная ошибка при запросе ${endpoint}:`, error);
+        }
+        throw error; // Пробрасываем ошибку для обработки в React Query
       }
     },
     enabled,
+    retry: 2,  // Настройка количества повторных попыток
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),  // Экспоненциальная задержка между попытками
     ...queryOptions,
-    meta: {
-      ...queryOptions.meta,
-      onError: (error: Error) => {
-        toast({
-          variant: "destructive",
-          title: "Ошибка",
-          description: errorMessage || error.message,
-        });
-      }
-    }
   });
 }

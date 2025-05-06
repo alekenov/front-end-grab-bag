@@ -1,6 +1,6 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { getApiUrl } from "./apiHelpers";
+import { ANON_TOKEN } from "@/hooks/chat/chatApiUtils";
 
 // Типы для API-запросов
 export type ApiMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -49,7 +49,10 @@ export const apiClient: ApiClient = {
       const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
       const url = `${API_BASE_URL}${path}`;
       
-      console.log(`API запрос: ${method} ${url}`);
+      console.log(`[DEBUG] API запрос: ${method} ${url}`, { 
+        headers: { ...headers, Authorization: requiresAuth ? '***' : undefined },
+        body: body ? '***' : undefined
+      });
       
       // Создаем заголовки
       const requestHeaders: Record<string, string> = {
@@ -60,12 +63,12 @@ export const apiClient: ApiClient = {
       // Добавляем токен авторизации, если требуется
       if (requiresAuth) {
         const { data: sessionData } = await supabase.auth.getSession();
-        const token = sessionData?.session?.access_token;
+        const token = sessionData?.session?.access_token || ANON_TOKEN;
         
         if (token) {
           requestHeaders['Authorization'] = `Bearer ${token}`;
         } else {
-          console.warn('Отсутствует токен авторизации для запроса, требующего авторизацию');
+          console.warn('[DEBUG] Отсутствует токен авторизации для запроса, требующего авторизацию');
         }
       }
       
@@ -84,19 +87,22 @@ export const apiClient: ApiClient = {
       clearTimeout(timeoutId);
 
       // Логируем ответ
-      console.log(`API ответ: ${response.status}`);
+      console.log(`[DEBUG] API ответ: ${response.status} ${response.statusText} для ${url}`);
       
       // Обрабатываем ошибки HTTP
       if (!response.ok) {
-        let errorMessage = `Ошибка API: ${response.status}`;
+        let errorMessage = `Ошибка API: ${response.status} ${response.statusText}`;
+        let errorData: Record<string, any> = {};
         
         try {
-          const errorData = await response.json();
+          errorData = await response.json();
           errorMessage = errorData.error || errorData.message || errorMessage;
         } catch (e) {
           // Игнорируем ошибку парсинга JSON
+          console.log('[DEBUG] Не удалось парсить JSON из ответа ошибки', e);
         }
         
+        console.error(`[DEBUG] Детали ошибки API: ${errorMessage}`, errorData);
         throw new Error(errorMessage);
       }
 
@@ -106,11 +112,11 @@ export const apiClient: ApiClient = {
       
       return data;
     } catch (error) {
-      console.error('API ошибка:', error);
+      console.error('[DEBUG] API ошибка:', error);
       
       // Если есть резервные данные, возвращаем их при ошибке
       if (fallbackData !== undefined) {
-        console.warn('Используются резервные данные из-за ошибки API');
+        console.warn('[DEBUG] Используются резервные данные из-за ошибки API');
         return fallbackData as T;
       }
       
