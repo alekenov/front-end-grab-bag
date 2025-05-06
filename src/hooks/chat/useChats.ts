@@ -13,7 +13,7 @@ interface ChatsResponse {
 const mapSupabaseChatsToAppFormat = (chats: SupabaseChat[]): Chat[] => {
   return chats.map(chat => ({
     id: chat.id,
-    name: chat.name || chat.phone_number || "Новый контакт",
+    name: chat.name || (chat.phone_number ? `WhatsApp ${chat.phone_number}` : "Новый контакт"),
     aiEnabled: chat.ai_enabled || false,
     unreadCount: chat.unread_count || 0,
     lastMessage: chat.last_message_content || chat.last_message_timestamp 
@@ -92,7 +92,8 @@ export const useChats = () => {
     endpoint: 'chat-api/chats',
     queryKey: ['chats-api'],
     options: {
-      requiresAuth: false, // Изменяем для тестирования, можно будет вернуть на true позже
+      // Важно: установим requiresAuth в true, чтобы передавался заголовок авторизации
+      requiresAuth: true,
       fallbackData: DEMO_CHATS
     },
     queryOptions: {

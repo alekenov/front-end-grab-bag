@@ -16,6 +16,10 @@ serve(async (req) => {
     const url = new URL(req.url);
     const path = url.pathname.split("/").filter(Boolean);
     
+    // Логируем заголовки для отладки
+    console.log("Request headers:", Object.fromEntries(req.headers.entries()));
+    console.log("Path:", path);
+    
     // Извлекаем параметры запроса
     const endpoint = path[1]; // chat-api/[endpoint]
     

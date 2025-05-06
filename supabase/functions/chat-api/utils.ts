@@ -1,42 +1,8 @@
 
-// CORS заголовки для доступа к API из браузера
+// CORS-заголовки для Edge Functions
 export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, Authorization",
+  "Access-Control-Max-Age": "86400",
 };
-
-// Генерация ответа AI на сообщение пользователя
-export async function generateAIResponse(message: string, product?: any): Promise<string> {
-  try {
-    // Базовый шаблон ответа для различных типов сообщений
-    if (product) {
-      // Если сообщение содержит товар
-      return `Спасибо за интерес к нашему букету за ${product.price} ₸! 
-      Это прекрасный выбор. Хотели бы вы узнать более подробную информацию 
-      или заказать доставку на определенное время?`;
-    }
-    
-    // Сообщения о доставке
-    if (message.toLowerCase().includes('доставк')) {
-      return `Мы осуществляем доставку ежедневно с 9:00 до 21:00. 
-      Стандартная доставка занимает 2-3 часа с момента подтверждения заказа. 
-      Также доступна экспресс-доставка в течение 1 часа за дополнительную плату.`;
-    }
-
-    // Вопросы о ценах
-    if (message.toLowerCase().includes('цен') || message.toLowerCase().includes('стоимость') || message.toLowerCase().includes('стоит')) {
-      return `В нашем ассортименте есть букеты от 5,000 до 50,000 ₸. 
-      Стоимость зависит от выбранных цветов, их количества и оформления. 
-      Мы можем предложить варианты на любой бюджет. 
-      Какой ценовой диапазон вас интересует?`;
-    }
-    
-    // Стандартный ответ
-    return `Благодарим за ваше сообщение! Наш менеджер свяжется с вами в ближайшее время. 
-    Если у вас есть срочный вопрос, вы можете позвонить нам по номеру +7 (123) 456-78-90.`;
-    
-  } catch (error) {
-    console.error("Ошибка генерации ответа AI:", error);
-    return "Извините, произошла ошибка при обработке вашего запроса. Пожалуйста, попробуйте позже.";
-  }
-}
