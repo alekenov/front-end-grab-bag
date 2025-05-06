@@ -26,6 +26,10 @@ export async function handleMessages(req: Request, url: URL) {
     console.log(`Получение сообщений для чата ${chatId}`);
     
     try {
+      // Проверяем заголовок авторизации
+      const authHeader = req.headers.get('Authorization');
+      console.log("Auth header:", authHeader ? "Present" : "Missing");
+      
       // Получаем сообщения из базы данных
       const { data: messages, error } = await supabaseClient
         .from("messages")

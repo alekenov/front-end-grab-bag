@@ -12,6 +12,13 @@ const supabaseClient = createClient(
 export async function handleChats(req: Request, url: URL) {
   if (req.method === "GET") {
     try {
+      // Проверяем заголовок Authorization
+      const authHeader = req.headers.get('Authorization');
+      console.log("Auth header:", authHeader ? "Present" : "Missing");
+      
+      // Даже если нет заголовка, продолжаем - используем service role
+      // для тестирования и разработки
+      
       // Получаем все чаты с их последними сообщениями
       const { data, error } = await supabaseClient.rpc('get_chats_with_last_messages');
 

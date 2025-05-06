@@ -14,7 +14,7 @@ interface ChatsResponse {
 const mapSupabaseChatsToAppFormat = (chats: SupabaseChat[]): Chat[] => {
   return chats.map(chat => ({
     id: chat.id,
-    name: chat.name || chat.phone_number || "Новый контакт",
+    name: chat.name || (chat.phone_number ? `WhatsApp ${chat.phone_number}` : "Новый контакт"),
     aiEnabled: chat.ai_enabled || false,
     unreadCount: chat.unread_count || 0,
     lastMessage: chat.last_message_content || chat.last_message_timestamp 

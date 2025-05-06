@@ -1,47 +1,80 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getApiUrl } from "./apiHelpers";
 import { ANON_TOKEN } from "@/hooks/chat/chatApiUtils";
+import { useToast } from "@/hooks/use-toast";
 
 // Типы для API-запросов
 export type ApiMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 export interface ApiRequestOptions {
-  method?: ApiMethod;
-  headers?: Record<string, string>;
-  body?: any;
+  method?: string;
   requiresAuth?: boolean;
   fallbackData?: any;
-  timeoutMs?: number;
+  headers?: Record<string, string>;
+  body?: any;
 }
 
-// Интерфейс для API клиента со всеми методами
-export interface ApiClient {
-  request<T>(endpoint: string, options?: ApiRequestOptions): Promise<T>;
-  get<T>(endpoint: string, options?: Omit<ApiRequestOptions, 'method' | 'body'>): Promise<T>;
-  post<T>(endpoint: string, body: any, options?: Omit<ApiRequestOptions, 'method' | 'body'>): Promise<T>;
-  put<T>(endpoint: string, body: any, options?: Omit<ApiRequestOptions, 'method' | 'body'>): Promise<T>;
-  delete<T>(endpoint: string, options?: Omit<ApiRequestOptions, 'method'>): Promise<T>;
-}
-
-// Базовый URL API
-const API_BASE_URL = getApiUrl();
+const API_BASE_URL = "https://xcheceveynzdugmgwrmi.supabase.co";
 
 /**
- * Универсальный API клиент для выполнения запросов к бэкенду
- * Автоматически обрабатывает авторизацию, ошибки и таймауты
+ * Универсальный клиент для отправки запросов к API
  */
-export const apiClient: ApiClient = {
+export const apiClient = {
   /**
-   * Выполняет запрос к API с обработкой ошибок и авторизацией
+   * Отправка GET запроса
+   * @param endpoint Эндпоинт API
+   * @param options Дополнительные опции запроса
+   * @returns Promise с результатом запроса
    */
-  async request<T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
+  async get<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
+    return this.request(endpoint, { ...options, method: 'GET' });
+  },
+
+  /**
+   * Отправка POST запроса
+   * @param endpoint Эндпоинт API
+   * @param body Тело запроса
+   * @param options Дополнительные опции запроса
+   * @returns Promise с результатом запроса
+   */
+  async post<T = any>(endpoint: string, body?: any, options: ApiRequestOptions = {}): Promise<T> {
+    return this.request(endpoint, { ...options, method: 'POST', body });
+  },
+
+  /**
+   * Отправка PUT запроса
+   * @param endpoint Эндпоинт API
+   * @param body Тело запроса
+   * @param options Дополнительные опции запроса
+   * @returns Promise с результатом запроса
+   */
+  async put<T = any>(endpoint: string, body?: any, options: ApiRequestOptions = {}): Promise<T> {
+    return this.request(endpoint, { ...options, method: 'PUT', body });
+  },
+
+  /**
+   * Отправка DELETE запроса
+   * @param endpoint Эндпоинт API
+   * @param options Дополнительные опции запроса
+   * @returns Promise с результатом запроса
+   */
+  async delete<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
+    return this.request(endpoint, { ...options, method: 'DELETE' });
+  },
+
+  /**
+   * Универсальный метод для отправки запросов
+   * @param endpoint Эндпоинт API
+   * @param options Опции запроса
+   * @returns Promise с результатом запроса
+   */
+  async request<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
     const {
       method = 'GET',
-      headers = {},
-      body,
       requiresAuth = true,
       fallbackData,
-      timeoutMs = 10000
+      headers = {},
+      body
     } = options;
 
     try {
@@ -54,103 +87,65 @@ export const apiClient: ApiClient = {
         body: body ? '***' : undefined
       });
       
-      // Создаем заголовки
+      // Формируем базовые заголовки
       const requestHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
         ...headers
       };
 
-      // Добавляем токен авторизации, если требуется
+      // Если нужна авторизация, добавляем токен из Supabase
       if (requiresAuth) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const token = sessionData?.session?.access_token || ANON_TOKEN;
+        const session = supabase.auth.getSession();
+        const token = session ? await session.then(res => res.data.session?.access_token) : null;
         
         if (token) {
           requestHeaders['Authorization'] = `Bearer ${token}`;
         } else {
-          console.warn('[DEBUG] Отсутствует токен авторизации для запроса, требующего авторизацию');
+          console.warn('[DEBUG] Токен авторизации не найден, используем анонимный доступ');
+          requestHeaders['Authorization'] = `Bearer ${ANON_TOKEN}`;
         }
       }
-      
-      // Настраиваем таймаут запроса
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-      
-      // Выполняем запрос
-      const response = await fetch(url, {
+
+      // Настройки запроса
+      const requestOptions: RequestInit = {
         method,
         headers: requestHeaders,
-        body: body ? JSON.stringify(body) : undefined,
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
+        credentials: 'include'
+      };
 
-      // Логируем ответ
-      console.log(`[DEBUG] API ответ: ${response.status} ${response.statusText} для ${url}`);
-      
-      // Обрабатываем ошибки HTTP
-      if (!response.ok) {
-        let errorMessage = `Ошибка API: ${response.status} ${response.statusText}`;
-        let errorData: Record<string, any> = {};
-        
-        try {
-          errorData = await response.json();
-          errorMessage = errorData.error || errorData.message || errorMessage;
-        } catch (e) {
-          // Игнорируем ошибку парсинга JSON
-          console.log('[DEBUG] Не удалось парсить JSON из ответа ошибки', e);
-        }
-        
-        console.error(`[DEBUG] Детали ошибки API: ${errorMessage}`, errorData);
-        throw new Error(errorMessage);
+      // Добавляем тело запроса для методов, которые его поддерживают
+      if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
+        requestOptions.body = JSON.stringify(body);
       }
 
-      // Парсим ответ
-      const text = await response.text();
-      const data = text ? JSON.parse(text) as T : (fallbackData as T);
+      // Выполняем запрос
+      const response = await fetch(url, requestOptions);
       
-      return data;
+      // Обрабатываем возможные ошибки HTTP
+      if (!response.ok) {
+        console.error(`[DEBUG] API ошибка HTTP: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorText}`);
+      }
+
+      // Если ответ пустой, возвращаем успех
+      if (response.status === 204 || response.headers.get('content-length') === '0') {
+        return {} as T;
+      }
+
+      // Парсим JSON-ответ
+      const data = await response.json();
+      return data as T;
     } catch (error) {
       console.error('[DEBUG] API ошибка:', error);
       
       // Если есть резервные данные, возвращаем их при ошибке
       if (fallbackData !== undefined) {
-        console.warn('[DEBUG] Используются резервные данные из-за ошибки API');
+        console.log('[DEBUG] Возвращаем резервные данные:', fallbackData);
         return fallbackData as T;
       }
       
       throw error;
     }
-  },
-
-  // Вспомогательные методы для различных типов запросов
-  get<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
-    return this.request(endpoint, { ...options, method: 'GET' }) as Promise<T>;
-  },
-  
-  post<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
-    return this.request(endpoint, { ...options, method: 'POST', body }) as Promise<T>;
-  },
-  
-  put<T>(endpoint: string, body: any, options: Omit<ApiRequestOptions, 'method' | 'body'> = {}): Promise<T> {
-    return this.request(endpoint, { ...options, method: 'PUT', body }) as Promise<T>;
-  },
-  
-  delete<T>(endpoint: string, options: Omit<ApiRequestOptions, 'method'> = {}): Promise<T> {
-    return this.request(endpoint, { ...options, method: 'DELETE' }) as Promise<T>;
-  }
-};
-
-/**
- * Хук для проверки состояния авторизации
- */
-export const getAuthToken = async (): Promise<string | null> => {
-  try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    return sessionData?.session?.access_token || null;
-  } catch (error) {
-    console.error('Ошибка при получении токена авторизации:', error);
-    return null;
   }
 };

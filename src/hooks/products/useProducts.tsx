@@ -22,8 +22,7 @@ export function useProducts() {
     queryFn: async () => {
       try {
         // Используем apiClient для получения товаров
-        const response = await apiClient.request<Product[]>('/rest/v1/products', {
-          method: 'GET',
+        const response = await apiClient.get<Product[]>('/rest/v1/products', {
           requiresAuth: true,
           headers: {
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
@@ -59,9 +58,7 @@ export function useProducts() {
         availability: true,
       };
       
-      const result = await apiClient.request('/rest/v1/products', {
-        method: 'POST',
-        body: productData,
+      const result = await apiClient.post('/rest/v1/products', productData, {
         requiresAuth: true,
         headers: {
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
@@ -100,8 +97,7 @@ export function useProducts() {
   // Удаление товара
   const deleteProductMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.request(`/rest/v1/products?id=eq.${id}`, {
-        method: 'DELETE',
+      await apiClient.delete(`/rest/v1/products?id=eq.${id}`, {
         requiresAuth: true,
         headers: {
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
