@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "https://xcheceveynzdugmgwrmi.supabase.co/functions/v1/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/_assets/*", "/_routes.json", "/_headers", "/favicon.ico", "/robots.txt"]
+  }
+}
