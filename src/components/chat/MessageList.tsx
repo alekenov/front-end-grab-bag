@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { MessageGroup } from "./MessageGroup";
 import { Message, MessagesByDate } from "@/types/chat";
 import { formatDate } from "@/utils/dateFormatters";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface MessageListProps {
   messages: Message[];

@@ -165,12 +165,14 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
       />
       
       <div className="flex-1 overflow-hidden px-3 py-5 md:px-5 bg-[#f5f7fb]">
-        <ScrollArea className="h-full pb-[88px] md:pb-[72px]">
-          <MessageList 
-            messages={messages} 
-            isLoading={messagesLoading && !isDemoChat} 
-          />
-          <div ref={messageEndRef} />
+        <ScrollArea className="h-full w-full">
+          <div className="pb-[88px] md:pb-[72px]">
+            <MessageList 
+              messages={messages} 
+              isLoading={messagesLoading && !isDemoChat} 
+            />
+            <div ref={messageEndRef} />
+          </div>
         </ScrollArea>
       </div>
       
