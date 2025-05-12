@@ -13,6 +13,7 @@ interface UseApiQueryParams<TData = unknown> {
   queryOptions?: Omit<UseQueryOptions<TData, Error, TData>, 'queryKey' | 'queryFn'>;
   queryKey?: string[];
   errorMessage?: string;
+  fallbackData?: TData;
 }
 
 /**
@@ -24,7 +25,8 @@ export function useApiQuery<TData = unknown>({
   options = {},
   queryOptions = {},
   queryKey,
-  errorMessage = "Ошибка загрузки данных"
+  errorMessage = "Ошибка загрузки данных",
+  fallbackData
 }: UseApiQueryParams<TData>): UseQueryResult<TData, Error> {
   const { toast } = useToast();
   
@@ -35,9 +37,12 @@ export function useApiQuery<TData = unknown>({
     queryKey: finalQueryKey,
     queryFn: async () => {
       try {
-        return await apiClient.get<TData>(endpoint, options);
+        console.log(`[useApiQuery] Выполняем запрос к ${endpoint}`);
+        const data = await apiClient.get<TData>(endpoint, options);
+        console.log(`[useApiQuery] Результат запроса к ${endpoint}:`, data);
+        return data;
       } catch (error) {
-        console.error(`Ошибка GET запроса к ${endpoint}:`, error);
+        console.error(`[useApiQuery] Ошибка GET запроса к ${endpoint}:`, error);
         throw error;
       }
     },
@@ -46,6 +51,7 @@ export function useApiQuery<TData = unknown>({
     meta: {
       ...queryOptions.meta,
       onError: (error: Error) => {
+        console.error(`[useApiQuery] Error in ${endpoint}:`, error);
         toast({
           variant: "destructive",
           title: "Ошибка",

@@ -23,7 +23,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
   } = useChatApi();
   
   // Отладочный вывод для проверки данных
-  console.log('ChatList received chats:', chats);
+  console.log('[ChatList] Received chats:', chats);
   
   // Фильтрация чатов по поисковому запросу
   const filteredChats = Array.isArray(chats) ? chats.filter(chat => 
@@ -31,7 +31,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
     (chat.lastMessage && chat.lastMessage.content.toLowerCase().includes(searchQuery.toLowerCase()))
   ) : [];
   
-  console.log('ChatList filtered chats:', filteredChats);
+  console.log('[ChatList] Filtered chats:', filteredChats);
 
   const handleChatSelect = (id: string) => {
     console.log("[ChatList] Selecting chat:", id);
@@ -60,7 +60,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
       <div className="p-4">
         <Alert variant="destructive" className="mb-2">
           <AlertTitle className="text-lg">Ошибка загрузки чатов</AlertTitle>
-          <AlertDescription>Не удалось загрузить список чатов</AlertDescription>
+          <AlertDescription>Не удалось загрузить список чатов. Причина: {chatsError.message}</AlertDescription>
         </Alert>
         <button 
           onClick={() => refetchChats()}
@@ -83,7 +83,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
   if (filteredChats.length === 0) {
     return (
       <div className="p-4 text-center text-gray-500">
-        Нет активных чатов
+        Нет активных чатов в базе данных. Проверьте подключение к Supabase.
       </div>
     );
   }

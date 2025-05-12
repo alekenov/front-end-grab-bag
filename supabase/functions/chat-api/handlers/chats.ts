@@ -19,10 +19,28 @@ export async function handleChats(req: Request) {
       const { data: chats, error } = await supabaseClient
         .rpc('get_chats_with_last_messages');
       
-      if (error) throw error;
+      if (error) {
+        console.error("Ошибка при вызове RPC функции:", error);
+        throw error;
+      }
       
       console.log(`Получено ${chats?.length || 0} чатов`);
       console.log("Первые 3 чата:", chats?.slice(0, 3));
+      
+      // Проверяем, что данные получены корректно
+      if (!chats || !Array.isArray(chats)) {
+        console.error("Ошибка: данные чатов отсутствуют или имеют неверный формат");
+        return new Response(
+          JSON.stringify({ 
+            error: "Данные чатов отсутствуют или имеют неверный формат",
+            raw: chats
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 500,
+          }
+        );
+      }
       
       // Преобразуем данные в формат, который ожидает фронтенд
       const formattedChats = chats.map((chat: any) => ({
@@ -53,7 +71,10 @@ export async function handleChats(req: Request) {
     } catch (error) {
       console.error(`Ошибка при получении списка чатов: ${error.message}`);
       return new Response(
-        JSON.stringify({ error: error.message || "Ошибка получения списка чатов" }),
+        JSON.stringify({ 
+          error: error.message || "Ошибка получения списка чатов",
+          stack: error.stack
+        }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 500,

@@ -30,47 +30,6 @@ const mapSupabaseChatsToAppFormat = (chats: SupabaseChat[]): Chat[] => {
   }));
 };
 
-// Демо-чаты для отображения, когда API недоступен
-const DEMO_CHATS: ChatsResponse = {
-  chats: [
-    {
-      id: "demo-1",
-      name: "Анна Смирнова",
-      aiEnabled: true,
-      unreadCount: 2,
-      lastMessage: {
-        content: "Добрый день! Интересует букет на день рождения",
-        timestamp: new Date().toISOString()
-      },
-      source: "web"
-    },
-    {
-      id: "demo-2",
-      name: "Иван Петров",
-      aiEnabled: false,
-      unreadCount: 0,
-      lastMessage: {
-        content: "Букет за 10000 ₸",
-        timestamp: new Date(Date.now() - 86400000).toISOString(),
-        hasProduct: true,
-        price: 10000
-      },
-      source: "whatsapp"
-    },
-    {
-      id: "demo-3",
-      name: "Мария Иванова",
-      aiEnabled: true,
-      unreadCount: 5,
-      lastMessage: {
-        content: "Когда можно ожидать доставку?",
-        timestamp: new Date(Date.now() - 30 * 60000).toISOString()
-      },
-      source: "telegram"
-    }
-  ]
-};
-
 /**
  * Хук для получения списка чатов с использованием общего API-клиента
  */
@@ -83,7 +42,7 @@ export const useChats = () => {
       console.log("Periodic chats refetch triggered");
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
       queryClient.refetchQueries({ queryKey: ['chats-api'] });
-    }, 10000); // Увеличил интервал обновления до 10 секунд
+    }, 10000); // Интервал обновления 10 секунд
 
     return () => clearInterval(intervalId);
   }, [queryClient]);
@@ -93,8 +52,7 @@ export const useChats = () => {
     queryKey: ['chats-api'],
     options: {
       // Важно: установим requiresAuth в true, чтобы передавался заголовок авторизации
-      requiresAuth: true,
-      fallbackData: DEMO_CHATS
+      requiresAuth: true
     },
     queryOptions: {
       refetchOnWindowFocus: true,
@@ -103,10 +61,10 @@ export const useChats = () => {
       select: (data: any) => {
         console.log('Processing chats data:', data);
         
-        // Если данных нет или некорректный формат, используем демо-данные
+        // Если данных нет или некорректный формат, возвращаем пустой массив
         if (!data) {
-          console.warn('No chats data received, using demo chats');
-          return DEMO_CHATS;
+          console.warn('No chats data received, returning empty array');
+          return { chats: [] };
         }
         
         // Если data.chats есть и это массив, значит формат правильный
@@ -119,9 +77,9 @@ export const useChats = () => {
           return { chats: mapSupabaseChatsToAppFormat(data as SupabaseChat[]) };
         }
         
-        // В крайнем случае возвращаем демо-данные
-        console.warn('Using demo chats due to incorrect data format:', data);
-        return DEMO_CHATS;
+        // В крайнем случае возвращаем пустой массив
+        console.warn('Returning empty array due to incorrect data format:', data);
+        return { chats: [] };
       }
     },
     errorMessage: "Ошибка загрузки чатов"
