@@ -1,4 +1,3 @@
-
 import { Product } from "@/types/product";
 import { useChats } from "./useChats";
 import { useMessages } from "./useMessages";
@@ -24,7 +23,7 @@ export function useChatApi(): ChatApiHook {
       console.log("[useChatApi] Periodic global chats refresh");
       queryClient.invalidateQueries({ queryKey: ['chats-api'] });
       queryClient.refetchQueries({ queryKey: ['chats-api'] });
-    }, 10000); // Увеличил интервал обновления до 10 секунд
+    }, 10000); // 10 секунд для обновления списка чатов
 
     return () => clearInterval(intervalId);
   }, [queryClient]);

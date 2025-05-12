@@ -22,6 +22,7 @@ export async function handleChats(req: Request) {
       if (error) throw error;
       
       console.log(`Получено ${chats?.length || 0} чатов`);
+      console.log("Первые 3 чата:", chats?.slice(0, 3));
       
       // Преобразуем данные в формат, который ожидает фронтенд
       const formattedChats = chats.map((chat: any) => ({
@@ -32,13 +33,15 @@ export async function handleChats(req: Request) {
         source: chat.source || 'web',
         created_at: chat.created_at,
         updated_at: chat.updated_at,
-        lastMessage: chat.last_message_content ? {
-          content: chat.last_message_content,
+        lastMessage: chat.last_message_content || chat.last_message_timestamp ? {
+          content: chat.last_message_content || "",
           timestamp: chat.last_message_timestamp,
-          hasProduct: chat.last_message_has_product,
+          hasProduct: chat.last_message_has_product || false,
           price: chat.last_message_product_price
         } : undefined
       }));
+      
+      console.log("Форматированные чаты:", formattedChats.slice(0, 3));
       
       return new Response(
         JSON.stringify({ chats: formattedChats }),
