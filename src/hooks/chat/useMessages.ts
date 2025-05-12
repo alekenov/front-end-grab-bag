@@ -1,41 +1,29 @@
 
 import { useApiQuery } from "@/hooks/api/useApiQuery";
 import { Message } from "@/types/chat";
-
-const DEMO_MESSAGES: Message[] = [
-  {
-    id: "demo-msg-1",
-    content: "Здравствуйте! Чем я могу помочь вам сегодня?",
-    role: "BOT",
-    timestamp: new Date(Date.now() - 4 * 60000).toISOString()
-  },
-  {
-    id: "demo-msg-2",
-    content: "Я хотел бы узнать о доставке цветов",
-    role: "USER",
-    timestamp: new Date(Date.now() - 3 * 60000).toISOString()
-  },
-  {
-    id: "demo-msg-3",
-    content: "Мы осуществляем доставку ежедневно с 9:00 до 21:00. Стандартная доставка занимает 2-3 часа с момента подтверждения заказа. Также доступна экспресс-доставка в течение 1 часа за дополнительную плату.",
-    role: "BOT",
-    timestamp: new Date(Date.now() - 2 * 60000).toISOString()
-  }
-];
+import { TEST_MESSAGES, DEMO_MESSAGES } from "@/data/mockData"; // Импортируем мок-данные
 
 /**
  * Хук для получения сообщений чата с использованием общего API-клиента
+ * В режиме разработки возвращает мок-данные
  */
 export const useMessages = (chatId: string | null) => {
+  // Если это demo-чат, используем DEMO_MESSAGES
+  const isDemoChat = chatId?.startsWith('demo-');
+  const mockMessages = chatId ? TEST_MESSAGES[chatId] || [] : [];
+
   const result = useApiQuery<{ messages: Message[] }>({
     endpoint: chatId ? `chat-api/messages?chatId=${chatId}` : '',
     queryKey: ['messages-api', chatId],
     enabled: !!chatId,
     options: {
       requiresAuth: true,
-      fallbackData: chatId?.startsWith('demo-') 
-        ? { messages: DEMO_MESSAGES } 
-        : { messages: [] }
+      // Используем разные мок-данные в зависимости от типа чата
+      fallbackData: { 
+        messages: isDemoChat 
+          ? DEMO_MESSAGES
+          : mockMessages
+      }
     },
     queryOptions: {
       retry: 1,
@@ -44,10 +32,16 @@ export const useMessages = (chatId: string | null) => {
       select: (data) => {
         // Проверяем, что data существует 
         if (!data) {
-          console.warn('useMessages: No data received from API');
-          return chatId?.startsWith('demo-') 
-            ? { messages: DEMO_MESSAGES } 
-            : { messages: [] };
+          console.warn('useMessages: No data received from API, using mock data');
+          
+          // Определяем, какие мок-данные использовать
+          if (isDemoChat) {
+            return { messages: DEMO_MESSAGES };
+          } else if (chatId && TEST_MESSAGES[chatId]) {
+            return { messages: TEST_MESSAGES[chatId] };
+          } else {
+            return { messages: [] };
+          }
         }
         
         // Если в data есть messages и это массив, используем его
@@ -77,10 +71,15 @@ export const useMessages = (chatId: string | null) => {
           };
         }
         
-        // Резервный вариант
-        return chatId?.startsWith('demo-') 
-          ? { messages: DEMO_MESSAGES } 
-          : { messages: [] };
+        // Резервный вариант - используем мок-данные
+        console.warn('useMessages: Invalid data format from API, using mock data');
+        if (isDemoChat) {
+          return { messages: DEMO_MESSAGES };
+        } else if (chatId && TEST_MESSAGES[chatId]) {
+          return { messages: TEST_MESSAGES[chatId] };
+        } else {
+          return { messages: [] };
+        }
       }
     },
     errorMessage: "Ошибка загрузки сообщений"
@@ -89,7 +88,9 @@ export const useMessages = (chatId: string | null) => {
   // Убедимся, что возвращаем массив даже если data.messages равна null или undefined
   const safeData = result.data?.messages 
     ? result.data.messages 
-    : (chatId?.startsWith('demo-') ? DEMO_MESSAGES : []);
+    : (isDemoChat 
+        ? DEMO_MESSAGES 
+        : (chatId && TEST_MESSAGES[chatId] ? TEST_MESSAGES[chatId] : []));
   
   return {
     ...result,

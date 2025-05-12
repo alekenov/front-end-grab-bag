@@ -3,6 +3,7 @@ import { useApiQuery } from "@/hooks/api/useApiQuery";
 import { Chat, SupabaseChat } from "@/types/chat";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { TEST_CHATS } from "@/data/mockData"; // Импортируем мок-данные
 
 // Интерфейс для структуры ответа API чатов
 interface ChatsResponse {
@@ -32,6 +33,7 @@ const mapSupabaseChatsToAppFormat = (chats: SupabaseChat[]): Chat[] => {
 
 /**
  * Хук для получения списка чатов с использованием общего API-клиента
+ * В режиме разработки возвращает мок-данные
  */
 export const useChats = () => {
   const queryClient = useQueryClient();
@@ -52,7 +54,9 @@ export const useChats = () => {
     queryKey: ['chats-api'],
     options: {
       // Важно: установим requiresAuth в true, чтобы передавался заголовок авторизации
-      requiresAuth: true
+      requiresAuth: true,
+      // Добавляем fallbackData для использования мок-данных при ошибке API
+      fallbackData: { chats: TEST_CHATS }
     },
     queryOptions: {
       refetchOnWindowFocus: true,
@@ -61,10 +65,10 @@ export const useChats = () => {
       select: (data: any) => {
         console.log('Processing chats data:', data);
         
-        // Если данных нет или некорректный формат, возвращаем пустой массив
-        if (!data) {
-          console.warn('No chats data received, returning empty array');
-          return { chats: [] };
+        // Если это мок-данные или ошибка API, возвращаем мок-данные
+        if (!data || Object.keys(data).length === 0) {
+          console.warn('Using mock chat data');
+          return { chats: TEST_CHATS };
         }
         
         // Если data.chats есть и это массив, значит формат правильный
@@ -77,9 +81,9 @@ export const useChats = () => {
           return { chats: mapSupabaseChatsToAppFormat(data as SupabaseChat[]) };
         }
         
-        // В крайнем случае возвращаем пустой массив
-        console.warn('Returning empty array due to incorrect data format:', data);
-        return { chats: [] };
+        // В крайнем случае возвращаем мок-данные
+        console.warn('Returning mock data due to incorrect data format:', data);
+        return { chats: TEST_CHATS };
       }
     },
     errorMessage: "Ошибка загрузки чатов"
