@@ -15,7 +15,18 @@ export async function handleChats(req: Request) {
     console.log("Получение списка чатов");
     
     try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      
+      console.log(`SUPABASE_URL установлен: ${!!supabaseUrl}`);
+      console.log(`SUPABASE_SERVICE_ROLE_KEY установлен: ${!!supabaseKey}`);
+      
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error("Отсутствуют переменные окружения SUPABASE_URL или SUPABASE_SERVICE_ROLE_KEY");
+      }
+      
       // Используем RPC функцию для получения всех чатов с последними сообщениями
+      console.log("Вызываем RPC функцию get_chats_with_last_messages");
       const { data: chats, error } = await supabaseClient
         .rpc('get_chats_with_last_messages');
       
@@ -25,7 +36,11 @@ export async function handleChats(req: Request) {
       }
       
       console.log(`Получено ${chats?.length || 0} чатов`);
-      console.log("Первые 3 чата:", chats?.slice(0, 3));
+      if (Array.isArray(chats) && chats.length > 0) {
+        console.log("Первые 3 чата:", chats.slice(0, 3));
+      } else {
+        console.log("Список чатов пуст или не является массивом:", chats);
+      }
       
       // Проверяем, что данные получены корректно
       if (!chats || !Array.isArray(chats)) {
@@ -70,6 +85,8 @@ export async function handleChats(req: Request) {
       );
     } catch (error) {
       console.error(`Ошибка при получении списка чатов: ${error.message}`);
+      console.error(`Стек ошибки: ${error.stack}`);
+      
       return new Response(
         JSON.stringify({ 
           error: error.message || "Ошибка получения списка чатов",

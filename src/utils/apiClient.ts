@@ -11,6 +11,7 @@ export interface ApiRequestOptions {
 }
 
 const API_BASE_URL = "https://xcheceveynzdugmgwrmi.supabase.co";
+const DEBUG = true;
 
 /**
  * Универсальный клиент для отправки запросов к API
@@ -85,9 +86,15 @@ export const apiClient = {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
         requestHeaders['Authorization'] = `Bearer ${session.access_token}`;
+        if (DEBUG) {
+          console.log("[apiClient] Using authorized token");
+        }
       } else if (requiresAuth) {
         // Для отладки используем anon key, так как у нас нет аутентификации
         requestHeaders['Authorization'] = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjaGVjZXZleW56ZHVnbWd3cm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMTI3NTQsImV4cCI6MjA2MTY4ODc1NH0.EtTP-fNb5UrCs6nB_O8mds8oTTBJCeWh1CmfmzDiuds`;
+        if (DEBUG) {
+          console.log("[apiClient] Using anonymous token");
+        }
       }
 
       // Формируем URL с учетом API_BASE_URL
@@ -97,6 +104,12 @@ export const apiClient = {
       }
 
       console.info("API запрос:", method, url);
+      if (DEBUG) {
+        console.log("[apiClient] Request headers:", requestHeaders);
+        if (body) {
+          console.log("[apiClient] Request body:", body);
+        }
+      }
 
       const requestOptions: RequestInit = {
         method,
@@ -111,6 +124,10 @@ export const apiClient = {
       const response = await fetch(url, requestOptions);
 
       console.info("API ответ:", response.status);
+      if (DEBUG) {
+        console.log("[apiClient] Response status:", response.status);
+        console.log("[apiClient] Response headers:", Object.fromEntries(response.headers.entries()));
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -121,7 +138,18 @@ export const apiClient = {
       // Проверяем, есть ли данные в ответе (для правильной обработки 204 No Content)
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
-        return await response.json();
+        const responseText = await response.text();
+        if (DEBUG) {
+          console.log("[apiClient] Raw response:", responseText);
+        }
+        
+        try {
+          return responseText ? JSON.parse(responseText) : {};
+        } catch (parseError) {
+          console.error("[apiClient] Error parsing JSON response:", parseError);
+          console.error("[apiClient] Raw response text:", responseText);
+          throw new Error("Ошибка парсинга ответа сервера");
+        }
       } else {
         return {} as T;
       }

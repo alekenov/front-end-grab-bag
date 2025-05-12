@@ -3,6 +3,9 @@ import { useQuery, UseQueryOptions, UseQueryResult } from "@tanstack/react-query
 import { apiClient, ApiRequestOptions } from "@/utils/apiClient";
 import { useToast } from "@/hooks/use-toast";
 
+// Включим режим отладки
+const DEBUG = true;
+
 /**
  * Параметры для хука useApiQuery
  */
@@ -33,11 +36,23 @@ export function useApiQuery<TData = unknown>({
   // Формируем ключ запроса на основе эндпоинта, если не предоставлен
   const finalQueryKey = queryKey || ['api', endpoint];
   
+  if (DEBUG) {
+    console.log(`[useApiQuery] Инициализация запроса к ${endpoint}`);
+    console.log(`[useApiQuery] Ключ запроса:`, finalQueryKey);
+    console.log(`[useApiQuery] Опции запроса:`, options);
+    console.log(`[useApiQuery] Опции запроса Query:`, queryOptions);
+  }
+  
   return useQuery<TData, Error>({
     queryKey: finalQueryKey,
     queryFn: async () => {
       try {
         console.log(`[useApiQuery] Выполняем запрос к ${endpoint}`);
+        
+        if (DEBUG) {
+          console.log(`[useApiQuery] Полный URL запроса: ${API_BASE_URL}/functions/v1/${endpoint}`);
+        }
+        
         const data = await apiClient.get<TData>(endpoint, options);
         console.log(`[useApiQuery] Результат запроса к ${endpoint}:`, data);
         return data;
