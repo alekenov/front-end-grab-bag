@@ -2,6 +2,7 @@
 import { useQuery, UseQueryOptions, UseQueryResult } from "@tanstack/react-query";
 import { apiClient, ApiRequestOptions } from "@/utils/apiClient";
 import { useToast } from "@/hooks/use-toast";
+import { getApiUrl } from "@/utils/apiHelpers";
 
 // Включим режим отладки
 const DEBUG = true;
@@ -49,8 +50,11 @@ export function useApiQuery<TData = unknown>({
       try {
         console.log(`[useApiQuery] Выполняем запрос к ${endpoint}`);
         
+        // Получаем базовый URL из конфигурации
+        const apiUrl = getApiUrl();
+        
         if (DEBUG) {
-          console.log(`[useApiQuery] Полный URL запроса: ${API_BASE_URL}/functions/v1/${endpoint}`);
+          console.log(`[useApiQuery] Полный URL запроса: ${apiUrl}/${endpoint}`);
         }
         
         const data = await apiClient.get<TData>(endpoint, options);

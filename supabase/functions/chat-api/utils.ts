@@ -1,41 +1,55 @@
 
-// CORS заголовки для Edge функций
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+
+// CORS заголовки для разрешения кроссдоменных запросов
 export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
 };
 
-/**
- * Форматирование номера телефона для WhatsApp
- * Преобразует любой формат номера в стандартизированный для хранения и отображения
- */
-export const formatPhoneNumber = (phone: string): string => {
-  if (!phone) return '';
-  
-  // Удаляем все не числовые символы
-  let cleaned = phone.replace(/\D/g, '');
-  
-  // Если номер начинается с 8, заменяем на 7
-  if (cleaned.startsWith('8') && cleaned.length === 11) {
-    cleaned = '7' + cleaned.substring(1);
+// Обработка ошибок API
+export function handleApiError(error: any, status = 500) {
+  console.error(`API Error: ${error.message}`);
+  return new Response(
+    JSON.stringify({
+      error: error.message || "Произошла ошибка при обработке запроса",
+    }),
+    {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    }
+  );
+}
+
+// Обработка ошибок AI
+export function handleAIError(error: any): string {
+  console.error(`AI Error: ${error.message || error}`);
+  return "Извините, возникла проблема при генерации ответа. Пожалуйста, попробуйте еще раз позже.";
+}
+
+// Функция для генерации AI ответа (добавлена)
+export async function generateAIResponse(content: string): Promise<string> {
+  try {
+    // В будущем здесь будет интеграция с моделью AI
+    // Пока возвращаем простой ответ
+    return `Автоматический ответ на сообщение: "${content}"`;
+  } catch (error) {
+    return handleAIError(error);
   }
-  
-  // Добавляем + в начало, если его нет и номер не пустой
-  if (!cleaned.startsWith('+') && cleaned.length > 0) {
-    cleaned = '+' + cleaned;
+}
+
+// Вспомогательная функция для валидации обязательных параметров
+export function validateRequiredParams(params: Record<string, any>, requiredParams: string[]): string | null {
+  for (const param of requiredParams) {
+    if (!params[param]) {
+      return `Отсутствует обязательный параметр: ${param}`;
+    }
   }
-  
-  return cleaned;
-};
+  return null;
+}
 
-// Создает имя чата на основе номера телефона
-export const createChatNameFromPhone = (phone: string): string => {
-  const formattedPhone = formatPhoneNumber(phone);
-  return `WhatsApp ${formattedPhone}`;
-};
-
-// Обработка ошибки генерации AI ответа
-export const handleAIError = (error: any): string => {
-  console.error("AI Generation Error:", error);
-  return "Произошла ошибка при генерации ответа. Пожалуйста, попробуйте снова позже.";
-};
+// Вспомогательная функция для безопасного получения значений из query-строки
+export function getQueryParam(url: URL, name: string): string | null {
+  return url.searchParams.get(name);
+}

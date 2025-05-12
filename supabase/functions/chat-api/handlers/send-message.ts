@@ -1,23 +1,12 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders, handleAIError } from "../utils.ts";
+import { corsHeaders, handleAIError, generateAIResponse } from "../utils.ts";
 
 // Создаем клиент Supabase с сервисным ключом для полного доступа к API
 const supabaseClient = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
-
-// Функция для генерации AI ответа
-async function generateAIResponse(content: string): Promise<string> {
-  try {
-    // В будущем здесь будет интеграция с моделью AI
-    // Пока возвращаем простой ответ
-    return `Автоматический ответ на сообщение: "${content}"`;
-  } catch (error) {
-    return handleAIError(error);
-  }
-}
 
 // Обработчик для отправки сообщения
 export async function handleSendMessage(req: Request) {
