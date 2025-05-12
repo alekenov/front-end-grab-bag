@@ -28,12 +28,26 @@ export function handleAIError(error: any): string {
   return "Извините, возникла проблема при генерации ответа. Пожалуйста, попробуйте еще раз позже.";
 }
 
-// Функция для генерации AI ответа (добавлена)
+// Функция для генерации AI ответа
 export async function generateAIResponse(content: string): Promise<string> {
   try {
-    // В будущем здесь будет интеграция с моделью AI
-    // Пока возвращаем простой ответ
-    return `Автоматический ответ на сообщение: "${content}"`;
+    console.log("Generating AI response for:", content);
+    
+    // Простые правила для автоматических ответов
+    if (content.toLowerCase().includes("привет") || content.toLowerCase().includes("здравствуйте")) {
+      return "Здравствуйте! Чем я могу помочь вам сегодня?";
+    } else if (content.toLowerCase().includes("спасибо")) {
+      return "Пожалуйста! Всегда рад помочь.";
+    } else if (content.toLowerCase().includes("цветы") || content.toLowerCase().includes("букет")) {
+      return "У нас большой выбор цветов и букетов на любой вкус. Могу предложить розы, тюльпаны, хризантемы или составить индивидуальный букет по вашему желанию.";
+    } else if (content.toLowerCase().includes("цена") || content.toLowerCase().includes("стоимость")) {
+      return "Стоимость наших букетов начинается от 3000 тенге. Конечная цена зависит от выбранных цветов и размера букета.";
+    } else if (content.toLowerCase().includes("доставка")) {
+      return "Мы осуществляем доставку по всему городу. Стандартная доставка занимает 2-3 часа. Также доступна экспресс-доставка в течение 1 часа.";
+    } else {
+      // Общий ответ для других запросов
+      return `Спасибо за ваше сообщение: "${content}". Наш менеджер скоро с вами свяжется для уточнения деталей.`;
+    }
   } catch (error) {
     return handleAIError(error);
   }

@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getApiUrl } from "@/utils/apiHelpers";
 
 export interface ApiRequestOptions {
   method?: string;
@@ -10,7 +11,6 @@ export interface ApiRequestOptions {
   body?: any;
 }
 
-const API_BASE_URL = "https://xcheceveynzdugmgwrmi.supabase.co";
 const DEBUG = true;
 
 /**
@@ -97,10 +97,12 @@ export const apiClient = {
         }
       }
 
-      // Формируем URL с учетом API_BASE_URL
+      // Формируем URL с учетом базового URL API
       let url = endpoint;
       if (!endpoint.startsWith('http')) {
-        url = `${API_BASE_URL}/functions/v1/${endpoint}`;
+        // Используем функцию getApiUrl вместо константы API_BASE_URL
+        const apiBaseUrl = getApiUrl();
+        url = `${apiBaseUrl}/${endpoint}`;
       }
 
       console.info("API запрос:", method, url);
