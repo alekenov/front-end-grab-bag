@@ -13,6 +13,23 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// Функция для обработки/форматирования номера телефона WhatsApp
+function formatPhoneNumber(phone: string): string {
+  // Удаляем все нецифровые символы и обеспечиваем согласованный формат
+  // WhatsApp API может присылать номера в формате с кодом страны или без него
+  let cleanPhone = phone.replace(/\D/g, '');
+  
+  // Проверяем, начинается ли номер с кода страны
+  if (cleanPhone.startsWith('7') && cleanPhone.length === 11) {
+    return cleanPhone;
+  } else if (cleanPhone.length === 10) {
+    return '7' + cleanPhone;
+  }
+  
+  // Для других форматов возвращаем как есть
+  return cleanPhone;
+}
+
 serve(async (req) => {
   // Обработка CORS preflight запросов
   if (req.method === "OPTIONS") {
@@ -70,7 +87,10 @@ serve(async (req) => {
           
           // Обработка каждого сообщения
           for (const message of change.value.messages) {
-            const from = message.from; // Номер телефона отправителя
+            const rawPhoneNumber = message.from; // Номер телефона отправителя
+            // Форматируем номер телефона для согласованности
+            const from = formatPhoneNumber(rawPhoneNumber);
+            
             const timestamp = new Date(parseInt(message.timestamp) * 1000).toISOString();
             let content = "";
             
@@ -107,8 +127,8 @@ serve(async (req) => {
                 .from("customers")
                 .insert({
                   phone: from,
-                  first_name: "WhatsApp User",
-                  last_name: "",
+                  first_name: "WhatsApp",
+                  last_name: from,
                   opt_in: true,
                   last_interaction: timestamp
                 })
@@ -143,10 +163,12 @@ serve(async (req) => {
             if (!chatCustomer) {
               // 4. Если чата нет, создаем новый
               console.log(`Creating new chat for customer: ${customerId}`);
+              const chatName = `WhatsApp: ${from}`;
+              
               const { data: newChat, error: newChatError } = await supabase
                 .from("chats")
                 .insert({
-                  name: `WhatsApp ${from}`,
+                  name: chatName,
                   ai_enabled: true,
                   unread_count: 1,
                   source: "whatsapp"

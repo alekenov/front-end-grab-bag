@@ -45,6 +45,11 @@ export function useChatApi(): ChatApiHook {
   const chats = chatsData?.chats || [];
   console.log("[useChatApi] Processed chats:", chats);
 
+  // Если есть ошибка, логируем её
+  if (chatsError) {
+    console.error("[useChatApi] Error loading chats:", chatsError);
+  }
+
   const sendMessageMutation = useSendMessage();
   const toggleAIMutation = useToggleAI();
 

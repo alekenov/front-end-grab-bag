@@ -1,6 +1,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../utils.ts";
+import type { SupabaseChat } from "../../../../src/types/chat.ts";
 
 // Создаем клиент Supabase с сервисным ключом для полного доступа к API
 const supabaseClient = createClient(
@@ -8,53 +9,48 @@ const supabaseClient = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
 
-// Обработчик запросов к чатам
-export async function handleChats(req: Request, url: URL) {
+// Обработчик запроса списка чатов
+export async function handleChats(req: Request) {
   if (req.method === "GET") {
+    console.log("Получение списка чатов");
+    
     try {
-      // Проверяем заголовок Authorization
-      const authHeader = req.headers.get('Authorization');
-      console.log("Auth header:", authHeader ? "Present" : "Missing");
+      // Используем RPC функцию для получения всех чатов с последними сообщениями
+      const { data: chats, error } = await supabaseClient
+        .rpc('get_chats_with_last_messages');
       
-      // Даже если нет заголовка, продолжаем - используем service role
-      // для тестирования и разработки
+      if (error) throw error;
       
-      // Получаем все чаты с их последними сообщениями
-      const { data, error } = await supabaseClient.rpc('get_chats_with_last_messages');
-
-      if (error) {
-        console.error("Ошибка при получении чатов:", error);
-        throw error;
-      }
+      console.log(`Получено ${chats?.length || 0} чатов`);
       
-      console.log("Получено чатов с сообщениями:", data ? data.length : 0);
-      
-      // Преобразуем данные в формат, ожидаемый фронтендом
-      const formattedChats = data.map(chat => ({
+      // Преобразуем данные в формат, который ожидает фронтенд
+      const formattedChats = chats.map((chat: any) => ({
         id: chat.id,
-        name: chat.name || (chat.phone_number ? `WhatsApp ${chat.phone_number}` : "Новый контакт"),
-        phone_number: chat.phone_number || null,
+        name: chat.name,
         aiEnabled: chat.ai_enabled,
-        unreadCount: chat.unread_count || 0,
-        source: chat.source || "web", // Добавляем источник чата
+        unreadCount: chat.unread_count,
+        source: chat.source || 'web',
+        created_at: chat.created_at,
+        updated_at: chat.updated_at,
         lastMessage: chat.last_message_content ? {
           content: chat.last_message_content,
           timestamp: chat.last_message_timestamp,
           hasProduct: chat.last_message_has_product,
           price: chat.last_message_product_price
-        } : undefined,
-        created_at: chat.created_at,
-        updated_at: chat.updated_at
+        } : undefined
       }));
-
-      return new Response(JSON.stringify({ chats: formattedChats }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    } catch (error) {
-      console.error("Ошибка при обработке запроса чатов:", error);
+      
       return new Response(
-        JSON.stringify({ error: error.message || "Внутренняя ошибка сервера" }),
+        JSON.stringify({ chats: formattedChats }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    } catch (error) {
+      console.error(`Ошибка при получении списка чатов: ${error.message}`);
+      return new Response(
+        JSON.stringify({ error: error.message || "Ошибка получения списка чатов" }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 500,

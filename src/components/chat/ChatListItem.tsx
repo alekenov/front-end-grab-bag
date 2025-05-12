@@ -5,7 +5,7 @@ import { Chat } from "@/types/chat";
 import { useEffect, useState } from "react";
 
 // Иконки для разных источников чатов
-import { MessageSquare, MessagesSquare, Phone } from "lucide-react";
+import { MessageSquare, MessagesSquare, Phone, WhatsappIcon } from "lucide-react";
 
 interface ChatListItemProps {
   chat: Chat;
@@ -47,6 +47,23 @@ export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI 
     }
   };
 
+  // Функция для извлечения инициалов из имени чата
+  const getChatInitial = () => {
+    const name = chat.name || "";
+    
+    // Если это WhatsApp чат, показываем значок WhatsApp
+    if (chat.source?.toLowerCase() === 'whatsapp') {
+      return (
+        <div className="bg-green-500 h-full w-full flex items-center justify-center">
+          <MessagesSquare className="text-white" size={20} />
+        </div>
+      );
+    }
+    
+    // В противном случае возвращаем первую букву имени
+    return name.charAt(0).toUpperCase();
+  };
+
   return (
     <div
       className={`p-3 cursor-pointer hover:bg-gray-50 flex items-center gap-3 border-b border-[#e1e4e8] transition-colors ${
@@ -55,7 +72,7 @@ export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI 
       onClick={() => onSelectChat(chat.id)}
     >
       <div className="h-12 w-12 rounded-full bg-[#1a73e8] text-white flex items-center justify-center font-medium text-lg shrink-0">
-        {chat.name.charAt(0).toUpperCase()}
+        {getChatInitial()}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
