@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useChatApi } from "@/hooks/chat";
 import { MessageList } from "./MessageList";
 import { ChatHeader } from "./ChatHeader";
@@ -8,6 +8,7 @@ import { EmptyState } from "./EmptyState";
 import { Product } from "@/types/product";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatViewProps {
   currentChatId: string | null;
@@ -20,6 +21,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const chatApi = useChatApi();
   const [name, setName] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const messageEndRef = useRef<HTMLDivElement>(null);
   
   // Получаем детали чата
   const {
@@ -28,6 +30,15 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     error: messagesError,
     refetch: refetchMessages,
   } = currentChatId ? chatApi.getMessages(currentChatId) : { data: [], isLoading: false, error: null, refetch: () => Promise.resolve() };
+  
+  // Автоскролл при новых сообщениях
+  useEffect(() => {
+    if (messages.length && messageEndRef.current) {
+      setTimeout(() => {
+        messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [messages]);
   
   // Принудительно обновляем данные при монтировании компонента
   const forceRefresh = useCallback(() => {
@@ -153,11 +164,14 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
         onUpdateContact={handleUpdateContact}
       />
       
-      <div className="flex-1 overflow-y-auto px-3 py-5 md:px-5 bg-[#f5f7fb] pb-[88px] md:pb-[72px]">
-        <MessageList 
-          messages={messages} 
-          isLoading={messagesLoading && !isDemoChat} 
-        />
+      <div className="flex-1 overflow-hidden px-3 py-5 md:px-5 bg-[#f5f7fb]">
+        <ScrollArea className="h-full pb-[88px] md:pb-[72px]">
+          <MessageList 
+            messages={messages} 
+            isLoading={messagesLoading && !isDemoChat} 
+          />
+          <div ref={messageEndRef} />
+        </ScrollArea>
       </div>
       
       <MessageInput 
