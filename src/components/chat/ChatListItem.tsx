@@ -5,7 +5,7 @@ import { Chat } from "@/types/chat";
 import { useEffect, useState } from "react";
 
 // Иконки для разных источников чатов
-import { MessageSquare, MessagesSquare, Phone, WhatsappIcon } from "lucide-react";
+import { MessageSquare, MessagesSquare, Phone } from "lucide-react";
 
 interface ChatListItemProps {
   chat: Chat;
