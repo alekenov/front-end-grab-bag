@@ -2,7 +2,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { SendMessageParams } from "./types";
-import { CHAT_API_URL } from "./chatApiUtils";
 import { apiClient } from "@/utils/apiClient";
 
 /**
