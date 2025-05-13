@@ -16,7 +16,8 @@ interface ChatListProps {
 
 export function ChatList({ searchQuery, currentChatId, setCurrentChatId, filters = {} }: ChatListProps) {
   const chatApi = useChatApi();
-  const { data: chats = [], isLoading } = chatApi.getChats();
+  // Fix 1: Use chats, isLoadingChats directly instead of calling getChats()
+  const { chats = [], isLoadingChats: isLoading } = chatApi;
   
   // Фильтрация чатов
   const filteredChats = chats.filter(chat => {
@@ -81,7 +82,8 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId, filters
           key={chat.id}
           chat={chat}
           isActive={currentChatId === chat.id}
-          onClick={() => setCurrentChatId(chat.id)}
+          // Fix 2: Use onSelectChat instead of onClick
+          onSelectChat={() => setCurrentChatId(chat.id)}
         />
       ))}
     </div>
