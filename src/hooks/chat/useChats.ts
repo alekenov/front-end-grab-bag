@@ -1,6 +1,6 @@
 
 import { useApiQuery } from "@/hooks/api/useApiQuery";
-import { Chat, SupabaseChat } from "@/types/chat";
+import { Chat, SupabaseChat, Tag } from "@/types/chat";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { TEST_CHATS } from "@/data/mockData"; // Импортируем мок-данные
@@ -27,7 +27,8 @@ const mapSupabaseChatsToAppFormat = (chats: SupabaseChat[]): Chat[] => {
       : undefined,
     created_at: chat.created_at || undefined,
     updated_at: chat.updated_at || undefined,
-    source: chat.source || "web" // Добавляем источник чата
+    source: chat.source || "web", // Добавляем источник чата
+    tags: chat.tags || [] // Добавляем теги чата
   }));
 };
 

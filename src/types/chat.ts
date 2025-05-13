@@ -17,6 +17,12 @@ export interface MessagesByDate {
   [date: string]: Message[];
 }
 
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export interface Chat {
   id: string;
   name: string;
@@ -33,6 +39,8 @@ export interface Chat {
   updated_at?: string;
   // Добавляем источник чата (whatsapp, telegram, web и т.д.)
   source?: string;
+  // Добавляем теги чата
+  tags?: Tag[];
 }
 
 // Добавляем интерфейс для данных из Supabase
@@ -49,6 +57,7 @@ export interface SupabaseChat {
   last_message_has_product?: boolean | null;
   last_message_product_price?: number | null;
   source?: string | null; // Добавлен источник чата
+  tags?: Tag[] | null; // Добавлены теги чата
 }
 
 export interface SupabaseMessage {

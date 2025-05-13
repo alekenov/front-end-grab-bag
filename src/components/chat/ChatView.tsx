@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useChatApi } from "@/hooks/chat";
 import { MessageList } from "./MessageList";
@@ -5,21 +6,28 @@ import { ChatHeader } from "./ChatHeader";
 import { MessageInput } from "./MessageInput";
 import { EmptyState } from "./EmptyState";
 import { Product } from "@/types/product";
+import { Tag } from "@/types/chat";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatViewProps {
   currentChatId: string | null;
   setCurrentChatId?: (id: string | null) => void;
+  currentChatTags?: Tag[];
+  setCurrentChatTags?: (tags: Tag[]) => void;
 }
 
-export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
+export function ChatView({ 
+  currentChatId, 
+  setCurrentChatId,
+  currentChatTags = [],
+  setCurrentChatTags
+}: ChatViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const chatApi = useChatApi();
   const [name, setName] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<Tag[]>(currentChatTags);
   const messageEndRef = useRef<HTMLDivElement>(null);
   
   // Получаем детали чата
@@ -38,6 +46,11 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
       }, 100);
     }
   }, [messages]);
+
+  // Обновляем теги при изменении currentChatTags
+  useEffect(() => {
+    setTags(currentChatTags);
+  }, [currentChatTags]);
   
   // Принудительно обновляем данные при монтировании компонента
   const forceRefresh = useCallback(() => {
@@ -116,10 +129,18 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   }, [currentChatId, chatApi, refetchMessages, queryClient, forceRefresh, toast]);
   
   // Обработчик обновления контакта
-  const handleUpdateContact = (name: string, tags: string[]) => {
+  const handleUpdateContact = (name: string, newTags: string[]) => {
     setName(name);
-    setTags(tags);
-    console.log("[ChatView] Contact updated:", { name, tags });
+    // Обновления тегов должно происходить через TagSelector
+    console.log("[ChatView] Contact updated:", { name, tags: newTags });
+  };
+  
+  // Обработчик изменения тегов
+  const handleTagsChange = (newTags: Tag[]) => {
+    setTags(newTags);
+    if (setCurrentChatTags) {
+      setCurrentChatTags(newTags);
+    }
   };
   
   // Обработчик отправки сообщения с обработкой ошибок
