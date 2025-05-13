@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useChatApi } from "@/hooks/chat";
 import { MessageList } from "./MessageList";
@@ -27,10 +26,18 @@ export function ChatView({
   const queryClient = useQueryClient();
   const chatApi = useChatApi();
   const [name, setName] = useState("");
+  const [source, setSource] = useState<string | undefined>(undefined);
+  const [phoneNumber, setPhoneNumber] = useState<string | undefined>(undefined);
   const [tags, setTags] = useState<Tag[]>(currentChatTags);
   const messageEndRef = useRef<HTMLDivElement>(null);
   
   // Получаем детали чата
+  const {
+    data: chat,
+    isLoading: chatLoading,
+    refetch: refetchChat
+  } = currentChatId ? chatApi.getChat(currentChatId) : { data: null, isLoading: false, refetch: () => Promise.resolve() };
+  
   const {
     data: messages = [],
     isLoading: messagesLoading,
@@ -51,6 +58,21 @@ export function ChatView({
   useEffect(() => {
     setTags(currentChatTags);
   }, [currentChatTags]);
+
+  // Обновляем данные чата при их получении
+  useEffect(() => {
+    if (chat) {
+      setName(chat.name || "Новый контакт");
+      setSource(chat.source);
+      
+      // Получаем номер телефона из данных чата если доступно
+      if (chat.customer && chat.customer.phone) {
+        setPhoneNumber(chat.customer.phone);
+      } else if (chat.phone_number) {
+        setPhoneNumber(chat.phone_number);
+      }
+    }
+  }, [chat]);
   
   // Принудительно обновляем данные при монтировании компонента
   const forceRefresh = useCallback(() => {
@@ -66,8 +88,9 @@ export function ChatView({
     setTimeout(() => {
       refetchMessages();
       chatApi.refetchChats();
+      if (refetchChat) refetchChat();
     }, 100);
-  }, [currentChatId, queryClient, refetchMessages, chatApi]);
+  }, [currentChatId, queryClient, refetchMessages, chatApi, refetchChat]);
   
   // Эффект для проверки товара в localStorage и обработка обновлений
   useEffect(() => {
@@ -181,6 +204,8 @@ export function ChatView({
         onBack={() => setCurrentChatId?.(null)}
         contactName={name || "Новый контакт"}
         tags={tags}
+        source={source}
+        phoneNumber={phoneNumber}
         onUpdateContact={handleUpdateContact}
       />
       

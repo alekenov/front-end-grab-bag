@@ -49,7 +49,8 @@ export const TagSelector = ({ chatId, selectedTags = [], onTagsChange }: TagSele
 
   // Загружаем теги для выбранного чата
   const fetchChatTags = async () => {
-    if (!chatId) return;
+    if (!chatId || chatId === 'current-chat-id') return;
+    
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -78,7 +79,17 @@ export const TagSelector = ({ chatId, selectedTags = [], onTagsChange }: TagSele
 
   // Добавляем тег к чату
   const addTagToChat = async (tag: Tag) => {
-    if (!chatId) return;
+    if (!chatId || chatId === 'current-chat-id') {
+      // Если нет действительного chatId, просто добавляем тег к локальному состоянию
+      if (!selectedTags.some(t => t.id === tag.id)) {
+        const newTags = [...selectedTags, tag];
+        if (onTagsChange) {
+          onTagsChange(newTags);
+        }
+      }
+      return;
+    }
+    
     try {
       // Проверяем, не добавлен ли уже тег к чату
       if (selectedTags.some(t => t.id === tag.id)) {
@@ -119,7 +130,15 @@ export const TagSelector = ({ chatId, selectedTags = [], onTagsChange }: TagSele
 
   // Удаляем тег из чата
   const removeTagFromChat = async (tagId: string) => {
-    if (!chatId) return;
+    if (!chatId || chatId === 'current-chat-id') {
+      // Если нет действительного chatId, просто удаляем тег из локального состояния
+      const newTags = selectedTags.filter(tag => tag.id !== tagId);
+      if (onTagsChange) {
+        onTagsChange(newTags);
+      }
+      return;
+    }
+    
     try {
       setLoading(true);
       const { error } = await supabase
@@ -155,7 +174,7 @@ export const TagSelector = ({ chatId, selectedTags = [], onTagsChange }: TagSele
   // Загружаем теги при монтировании и изменении chatId
   useEffect(() => {
     fetchTags();
-    if (chatId) {
+    if (chatId && chatId !== 'current-chat-id') {
       fetchChatTags();
     }
   }, [chatId]);

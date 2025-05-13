@@ -8,7 +8,8 @@ import {
   RefreshCcw,
   Loader2,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Phone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,16 +21,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tag } from "@/types/chat";
 import { TagSelector } from "./TagSelector";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type ContactDetails = {
   name: string;
   tags: Tag[];
+  phone?: string;
+  source?: string;
 };
 
 type ChatHeaderProps = {
   onBack?: () => void;
   contactName: string;
   tags?: Tag[];
+  source?: string;
+  phoneNumber?: string;
   onUpdateContact?: (name: string, tags: string[]) => void;
 };
 
@@ -37,12 +43,14 @@ export function ChatHeader({
   onBack,
   contactName,
   tags: initialTags = [],
+  source,
+  phoneNumber,
   onUpdateContact
 }: ChatHeaderProps) {
   const [isAiEnabled, setIsAiEnabled] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [tags, setTags] = useState<Tag[]>(initialTags);
-
+  
   // Функция для изменения состояния AI
   const toggleAi = () => {
     setIsAiEnabled(!isAiEnabled);
@@ -71,6 +79,9 @@ export function ChatHeader({
     }
   };
 
+  const chatId = typeof onBack === 'function' ? 'current-chat-id' : '';
+  const isWhatsApp = source === 'whatsapp';
+
   return (
     <div className="h-16 min-h-[64px] px-4 border-b border-[#e1e4e8] flex items-center justify-between bg-white">
       <div className="flex items-center gap-3">
@@ -85,13 +96,30 @@ export function ChatHeader({
           </Button>
         )}
         <div>
-          <div className="font-medium">{contactName}</div>
+          <div className="font-medium">
+            {contactName}
+            {isWhatsApp && phoneNumber && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="ml-2 text-gray-500 text-sm inline-flex items-center">
+                      <Phone size={14} className="mr-1" />
+                      {phoneNumber}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>WhatsApp контакт</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </div>
       </div>
       
       <div className="flex items-center gap-2">
         <TagSelector 
-          chatId={typeof onBack === 'function' ? 'current-chat-id' : ''} 
+          chatId={chatId}
           selectedTags={tags} 
           onTagsChange={handleTagsChange}
         />

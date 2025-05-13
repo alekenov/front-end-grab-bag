@@ -1,148 +1,122 @@
-import { Product } from "@/types/product";
-import { useChats } from "./useChats";
-import { useMessages } from "./useMessages";
-import { useSendMessage } from "./useSendMessage";
-import { useToggleAI } from "./useToggleAI";
-import { ChatApiHook } from "./types";
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useCallback } from "react";
-import { useToast } from "@/hooks/use-toast";
 
-/**
- * Хук для унифицированного доступа к API чатов
- * Объединяет все операции с чатами в одном месте
- */
-export function useChatApi(): ChatApiHook {
-  // Получаем QueryClient для управления кэшем
+import { useState, useCallback } from 'react';
+import { useChats } from './useChats';
+import { useMessages } from './useMessages';
+import { useSendMessage } from './useSendMessage';
+import { useToggleAI } from './useToggleAI';
+import { Chat, Message, SupabaseChat, Tag } from '@/types/chat';
+import { Product } from '@/types/product';
+import { mapSupabaseChatToAppFormat } from './chatApiUtils';
+import { useApiQuery } from '@/hooks/api/useApiQuery';
+import { useQueryClient } from '@tanstack/react-query';
+
+export type ChatApiHook = {
+  chats: Chat[];
+  currentChatId: string | null;
+  setCurrentChatId: (id: string | null) => void;
+  getChat: (chatId: string) => { 
+    data: Chat | null; 
+    isLoading: boolean; 
+    error: any;
+    refetch: () => Promise<any>;
+  };
+  getMessages: (chatId: string) => { 
+    data: Message[]; 
+    isLoading: boolean; 
+    error: any;
+    refetch: () => Promise<any>;
+  };
+  sendMessage: (chatId: string, content: string, product?: Product) => Promise<void>;
+  toggleAI: (chatId: string, enabled: boolean) => Promise<void>;
+  getChatTags: (chatId: string) => Tag[];
+  setChatTags: (chatId: string, tags: Tag[]) => void;
+  isLoading: boolean;
+  refetchChats: () => void;
+};
+
+export const useChatApi = (): ChatApiHook => {
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const [chatTags, setChatTags] = useState<Record<string, Tag[]>>({});
   
-  // Настраиваем периодическое обновление данных
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      console.log("[useChatApi] Periodic global chats refresh");
-      queryClient.invalidateQueries({ queryKey: ['chats-api'] });
-      queryClient.refetchQueries({ queryKey: ['chats-api'] });
-    }, 10000); // 10 секунд для обновления списка чатов
-
-    return () => clearInterval(intervalId);
-  }, [queryClient]);
-  
-  // Получаем данные о чатах
+  // Получаем список чатов
   const { 
-    data: chatsData, 
-    isLoading: isLoadingChats,
-    error: chatsError,
+    data: chatsData,
+    isLoading: isChatsLoading,
     refetch: refetchChats
   } = useChats();
-
-  // Проверяем структуру данных и извлекаем массив чатов
-  // Добавляем логирование для отладки
-  console.log("[useChatApi] Raw chats data:", chatsData);
   
-  // Обеспечиваем, что chats всегда будет массивом
-  const chats = chatsData?.chats || [];
-  console.log("[useChatApi] Processed chats:", chats);
-
-  // Если есть ошибка, логируем её
-  if (chatsError) {
-    console.error("[useChatApi] Error loading chats:", chatsError);
-  }
-
-  const sendMessageMutation = useSendMessage();
-  const toggleAIMutation = useToggleAI();
-
-  // Функция для принудительного обновления списка чатов
-  const forceRefreshChats = useCallback(() => {
+  // Методы API для работы с чатами
+  const { data: messages, isLoading: isMessagesLoading, error: messagesError, refetch: refetchMessages } = useMessages(currentChatId);
+  const { sendMessage } = useSendMessage();
+  const { toggleAI } = useToggleAI();
+  
+  // Получение информации о конкретном чате
+  const getChat = (chatId: string) => {
+    return useApiQuery<SupabaseChat>({
+      endpoint: `chat-api/chat/${chatId}`,
+      queryKey: ['chat-api', chatId],
+      options: {
+        requiresAuth: true
+      },
+      queryOptions: {
+        select: (data) => mapSupabaseChatToAppFormat(data),
+        enabled: !!chatId,
+        staleTime: 10000
+      },
+      errorMessage: "Ошибка получения информации о чате"
+    });
+  };
+  
+  // Получение сообщений для конкретного чата
+  const getMessages = useCallback((chatId: string) => {
+    if (chatId === currentChatId) {
+      return {
+        data: messages,
+        isLoading: isMessagesLoading,
+        error: messagesError,
+        refetch: refetchMessages
+      };
+    }
+    
+    // Если запрашивается другой чат, запрашиваем его сообщения
+    return useMessages(chatId);
+  }, [currentChatId, messages, isMessagesLoading, messagesError, refetchMessages]);
+  
+  // Получение тегов для чата
+  const getChatTags = (chatId: string): Tag[] => {
+    return chatTags[chatId] || [];
+  };
+  
+  // Установка тегов для чата
+  const setChatTagsForChat = (chatId: string, tags: Tag[]) => {
+    setChatTags(prev => ({
+      ...prev,
+      [chatId]: tags
+    }));
+    
+    // Обновляем кэш запроса чатов
+    queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+  };
+  
+  // Force refresh всех чатов
+  const forceRefetchChats = useCallback(() => {
     console.log("[useChatApi] Force refreshing chats");
     queryClient.invalidateQueries({ queryKey: ['chats-api'] });
-    queryClient.invalidateQueries({ queryKey: ['chats'] });
-    
-    // Серия обновлений с задержкой для гарантированного обновления данных
-    setTimeout(() => {
-      queryClient.refetchQueries({ queryKey: ['chats-api'] });
-      queryClient.refetchQueries({ queryKey: ['chats'] });
-    }, 300);
-    
-    setTimeout(() => {
-      queryClient.refetchQueries({ queryKey: ['chats-api'] });
-      queryClient.refetchQueries({ queryKey: ['chats'] });
-      refetchChats();
-    }, 1000);
+    refetchChats();
   }, [queryClient, refetchChats]);
-
-  /**
-   * Получение сообщений для выбранного чата
-   */
-  const getMessages = (chatId: string | null) => {
-    const { 
-      data, 
-      isLoading, 
-      error, 
-      refetch 
-    } = useMessages(chatId);
-
-    // Гарантируем, что всегда возвращается массив
-    const safeMessages = Array.isArray(data) ? data : [];
-
-    return {
-      data: safeMessages,
-      isLoading,
-      error,
-      refetch
-    };
-  };
-
-  /**
-   * Отправка сообщения с принудительным обновлением списка чатов
-   */
-  const sendMessage = async (chatId: string, content: string, product?: Product) => {
-    console.log("[useChatApi] Sending message:", { chatId, content, product });
-    
-    if (!content.trim()) {
-      console.warn("[useChatApi] Attempted to send empty message");
-      toast({
-        title: "Ошибка отправки",
-        description: "Нельзя отправить пустое сообщение",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      const result = await sendMessageMutation.mutateAsync({ chatId, content, product });
-      
-      // Принудительно обновляем список чатов и сообщений
-      queryClient.invalidateQueries({ queryKey: ['messages-api', chatId] });
-      forceRefreshChats();
-      
-      // Явно запрашиваем обновление сообщений
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['messages-api', chatId] });
-      }, 300);
-      
-      return result;
-    } catch (error) {
-      console.error("[useChatApi] Error sending message:", error);
-      toast({
-        title: "Ошибка отправки",
-        description: "Не удалось отправить сообщение",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
+  
   return {
-    chats,
-    isLoadingChats,
-    chatsError,
-    refetchChats: forceRefreshChats,
+    chats: chatsData?.chats || [],
+    currentChatId,
+    setCurrentChatId,
+    getChat,
     getMessages,
-    // Используем нашу обертку для отправки сообщений
     sendMessage,
-    // Обертка над API для включения/выключения ИИ
-    toggleAI: (chatId: string, enabled: boolean) => 
-      toggleAIMutation.mutateAsync({ chatId, enabled }),
+    toggleAI,
+    getChatTags: getChatTags,
+    setChatTags: setChatTagsForChat,
+    isLoading: isChatsLoading,
+    refetchChats: forceRefetchChats
   };
-}
+};
