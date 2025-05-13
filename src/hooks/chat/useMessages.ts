@@ -6,6 +6,10 @@ import { TEST_MESSAGES, DEMO_MESSAGES } from "@/data/mockData"; // Импорт�
 // Пример имен операторов для тестовых данных
 const OPERATOR_NAMES = ["Анна", "Михаил", "Елена", "Сергей", "Ольга"];
 
+// Кеш для хранения назначенных имен операторов по ID сообщения
+// Это поможет сохранять имена между ре-рендерами
+const operatorNameCache: Record<string, string> = {};
+
 /**
  * Хук для получения сообщений чата с использованием общего API-клиента
  * В режиме разработки возвращает мок-данные
@@ -20,8 +24,13 @@ export const useMessages = (chatId: string | null) => {
     return messages.map(msg => {
       if (msg.role === "BOT" && msg.sender === "OPERATOR") {
         if (msg.operatorName) {
-          // Если имя уже задано, оставляем его
+          // Если имя уже задано в данных, оставляем его
           return msg;
+        }
+        
+        // Проверяем, есть ли уже имя в кеше
+        if (operatorNameCache[msg.id]) {
+          return { ...msg, operatorName: operatorNameCache[msg.id] };
         }
         
         // Генерируем детерминированное имя на основе ID сообщения
@@ -29,6 +38,9 @@ export const useMessages = (chatId: string | null) => {
         const charSum = msg.id.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
         const nameIndex = charSum % OPERATOR_NAMES.length;
         const operatorName = OPERATOR_NAMES[nameIndex];
+        
+        // Сохраняем в кеше для последующих вызовов
+        operatorNameCache[msg.id] = operatorName;
         
         return { ...msg, operatorName };
       }
@@ -65,8 +77,8 @@ export const useMessages = (chatId: string | null) => {
     },
     queryOptions: {
       retry: 1,
-      refetchOnWindowFocus: true, // Обновлять при возврате на страницу
-      refetchInterval: 5000, // Периодическое обновление каждые 5 секунд
+      refetchOnWindowFocus: false, // Отключаем автоматическое обновление при фокусе, чтобы имена не менялись
+      refetchInterval: 10000, // Увеличиваем интервал обновления до 10 секунд
       select: (data) => {
         // Проверяем, что data существует 
         if (!data) {
@@ -90,14 +102,14 @@ export const useMessages = (chatId: string | null) => {
         if (data && typeof data === 'object' && 'messages' in data && Array.isArray(data.messages)) {
           // Проверяем, что все сообщения имеют необходимые поля и правильные типы
           return {
-            messages: ensureCorrectMessageTypes(data.messages)
+            messages: addOperatorNames(ensureCorrectMessageTypes(data.messages))
           };
         }
         
         // Если data - массив (старый формат API), преобразуем его
         if (Array.isArray(data)) {
           return {
-            messages: ensureCorrectMessageTypes(data)
+            messages: addOperatorNames(ensureCorrectMessageTypes(data))
           };
         }
         
@@ -114,7 +126,8 @@ export const useMessages = (chatId: string | null) => {
         } else {
           return { messages: [] };
         }
-      }
+      },
+      staleTime: 10000, // Данные считаются свежими в течение 10 секунд
     },
     errorMessage: "Ошибка загрузки сообщений"
   });
