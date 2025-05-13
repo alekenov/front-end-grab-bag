@@ -21,8 +21,14 @@ export const useMessages = (chatId: string | null) => {
       // Используем разные мок-данные в зависимости от типа чата
       fallbackData: { 
         messages: isDemoChat 
-          ? DEMO_MESSAGES
-          : mockMessages
+          ? DEMO_MESSAGES.map(msg => ({
+              ...msg,
+              sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
+            }))
+          : mockMessages.map(msg => ({
+              ...msg,
+              sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
+            }))
       }
     },
     queryOptions: {
@@ -36,9 +42,19 @@ export const useMessages = (chatId: string | null) => {
           
           // Определяем, какие мок-данные использовать
           if (isDemoChat) {
-            return { messages: DEMO_MESSAGES };
+            return { 
+              messages: DEMO_MESSAGES.map(msg => ({
+                ...msg,
+                sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
+              }))
+            };
           } else if (chatId && TEST_MESSAGES[chatId]) {
-            return { messages: TEST_MESSAGES[chatId] };
+            return { 
+              messages: TEST_MESSAGES[chatId].map(msg => ({
+                ...msg,
+                sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
+              }))
+            };
           } else {
             return { messages: [] };
           }
@@ -52,6 +68,7 @@ export const useMessages = (chatId: string | null) => {
               id: msg.id || `msg-${Date.now()}-${Math.random()}`,
               content: msg.content || "",
               role: msg.role || "BOT",
+              sender: msg.sender || (msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined),
               timestamp: msg.timestamp || new Date().toISOString(),
               product: msg.product
             }))
@@ -65,6 +82,7 @@ export const useMessages = (chatId: string | null) => {
               id: msg.id || `msg-${Date.now()}-${Math.random()}`,
               content: msg.content || "",
               role: msg.role || "BOT",
+              sender: msg.sender || (msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined),
               timestamp: msg.timestamp || new Date().toISOString(),
               product: msg.product
             }))
@@ -74,9 +92,19 @@ export const useMessages = (chatId: string | null) => {
         // Резервный вариант - используем мок-данные
         console.warn('useMessages: Invalid data format from API, using mock data');
         if (isDemoChat) {
-          return { messages: DEMO_MESSAGES };
+          return { 
+            messages: DEMO_MESSAGES.map(msg => ({
+              ...msg,
+              sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
+            }))
+          };
         } else if (chatId && TEST_MESSAGES[chatId]) {
-          return { messages: TEST_MESSAGES[chatId] };
+          return { 
+            messages: TEST_MESSAGES[chatId].map(msg => ({
+              ...msg,
+              sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
+            }))
+          };
         } else {
           return { messages: [] };
         }
@@ -89,8 +117,14 @@ export const useMessages = (chatId: string | null) => {
   const safeData = result.data?.messages 
     ? result.data.messages 
     : (isDemoChat 
-        ? DEMO_MESSAGES 
-        : (chatId && TEST_MESSAGES[chatId] ? TEST_MESSAGES[chatId] : []));
+        ? DEMO_MESSAGES.map(msg => ({
+            ...msg,
+            sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
+          }))
+        : (chatId && TEST_MESSAGES[chatId] ? TEST_MESSAGES[chatId].map(msg => ({
+            ...msg,
+            sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
+          })) : []));
   
   return {
     ...result,

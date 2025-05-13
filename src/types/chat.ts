@@ -3,6 +3,7 @@ export interface Message {
   id: string;
   content: string;
   role: "USER" | "BOT";
+  sender?: "AI" | "OPERATOR"; // Добавляем информацию о том, кто отправил сообщение
   timestamp: string;
   product?: {
     id: string;
