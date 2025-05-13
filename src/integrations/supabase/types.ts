@@ -125,42 +125,6 @@ export type Database = {
         }
         Relationships: []
       }
-      chat_tags: {
-        Row: {
-          chat_id: string
-          created_at: string | null
-          id: string
-          tag_id: string
-        }
-        Insert: {
-          chat_id: string
-          created_at?: string | null
-          id?: string
-          tag_id: string
-        }
-        Update: {
-          chat_id?: string
-          created_at?: string | null
-          id?: string
-          tag_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_tags_chat_id_fkey"
-            columns: ["chat_id"]
-            isOneToOne: false
-            referencedRelation: "chats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "chat_tags_tag_id_fkey"
-            columns: ["tag_id"]
-            isOneToOne: false
-            referencedRelation: "tags"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       chats: {
         Row: {
           ai_enabled: boolean | null
@@ -435,7 +399,6 @@ export type Database = {
           name: string
           price: number
           quantity: number | null
-          search_vector: unknown | null
         }
         Insert: {
           availability?: boolean | null
@@ -446,7 +409,6 @@ export type Database = {
           name: string
           price: number
           quantity?: number | null
-          search_vector?: unknown | null
         }
         Update: {
           availability?: boolean | null
@@ -457,7 +419,6 @@ export type Database = {
           name?: string
           price?: number
           quantity?: number | null
-          search_vector?: unknown | null
         }
         Relationships: []
       }
@@ -518,30 +479,6 @@ export type Database = {
         }
         Relationships: []
       }
-      tags: {
-        Row: {
-          color: string | null
-          created_at: string | null
-          id: string
-          name: string
-          updated_at: string | null
-        }
-        Insert: {
-          color?: string | null
-          created_at?: string | null
-          id?: string
-          name: string
-          updated_at?: string | null
-        }
-        Update: {
-          color?: string | null
-          created_at?: string | null
-          id?: string
-          name?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       training_examples: {
         Row: {
           category_id: string | null
@@ -585,58 +522,21 @@ export type Database = {
         Returns: unknown
       }
       get_chats_with_last_messages: {
-        Args:
-          | Record<PropertyKey, never>
-          | { p_limit?: number; p_offset?: number }
+        Args: Record<PropertyKey, never>
         Returns: {
           id: string
           name: string
-          source: string
+          phone_number: string
           ai_enabled: boolean
           unread_count: number
-          created_at: string
-          updated_at: string
-          last_message_content: string
-          last_message_created_at: string
-          last_message_is_from_user: boolean
-        }[]
-      }
-      get_chats_with_tags: {
-        Args: { p_limit?: number; p_offset?: number }
-        Returns: {
-          id: string
-          name: string
           source: string
-          ai_enabled: boolean
-          unread_count: number
           created_at: string
           updated_at: string
           last_message_content: string
           last_message_timestamp: string
           last_message_has_product: boolean
           last_message_product_price: number
-          tags: Json
         }[]
-      }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
       }
       halfvec_avg: {
         Args: { "": number[] }
@@ -718,32 +618,6 @@ export type Database = {
       process_webhook: {
         Args: { payload: Json }
         Returns: Json
-      }
-      search_products: {
-        Args: { search_query: string }
-        Returns: {
-          availability: boolean | null
-          category: string | null
-          description: string | null
-          id: number
-          image_url: string | null
-          name: string
-          price: number
-          quantity: number | null
-          search_vector: unknown | null
-        }[]
-      }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
       }
       sparsevec_out: {
         Args: { "": unknown }

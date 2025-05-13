@@ -1,53 +1,89 @@
 
-import { Chat, SupabaseChat } from '@/types/chat';
+import { supabase } from "@/integrations/supabase/client";
+import { Message } from "@/types/chat";
+import { getApiUrl } from "@/utils/apiHelpers";
 
-export function formatPhoneNumber(phone: string): string {
-  // Удаляем все нецифровые символы
-  let cleanPhone = phone.replace(/\D/g, '');
-  
-  // Если номер начинается с 7 и длина 11 символов (российский формат)
-  if (cleanPhone.startsWith('7') && cleanPhone.length === 11) {
-    // Форматируем как +7 (XXX) XXX-XX-XX
-    return `+${cleanPhone[0]} (${cleanPhone.substring(1, 4)}) ${cleanPhone.substring(4, 7)}-${cleanPhone.substring(7, 9)}-${cleanPhone.substring(9, 11)}`;
-  }
-  
-  // Если номер начинается с 8 и длина 11 символов (российский формат)
-  if (cleanPhone.startsWith('8') && cleanPhone.length === 11) {
-    // Форматируем как +7 (XXX) XXX-XX-XX (заменяем 8 на +7)
-    return `+7 (${cleanPhone.substring(1, 4)}) ${cleanPhone.substring(4, 7)}-${cleanPhone.substring(7, 9)}-${cleanPhone.substring(9, 11)}`;
-  }
-  
-  // Если длина 10 символов (российский номер без кода страны)
-  if (cleanPhone.length === 10) {
-    // Добавляем код страны и форматируем
-    return `+7 (${cleanPhone.substring(0, 3)}) ${cleanPhone.substring(3, 6)}-${cleanPhone.substring(6, 8)}-${cleanPhone.substring(8, 10)}`;
-  }
-  
-  // Для других форматов возвращаем исходный номер
-  return phone;
-}
+// URL для API Edge Function (прямой доступ к Supabase Edge Functions)
+export const CHAT_API_URL = `${getApiUrl()}/chat-api`;
 
-// Преобразование данных из Supabase в формат приложения
-export function mapSupabaseChatToAppFormat(chat: any): Chat {
-  // Ensure we have all the required fields for a Chat object
-  return {
-    id: chat.id,
-    name: chat.name || (chat.phone_number ? `Клиент ${formatPhoneNumber(chat.phone_number)}` : "Новый контакт"),
-    aiEnabled: chat.ai_enabled || false,
-    unreadCount: chat.unread_count || 0,
-    lastMessage: chat.last_message_content || chat.last_message_timestamp 
-      ? {
-          content: chat.last_message_content || "",
-          timestamp: chat.last_message_timestamp || new Date().toISOString(),
-          hasProduct: chat.last_message_has_product || false,
-          price: chat.last_message_product_price || 0
-        }
-      : undefined,
-    created_at: chat.created_at || undefined,
-    updated_at: chat.updated_at || undefined,
-    source: chat.source || "web",
-    tags: chat.tags || [],
-    phone_number: chat.phone_number,
-    customer: chat.customer
+// Анонимный токен доступа для использования, когда нет сессии
+export const ANON_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjaGVjZXZleW56ZHVnbWd3cm1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYxMTI3NTQsImV4cCI6MjA2MTY4ODc1NH0.EtTP-fNb5UrCs6nB_O8mds8oTTBJCeWh1CmfmzDiuds";
+
+// Утилита разбора данных о продукте
+export const parseProductData = (productData: any) => {
+  // Если productData — строка, пробуем распарсить её
+  const data = typeof productData === 'string'
+    ? JSON.parse(productData)
+    : productData;
+  
+  // Проверяем, что данные имеют требуемую структуру
+  if (data && 
+      typeof data === 'object' && 
+      'id' in data && 
+      'imageUrl' in data && 
+      'price' in data) {
+    
+    return {
+      id: String(data.id),
+      imageUrl: String(data.imageUrl),
+      price: Number(data.price)
+    };
+  }
+  
+  return null;
+};
+
+// Получение текущей сессии аутентификации с обработкой анонимного доступа
+export const getAuthSession = async () => {
+  try {
+    console.log('Получение сессии авторизации...');
+    
+    const { data: sessionData, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.warn('Ошибка получения сессии:', error.message);
+      return {
+        accessToken: ANON_TOKEN,
+        session: null
+      };
+    }
+    
+    // Используем анонимный ключ, если нет сессии
+    const accessToken = sessionData?.session?.access_token || ANON_TOKEN;
+    
+    console.log(`Токен получен: ${accessToken.substring(0, 15)}...`);
+    
+    return {
+      accessToken,
+      session: sessionData?.session
+    };
+  } catch (error) {
+    console.error('Ошибка получения сессии:', error);
+    
+    // Возвращаем анонимный ключ в случае ошибки
+    return {
+      accessToken: ANON_TOKEN,
+      session: null
+    };
+  }
+};
+
+// Форматирование сообщения из ответа Supabase
+export const formatSupabaseMessage = (msg: any): Message => {
+  const result: Message = {
+    id: msg.id,
+    content: msg.content || "",
+    role: msg.is_from_user ? "USER" : "BOT",
+    timestamp: msg.created_at || new Date().toISOString()
   };
-}
+  
+  // Добавляем данные о продукте, если они доступны
+  if (msg.has_product && msg.product_data) {
+    const productData = parseProductData(msg.product_data);
+    if (productData) {
+      result.product = productData;
+    }
+  }
+  
+  return result;
+};

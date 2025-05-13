@@ -5,39 +5,24 @@ import { ChatHeader } from "./ChatHeader";
 import { MessageInput } from "./MessageInput";
 import { EmptyState } from "./EmptyState";
 import { Product } from "@/types/product";
-import { Tag } from "@/types/chat";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatViewProps {
   currentChatId: string | null;
   setCurrentChatId?: (id: string | null) => void;
-  currentChatTags?: Tag[];
-  setCurrentChatTags?: (tags: Tag[]) => void;
 }
 
-export function ChatView({ 
-  currentChatId, 
-  setCurrentChatId,
-  currentChatTags = [],
-  setCurrentChatTags
-}: ChatViewProps) {
+export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const chatApi = useChatApi();
   const [name, setName] = useState("");
-  const [source, setSource] = useState<string | undefined>(undefined);
-  const [phoneNumber, setPhoneNumber] = useState<string | undefined>(undefined);
-  const [tags, setTags] = useState<Tag[]>(currentChatTags);
+  const [tags, setTags] = useState<string[]>([]);
   const messageEndRef = useRef<HTMLDivElement>(null);
   
   // Получаем детали чата
-  const {
-    data: chat,
-    isLoading: chatLoading,
-    refetch: refetchChat
-  } = currentChatId ? chatApi.getChat(currentChatId) : { data: null, isLoading: false, refetch: () => Promise.resolve() };
-  
   const {
     data: messages = [],
     isLoading: messagesLoading,
@@ -53,26 +38,6 @@ export function ChatView({
       }, 100);
     }
   }, [messages]);
-
-  // Обновляем теги при изменении currentChatTags
-  useEffect(() => {
-    setTags(currentChatTags);
-  }, [currentChatTags]);
-
-  // Обновляем данные чата при их получении
-  useEffect(() => {
-    if (chat) {
-      setName(chat.name || "Новый контакт");
-      setSource(chat.source);
-      
-      // Получаем номер телефона из данных чата если доступно
-      if (chat.customer && chat.customer.phone) {
-        setPhoneNumber(chat.customer.phone);
-      } else if (chat.phone_number) {
-        setPhoneNumber(chat.phone_number);
-      }
-    }
-  }, [chat]);
   
   // Принудительно обновляем данные при монтировании компонента
   const forceRefresh = useCallback(() => {
@@ -88,9 +53,8 @@ export function ChatView({
     setTimeout(() => {
       refetchMessages();
       chatApi.refetchChats();
-      if (refetchChat) refetchChat();
     }, 100);
-  }, [currentChatId, queryClient, refetchMessages, chatApi, refetchChat]);
+  }, [currentChatId, queryClient, refetchMessages, chatApi]);
   
   // Эффект для проверки товара в localStorage и обработка обновлений
   useEffect(() => {
@@ -152,18 +116,10 @@ export function ChatView({
   }, [currentChatId, chatApi, refetchMessages, queryClient, forceRefresh, toast]);
   
   // Обработчик обновления контакта
-  const handleUpdateContact = (name: string, newTags: string[]) => {
+  const handleUpdateContact = (name: string, tags: string[]) => {
     setName(name);
-    // Обновления тегов должно происходить через TagSelector
-    console.log("[ChatView] Contact updated:", { name, tags: newTags });
-  };
-  
-  // Обработчик изменения тегов
-  const handleTagsChange = (newTags: Tag[]) => {
-    setTags(newTags);
-    if (setCurrentChatTags) {
-      setCurrentChatTags(newTags);
-    }
+    setTags(tags);
+    console.log("[ChatView] Contact updated:", { name, tags });
   };
   
   // Обработчик отправки сообщения с обработкой ошибок
@@ -204,8 +160,6 @@ export function ChatView({
         onBack={() => setCurrentChatId?.(null)}
         contactName={name || "Новый контакт"}
         tags={tags}
-        source={source}
-        phoneNumber={phoneNumber}
         onUpdateContact={handleUpdateContact}
       />
       

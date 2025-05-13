@@ -6,11 +6,9 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Tag } from "@/types/chat";
 
 export default function ChatsPage() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [currentChatTags, setCurrentChatTags] = useState<Tag[]>([]);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -41,11 +39,6 @@ export default function ChatsPage() {
       queryClient.refetchQueries({ queryKey: ['chats'] });
     }, 300);
   }, [navigate, queryClient]);
-
-  // Обработчик изменения тегов текущего чата
-  const handleSetCurrentChatTags = useCallback((tags: Tag[]) => {
-    setCurrentChatTags(tags);
-  }, []);
 
   // Проверяем наличие параметра chatId в URL или сохраненный ID в localStorage
   useEffect(() => {
@@ -107,8 +100,6 @@ export default function ChatsPage() {
           <ChatView 
             currentChatId={currentChatId} 
             setCurrentChatId={handleSetCurrentChatId} 
-            currentChatTags={currentChatTags}
-            setCurrentChatTags={handleSetCurrentChatTags}
           />
         )}
       </div>

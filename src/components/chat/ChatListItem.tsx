@@ -1,8 +1,7 @@
 
 import { formatRelativeTime } from "@/utils/dateFormatters";
 import { Badge } from "@/components/ui/badge";
-import { Chat, Tag } from "@/types/chat";
-import { Tag as TagComponent } from "@/components/ui/tag";
+import { Chat } from "@/types/chat";
 import { useEffect, useState } from "react";
 
 // Иконки для разных источников чатов
@@ -137,19 +136,6 @@ export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI 
             </Badge>
           ) : null}
         </div>
-        {/* Теги чата */}
-        {chat.tags && chat.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {chat.tags.slice(0, 3).map((tag) => (
-              <TagComponent key={tag.id} color={tag.color} className="px-1.5 py-0 text-[10px]">
-                {tag.name}
-              </TagComponent>
-            ))}
-            {chat.tags.length > 3 && (
-              <span className="text-[10px] text-gray-500">+{chat.tags.length - 3}</span>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

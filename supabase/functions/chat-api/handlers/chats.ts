@@ -25,10 +25,10 @@ export async function handleChats(req: Request) {
         throw new Error("Отсутствуют переменные окружения SUPABASE_URL или SUPABASE_SERVICE_ROLE_KEY");
       }
       
-      // Используем новую RPC функцию для получения чатов с тегами
-      console.log("Вызываем RPC функцию get_chats_with_tags");
+      // Используем RPC функцию для получения всех чатов с последними сообщениями
+      console.log("Вызываем RPC функцию get_chats_with_last_messages");
       const { data: chats, error } = await supabaseClient
-        .rpc('get_chats_with_tags');
+        .rpc('get_chats_with_last_messages');
       
       if (error) {
         console.error("Ошибка при вызове RPC функции:", error);
@@ -66,7 +66,6 @@ export async function handleChats(req: Request) {
         source: chat.source || 'web',
         created_at: chat.created_at,
         updated_at: chat.updated_at,
-        tags: chat.tags || [],
         lastMessage: chat.last_message_content || chat.last_message_timestamp ? {
           content: chat.last_message_content || "",
           timestamp: chat.last_message_timestamp,
