@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useChatApi } from "@/hooks/chat";
 import { MessageList } from "./MessageList";
@@ -164,14 +163,14 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
         onUpdateContact={handleUpdateContact}
       />
       
-      <div className="flex-1 overflow-hidden px-3 py-5 md:px-5 bg-[#f5f7fb]">
-        <ScrollArea className="h-full w-full">
-          <div className="pb-[88px] md:pb-[72px]">
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#f5f7fb]">
+        <ScrollArea className="flex-1 w-full">
+          <div className="px-3 py-5 md:px-5">
             <MessageList 
               messages={messages} 
               isLoading={messagesLoading && !isDemoChat} 
             />
-            <div ref={messageEndRef} />
+            <div ref={messageEndRef} className="h-4" />
           </div>
         </ScrollArea>
       </div>

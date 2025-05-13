@@ -44,7 +44,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
   
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full py-10">
         <div className="text-center">
           <div className="inline-block w-8 h-8 border-4 border-t-[#1a73e8] border-r-[#1a73e8] border-b-[#1a73e8] border-l-transparent rounded-full animate-spin mb-3"></div>
           <div className="text-gray-500">Загрузка сообщений...</div>
@@ -75,7 +75,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
   }
   
   return (
-    <div className="flex flex-col space-y-5">
+    <div className="flex flex-col space-y-5 pb-4">
       {messagesByDateEntries.map(([date, dateMessages]) => (
         <MessageGroup key={date} date={date} messages={dateMessages || []} />
       ))}
