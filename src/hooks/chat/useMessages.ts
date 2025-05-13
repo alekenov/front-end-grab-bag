@@ -27,6 +27,20 @@ export const useMessages = (chatId: string | null) => {
     });
   };
 
+  // Функция для обеспечения правильных типов сообщений
+  const ensureCorrectMessageTypes = (messages: any[]): Message[] => {
+    return messages.map(msg => ({
+      id: msg.id || `msg-${Date.now()}-${Math.random()}`,
+      content: msg.content || "",
+      // Убедимся, что role всегда "USER" или "BOT"
+      role: msg.role === "USER" || msg.role === "BOT" ? msg.role : (msg.role?.toString().toUpperCase() === "USER" ? "USER" : "BOT"),
+      sender: msg.role === "USER" ? undefined : (msg.sender || (Math.random() > 0.5 ? "AI" : "OPERATOR")),
+      operatorName: msg.operatorName,
+      timestamp: msg.timestamp || new Date().toISOString(),
+      product: msg.product
+    }));
+  };
+
   const result = useApiQuery<{ messages: Message[] }>({
     endpoint: chatId ? `chat-api/messages?chatId=${chatId}` : '',
     queryKey: ['messages-api', chatId],
@@ -36,14 +50,8 @@ export const useMessages = (chatId: string | null) => {
       // Используем разные мок-данные в зависимости от типа чата
       fallbackData: { 
         messages: isDemoChat 
-          ? addOperatorNames(DEMO_MESSAGES.map(msg => ({
-              ...msg,
-              sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-            })))
-          : addOperatorNames(mockMessages.map(msg => ({
-              ...msg,
-              sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-            })))
+          ? addOperatorNames(ensureCorrectMessageTypes(DEMO_MESSAGES))
+          : addOperatorNames(ensureCorrectMessageTypes(mockMessages))
       }
     },
     queryOptions: {
@@ -58,17 +66,11 @@ export const useMessages = (chatId: string | null) => {
           // Определяем, какие мок-данные использовать
           if (isDemoChat) {
             return { 
-              messages: addOperatorNames(DEMO_MESSAGES.map(msg => ({
-                ...msg,
-                sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-              })))
+              messages: addOperatorNames(ensureCorrectMessageTypes(DEMO_MESSAGES))
             };
           } else if (chatId && TEST_MESSAGES[chatId]) {
             return { 
-              messages: addOperatorNames(TEST_MESSAGES[chatId].map(msg => ({
-                ...msg,
-                sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-              })))
+              messages: addOperatorNames(ensureCorrectMessageTypes(TEST_MESSAGES[chatId]))
             };
           } else {
             return { messages: [] };
@@ -77,32 +79,16 @@ export const useMessages = (chatId: string | null) => {
         
         // Если в data есть messages и это массив, используем его
         if (data && typeof data === 'object' && 'messages' in data && Array.isArray(data.messages)) {
-          // Проверяем, что все сообщения имеют необходимые поля
+          // Проверяем, что все сообщения имеют необходимые поля и правильные типы
           return {
-            messages: data.messages.map(msg => ({
-              id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-              content: msg.content || "",
-              role: msg.role || "BOT",
-              sender: msg.sender || (msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined),
-              operatorName: msg.operatorName,
-              timestamp: msg.timestamp || new Date().toISOString(),
-              product: msg.product
-            }))
+            messages: ensureCorrectMessageTypes(data.messages)
           };
         }
         
         // Если data - массив (старый формат API), преобразуем его
         if (Array.isArray(data)) {
           return {
-            messages: data.map(msg => ({
-              id: msg.id || `msg-${Date.now()}-${Math.random()}`,
-              content: msg.content || "",
-              role: msg.role || "BOT",
-              sender: msg.sender || (msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined),
-              operatorName: msg.operatorName,
-              timestamp: msg.timestamp || new Date().toISOString(),
-              product: msg.product
-            }))
+            messages: ensureCorrectMessageTypes(data)
           };
         }
         
@@ -110,17 +96,11 @@ export const useMessages = (chatId: string | null) => {
         console.warn('useMessages: Invalid data format from API, using mock data');
         if (isDemoChat) {
           return { 
-            messages: addOperatorNames(DEMO_MESSAGES.map(msg => ({
-              ...msg,
-              sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-            })))
+            messages: addOperatorNames(ensureCorrectMessageTypes(DEMO_MESSAGES))
           };
         } else if (chatId && TEST_MESSAGES[chatId]) {
           return { 
-            messages: addOperatorNames(TEST_MESSAGES[chatId].map(msg => ({
-              ...msg,
-              sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-            })))
+            messages: addOperatorNames(ensureCorrectMessageTypes(TEST_MESSAGES[chatId]))
           };
         } else {
           return { messages: [] };
@@ -134,14 +114,8 @@ export const useMessages = (chatId: string | null) => {
   const safeData = result.data?.messages 
     ? result.data.messages 
     : (isDemoChat 
-        ? addOperatorNames(DEMO_MESSAGES.map(msg => ({
-            ...msg,
-            sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-          })))
-        : (chatId && TEST_MESSAGES[chatId] ? addOperatorNames(TEST_MESSAGES[chatId].map(msg => ({
-            ...msg,
-            sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-          }))) : []));
+        ? addOperatorNames(ensureCorrectMessageTypes(DEMO_MESSAGES))
+        : (chatId && TEST_MESSAGES[chatId] ? addOperatorNames(ensureCorrectMessageTypes(TEST_MESSAGES[chatId])) : []));
   
   return {
     ...result,
