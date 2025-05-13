@@ -1,5 +1,6 @@
 
 import { Input } from "@/components/ui/input";
+import { X } from "lucide-react";
 
 interface ChatSearchProps {
   searchQuery: string;
@@ -7,15 +8,26 @@ interface ChatSearchProps {
 }
 
 export function ChatSearch({ searchQuery, setSearchQuery }: ChatSearchProps) {
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
+
   return (
-    <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8]">
-      <h1 className="text-xl font-semibold text-[#1a73e8] mb-4">WhatsApp AI</h1>
+    <div className="relative">
       <Input
         placeholder="Поиск чатов..."
-        className="h-9"
+        className="h-9 pr-8"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
       />
+      {searchQuery && (
+        <button
+          onClick={clearSearch}
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+        >
+          <X size={16} />
+        </button>
+      )}
     </div>
   );
 }

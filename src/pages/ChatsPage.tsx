@@ -22,6 +22,9 @@ export default function ChatsPage() {
       
       // Обновляем URL при выборе чата
       navigate(`/?chatId=${id}`, { replace: true });
+      
+      // Если у чата есть непрочитанные сообщения, сбрасываем счетчик
+      // Это должно быть реализовано на бэкенде
     } else {
       setCurrentChatId(null);
       navigate('/', { replace: true });
@@ -61,6 +64,29 @@ export default function ChatsPage() {
       localStorage.removeItem("current_chat_id");
     }
   }, [searchParams, navigate]);
+
+  // Настройка уведомлений о новых сообщениях
+  useEffect(() => {
+    // Функция для показа уведомления о новом сообщении
+    const showNewMessageNotification = (chatName: string, message: string) => {
+      toast({
+        title: `Новое сообщение от ${chatName}`,
+        description: message,
+        duration: 5000,
+      });
+      
+      // Воспроизведение звука уведомления (можно добавить при необходимости)
+      // const audio = new Audio('/sounds/notification.mp3');
+      // audio.play().catch(err => console.error('Error playing notification sound:', err));
+    };
+    
+    // Здесь должна быть логика подписки на события новых сообщений
+    // Например, через WebSocket или периодический опрос API
+    
+    return () => {
+      // Отписка от событий при размонтировании компонента
+    };
+  }, [toast]);
 
   return (
     <AppLayout title="Чаты" activePage="chats">

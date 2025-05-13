@@ -6,13 +6,21 @@ import { useChatApi } from "@/hooks/chat";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Loader } from "lucide-react";
 
+interface Filters {
+  unreadOnly: boolean;
+  whatsappOnly: boolean;
+  telegramOnly: boolean;
+  aiEnabled: boolean;
+}
+
 interface ChatListProps {
   searchQuery: string;
   currentChatId: string | null;
   setCurrentChatId: (id: string | null) => void;
+  filters: Filters;
 }
 
-export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatListProps) {
+export function ChatList({ searchQuery, currentChatId, setCurrentChatId, filters }: ChatListProps) {
   const { toast } = useToast();
   const { 
     chats, 
@@ -25,11 +33,26 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
   // Отладочный вывод для проверки данных
   console.log('[ChatList] Received chats:', chats);
   
-  // Фильтрация чатов по поисковому запросу
-  const filteredChats = Array.isArray(chats) ? chats.filter(chat => 
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (chat.lastMessage && chat.lastMessage.content.toLowerCase().includes(searchQuery.toLowerCase()))
-  ) : [];
+  // Фильтрация чатов по поисковому запросу и фильтрам
+  const filteredChats = Array.isArray(chats) ? chats.filter(chat => {
+    // Фильтрация по поисковому запросу
+    const matchesSearch = 
+      chat.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (chat.lastMessage && chat.lastMessage.content.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    // Применяем дополнительные фильтры
+    const matchesUnread = filters.unreadOnly ? chat.unreadCount && chat.unreadCount > 0 : true;
+    const matchesWhatsapp = filters.whatsappOnly ? chat.source?.toLowerCase() === 'whatsapp' : true;
+    const matchesTelegram = filters.telegramOnly ? chat.source?.toLowerCase() === 'telegram' : true;
+    const matchesAI = filters.aiEnabled ? chat.aiEnabled : true;
+    
+    // Если выбраны оба фильтра - WhatsApp и Telegram, то возвращаем чаты из обоих источников
+    const matchesMessengers = (filters.whatsappOnly || filters.telegramOnly) 
+      ? (matchesWhatsapp || matchesTelegram) 
+      : true;
+    
+    return matchesSearch && matchesUnread && matchesMessengers && matchesAI;
+  }) : [];
   
   console.log('[ChatList] Filtered chats:', filteredChats);
 
@@ -72,10 +95,22 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
     );
   }
   
-  if (filteredChats.length === 0 && searchQuery) {
+  // Проверяем, есть ли активные фильтры
+  const hasActiveFilters = filters.unreadOnly || filters.whatsappOnly || filters.telegramOnly || filters.aiEnabled;
+  
+  if (filteredChats.length === 0 && (searchQuery || hasActiveFilters)) {
     return (
-      <div className="p-4 text-center text-gray-500">
-        Нет чатов, соответствующих запросу "{searchQuery}"
+      <div className="p-8 text-center text-gray-500 flex flex-col items-center gap-3">
+        <div className="text-5xl opacity-30">🔍</div>
+        <div className="font-medium">Нет результатов</div>
+        <div className="text-sm max-w-xs">
+          {searchQuery && 
+            <span>Не найдено чатов по запросу "<b>{searchQuery}</b>"</span>
+          }
+          {hasActiveFilters && 
+            <div className="mt-1">Попробуйте изменить фильтры</div>
+          }
+        </div>
       </div>
     );
   }

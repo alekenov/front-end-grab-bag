@@ -5,7 +5,7 @@ import { Chat } from "@/types/chat";
 import { useEffect, useState } from "react";
 
 // Иконки для разных источников чатов
-import { MessageSquare, MessagesSquare, Phone } from "lucide-react";
+import { MessageSquare, MessagesSquare, Phone, BellDot, Clock } from "lucide-react";
 
 interface ChatListItemProps {
   chat: Chat;
@@ -16,6 +16,7 @@ interface ChatListItemProps {
 
 export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI }: ChatListItemProps) {
   const [lastMessage, setLastMessage] = useState<string>("");
+  const [isRecentlyActive, setIsRecentlyActive] = useState(false);
   
   // Переформатируем lastMessage при изменении chat
   useEffect(() => {
@@ -30,6 +31,25 @@ export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI 
       setLastMessage(`Букет за ${chat.lastMessage.price ? chat.lastMessage.price.toLocaleString() + " ₸" : ""}`);
     } else {
       setLastMessage(chat.lastMessage.content);
+    }
+
+    // Проверяем, было ли последнее сообщение недавно
+    if (chat.lastMessage.timestamp) {
+      const lastMessageTime = new Date(chat.lastMessage.timestamp).getTime();
+      const now = new Date().getTime();
+      const timeDiff = now - lastMessageTime;
+      
+      // Если сообщение было получено за последние 30 минут
+      if (timeDiff < 30 * 60 * 1000) {
+        setIsRecentlyActive(true);
+        
+        // Устанавливаем таймер для сброса статуса активности
+        const timer = setTimeout(() => {
+          setIsRecentlyActive(false);
+        }, 30 * 60 * 1000 - timeDiff);
+        
+        return () => clearTimeout(timer);
+      }
     }
   }, [chat]);
   
@@ -71,8 +91,22 @@ export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI 
       }`}
       onClick={() => onSelectChat(chat.id)}
     >
-      <div className="h-12 w-12 rounded-full bg-[#1a73e8] text-white flex items-center justify-center font-medium text-lg shrink-0">
+      <div className="relative h-12 w-12 rounded-full bg-[#1a73e8] text-white flex items-center justify-center font-medium text-lg shrink-0">
         {getChatInitial()}
+        
+        {/* Индикатор активности чата */}
+        {isRecentlyActive && (
+          <span className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center rounded-full bg-green-500 border-2 border-white">
+            <Clock size={10} className="text-white" />
+          </span>
+        )}
+        
+        {/* Индикатор AI */}
+        {chat.aiEnabled && (
+          <span className="absolute -bottom-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-blue-600 border-2 border-white text-[10px]">
+            AI
+          </span>
+        )}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
@@ -87,7 +121,7 @@ export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI 
           )}
         </div>
         <div className="flex items-center justify-between mt-1">
-          <span className="text-sm text-gray-600 truncate max-w-[190px]">
+          <span className={`text-sm truncate max-w-[190px] ${chat.unreadCount ? "font-medium text-black" : "text-gray-600"}`}>
             {lastMessage}
           </span>
           {chat.unreadCount ? (
@@ -96,6 +130,9 @@ export function ChatListItem({ chat, isActive = false, onSelectChat, onToggleAI 
               className="ml-auto bg-[#1a73e8] text-[10px] h-5 min-w-5 flex items-center justify-center rounded-full px-1.5"
             >
               {chat.unreadCount}
+              {chat.unreadCount > 0 && chat.unreadCount < 10 && (
+                <BellDot size={10} className="ml-0.5 text-white" />
+              )}
             </Badge>
           ) : null}
         </div>
