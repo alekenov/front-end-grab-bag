@@ -3,7 +3,8 @@ export interface Message {
   id: string;
   content: string;
   role: "USER" | "BOT";
-  sender?: "AI" | "OPERATOR"; // Добавляем информацию о том, кто отправил сообщение
+  sender?: "AI" | "OPERATOR"; // Информация о том, кто отправил сообщение
+  operatorName?: string;      // Добавляем имя оператора
   timestamp: string;
   product?: {
     id: string;
@@ -58,4 +59,5 @@ export interface SupabaseMessage {
   has_product: boolean | null;
   product_data: any | null;
   created_at: string | null;
+  operator_name?: string | null; // Добавляем поле для имени оператора
 }

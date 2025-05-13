@@ -64,12 +64,24 @@ export function MessageBubble({ message, isMobile }: MessageBubbleProps) {
                     {message.sender === "AI" ? (
                       <BotIcon size={14} className="text-blue-600 ml-1" />
                     ) : (
-                      <User2Icon size={14} className="text-gray-600 ml-1" />
+                      <div className="flex items-center">
+                        <User2Icon size={14} className="text-gray-600 ml-1" />
+                        {message.operatorName && (
+                          <span className="text-xs text-gray-600 ml-1">{message.operatorName}</span>
+                        )}
+                      </div>
                     )}
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{message.sender === "AI" ? "Отправлено AI" : "Отправлено оператором"}</p>
+                  <p>
+                    {message.sender === "AI" 
+                      ? "Отправлено AI" 
+                      : message.operatorName 
+                        ? `Отправлено оператором: ${message.operatorName}` 
+                        : "Отправлено оператором"
+                    }
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

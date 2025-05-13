@@ -47,6 +47,7 @@ export async function handleMessages(req: Request, url: URL) {
         content: msg.content,
         role: msg.is_from_user ? "USER" : "BOT",
         sender: msg.is_from_user ? undefined : (msg.sent_by_ai ? "AI" : "OPERATOR"),
+        operatorName: msg.operator_name || undefined,
         timestamp: msg.created_at,
         product: msg.has_product && msg.product_data ? {
           id: msg.product_data.id || "",

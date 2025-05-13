@@ -3,6 +3,9 @@ import { useApiQuery } from "@/hooks/api/useApiQuery";
 import { Message } from "@/types/chat";
 import { TEST_MESSAGES, DEMO_MESSAGES } from "@/data/mockData"; // Импортируем мок-данные
 
+// Пример имен операторов для тестовых данных
+const OPERATOR_NAMES = ["Анна", "Михаил", "Елена", "Сергей", "Ольга"];
+
 /**
  * Хук для получения сообщений чата с использованием общего API-клиента
  * В режиме разработки возвращает мок-данные
@@ -11,6 +14,18 @@ export const useMessages = (chatId: string | null) => {
   // Если это demo-чат, используем DEMO_MESSAGES
   const isDemoChat = chatId?.startsWith('demo-');
   const mockMessages = chatId ? TEST_MESSAGES[chatId] || [] : [];
+
+  // Функция для добавления случайного имени оператора к сообщениям BOT от оператора
+  const addOperatorNames = (messages: Message[]): Message[] => {
+    return messages.map(msg => {
+      if (msg.role === "BOT" && msg.sender === "OPERATOR") {
+        // Добавляем случайное имя оператора для тестовых данных
+        const randomName = OPERATOR_NAMES[Math.floor(Math.random() * OPERATOR_NAMES.length)];
+        return { ...msg, operatorName: msg.operatorName || randomName };
+      }
+      return msg;
+    });
+  };
 
   const result = useApiQuery<{ messages: Message[] }>({
     endpoint: chatId ? `chat-api/messages?chatId=${chatId}` : '',
@@ -21,14 +36,14 @@ export const useMessages = (chatId: string | null) => {
       // Используем разные мок-данные в зависимости от типа чата
       fallbackData: { 
         messages: isDemoChat 
-          ? DEMO_MESSAGES.map(msg => ({
+          ? addOperatorNames(DEMO_MESSAGES.map(msg => ({
               ...msg,
               sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-            }))
-          : mockMessages.map(msg => ({
+            })))
+          : addOperatorNames(mockMessages.map(msg => ({
               ...msg,
               sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-            }))
+            })))
       }
     },
     queryOptions: {
@@ -43,17 +58,17 @@ export const useMessages = (chatId: string | null) => {
           // Определяем, какие мок-данные использовать
           if (isDemoChat) {
             return { 
-              messages: DEMO_MESSAGES.map(msg => ({
+              messages: addOperatorNames(DEMO_MESSAGES.map(msg => ({
                 ...msg,
                 sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-              }))
+              })))
             };
           } else if (chatId && TEST_MESSAGES[chatId]) {
             return { 
-              messages: TEST_MESSAGES[chatId].map(msg => ({
+              messages: addOperatorNames(TEST_MESSAGES[chatId].map(msg => ({
                 ...msg,
                 sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-              }))
+              })))
             };
           } else {
             return { messages: [] };
@@ -69,6 +84,7 @@ export const useMessages = (chatId: string | null) => {
               content: msg.content || "",
               role: msg.role || "BOT",
               sender: msg.sender || (msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined),
+              operatorName: msg.operatorName,
               timestamp: msg.timestamp || new Date().toISOString(),
               product: msg.product
             }))
@@ -83,6 +99,7 @@ export const useMessages = (chatId: string | null) => {
               content: msg.content || "",
               role: msg.role || "BOT",
               sender: msg.sender || (msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined),
+              operatorName: msg.operatorName,
               timestamp: msg.timestamp || new Date().toISOString(),
               product: msg.product
             }))
@@ -93,17 +110,17 @@ export const useMessages = (chatId: string | null) => {
         console.warn('useMessages: Invalid data format from API, using mock data');
         if (isDemoChat) {
           return { 
-            messages: DEMO_MESSAGES.map(msg => ({
+            messages: addOperatorNames(DEMO_MESSAGES.map(msg => ({
               ...msg,
               sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-            }))
+            })))
           };
         } else if (chatId && TEST_MESSAGES[chatId]) {
           return { 
-            messages: TEST_MESSAGES[chatId].map(msg => ({
+            messages: addOperatorNames(TEST_MESSAGES[chatId].map(msg => ({
               ...msg,
               sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-            }))
+            })))
           };
         } else {
           return { messages: [] };
@@ -117,14 +134,14 @@ export const useMessages = (chatId: string | null) => {
   const safeData = result.data?.messages 
     ? result.data.messages 
     : (isDemoChat 
-        ? DEMO_MESSAGES.map(msg => ({
+        ? addOperatorNames(DEMO_MESSAGES.map(msg => ({
             ...msg,
             sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-          }))
-        : (chatId && TEST_MESSAGES[chatId] ? TEST_MESSAGES[chatId].map(msg => ({
+          })))
+        : (chatId && TEST_MESSAGES[chatId] ? addOperatorNames(TEST_MESSAGES[chatId].map(msg => ({
             ...msg,
             sender: msg.role === "BOT" ? (Math.random() > 0.5 ? "AI" : "OPERATOR") : undefined
-          })) : []));
+          }))) : []));
   
   return {
     ...result,
