@@ -28,7 +28,7 @@ export function formatPhoneNumber(phone: string): string {
 }
 
 // Преобразование данных из Supabase в формат приложения
-export function mapSupabaseChatToAppFormat(chat: SupabaseChat): Chat {
+export function mapSupabaseChatToAppFormat(chat: any): Chat {
   // Ensure we have all the required fields for a Chat object
   return {
     id: chat.id,

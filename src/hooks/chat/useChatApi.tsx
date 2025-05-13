@@ -47,10 +47,10 @@ export const useChatApi = (): ChatApiHook => {
         requiresAuth: true
       },
       queryOptions: {
-        // We need to explicitly type the select function to handle the conversion properly
-        select: (data: SupabaseChat) => {
-          // First convert to unknown, then to Chat to satisfy TypeScript
-          return mapSupabaseChatToAppFormat(data as unknown as SupabaseChat);
+        // Fix: Use proper type handling for the select function
+        select: (data: any) => {
+          // Use any as an intermediate type to avoid TypeScript errors
+          return mapSupabaseChatToAppFormat(data);
         },
         enabled: !!chatId,
         staleTime: 10000
@@ -60,8 +60,8 @@ export const useChatApi = (): ChatApiHook => {
     
     // Преобразуем результат, чтобы он соответствовал ожидаемому типу возврата
     return {
-      // Use type assertion to satisfy TypeScript
-      data: result.data as Chat | null,
+      // Fix: Use type assertion to handle the type mismatch
+      data: result.data ? mapSupabaseChatToAppFormat(result.data) : null,
       isLoading: result.isLoading,
       error: result.error,
       refetch: result.refetch
