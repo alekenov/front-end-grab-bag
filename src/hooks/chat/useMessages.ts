@@ -15,13 +15,22 @@ export const useMessages = (chatId: string | null) => {
   const isDemoChat = chatId?.startsWith('demo-');
   const mockMessages = chatId ? TEST_MESSAGES[chatId] || [] : [];
 
-  // Функция для добавления случайного имени оператора к сообщениям BOT от оператора
+  // Функция для добавления детерминированного имени оператора на основе идентификатора сообщения
   const addOperatorNames = (messages: Message[]): Message[] => {
     return messages.map(msg => {
       if (msg.role === "BOT" && msg.sender === "OPERATOR") {
-        // Добавляем случайное имя оператора для тестовых данных
-        const randomName = OPERATOR_NAMES[Math.floor(Math.random() * OPERATOR_NAMES.length)];
-        return { ...msg, operatorName: msg.operatorName || randomName };
+        if (msg.operatorName) {
+          // Если имя уже задано, оставляем его
+          return msg;
+        }
+        
+        // Генерируем детерминированное имя на основе ID сообщения
+        // Используем сумму кодов символов в ID как индекс в массиве имен
+        const charSum = msg.id.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+        const nameIndex = charSum % OPERATOR_NAMES.length;
+        const operatorName = OPERATOR_NAMES[nameIndex];
+        
+        return { ...msg, operatorName };
       }
       return msg;
     });
