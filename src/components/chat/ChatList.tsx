@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ChatListItem } from "./ChatListItem";
@@ -89,7 +88,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId }: ChatL
   }
 
   return (
-    <ul className="list-none">
+    <ul className="list-none min-h-[2000px] bg-yellow-100">
       {filteredChats.map((chat) => (
         <ChatListItem
           key={chat.id}

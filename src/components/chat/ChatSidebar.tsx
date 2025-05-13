@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { ChatList } from "./ChatList";
 import { TabType } from "@/pages/Index";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatSidebarProps {
   activeTab: TabType;
@@ -44,9 +44,9 @@ export function ChatSidebar({ activeTab, setActiveTab, currentChatId, setCurrent
         </TabsList>
       </Tabs>
       
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 min-h-0">
         {activeTab === "chat" && (
-          <>
+          <div className="flex-1 min-h-0 overflow-y-auto pb-14">
             <div className="p-2 sticky top-0 bg-white z-10">
               <Input
                 placeholder="Поиск чатов..."
@@ -60,7 +60,7 @@ export function ChatSidebar({ activeTab, setActiveTab, currentChatId, setCurrent
               currentChatId={currentChatId} 
               setCurrentChatId={setCurrentChatId} 
             />
-          </>
+          </div>
         )}
       </div>
     </div>

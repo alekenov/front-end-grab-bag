@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { ChatListContainer } from "@/components/chat/ChatListContainer";
 import { ChatView } from "@/components/chat/ChatView";
@@ -64,7 +63,7 @@ export default function ChatsPage() {
 
   return (
     <AppLayout title="Чаты" activePage="chats">
-      <div className="flex-1 flex flex-col overflow-hidden bg-[#f5f7fb]">
+      <div className="p-4 md:p-6 h-full overflow-auto">
         {!currentChatId ? (
           <ChatListContainer 
             currentChatId={currentChatId}

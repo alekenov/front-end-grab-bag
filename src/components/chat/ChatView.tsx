@@ -177,7 +177,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
         }}
       />
       
-      <div className="flex-1 overflow-y-auto px-3 py-5 md:px-5 bg-[#f5f7fb] pb-[88px] md:pb-[72px]">
+      <div className="flex-1 overflow-y-auto px-3 py-5 md:px-5 bg-[#f5f7fb] pb-14 md:pb-[72px]">
         <MessageList 
           messages={messages} 
           isLoading={messagesLoading && !isDemoChat} 
