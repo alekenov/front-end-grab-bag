@@ -29,6 +29,7 @@ export function formatPhoneNumber(phone: string): string {
 
 // Преобразование данных из Supabase в формат приложения
 export function mapSupabaseChatToAppFormat(chat: SupabaseChat): Chat {
+  // Ensure we have all the required fields for a Chat object
   return {
     id: chat.id,
     name: chat.name || (chat.phone_number ? `Клиент ${formatPhoneNumber(chat.phone_number)}` : "Новый контакт"),
