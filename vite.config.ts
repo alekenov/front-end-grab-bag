@@ -11,13 +11,9 @@ export default defineConfig(({ mode }) => ({
     proxy: {
       // Проксируем запросы к /api на продакшн Supabase Functions
       "/api": {
-        target: "https://xcheceveynzdugmgwrmi.supabase.co/functions/v1",
+        target: "http://localhost:54321/functions/v1", // локальный Supabase Functions
         changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-        headers: {
-          "X-Forwarded-For": "localhost",
-        },
+        rewrite: (path) => path.replace(/^\/api/, ''), // удалить префикс /api
       },
       // Поддержка старого формата API-путей
       "/chat-api": {

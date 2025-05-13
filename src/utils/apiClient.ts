@@ -14,7 +14,7 @@ export interface ApiRequestOptions {
   body?: any;
 }
 
-const API_BASE_URL = "https://xcheceveynzdugmgwrmi.supabase.co";
+const API_BASE_URL = ""; // относительный базовый путь, проксируется на /api
 
 /**
  * Универсальный клиент для отправки запросов к API
