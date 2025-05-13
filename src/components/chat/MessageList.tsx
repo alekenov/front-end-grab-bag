@@ -44,7 +44,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
   
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[200px] py-10">
+      <div className="flex items-center justify-center min-h-[300px]">
         <div className="text-center">
           <div className="inline-block w-8 h-8 border-4 border-t-[#1a73e8] border-r-[#1a73e8] border-b-[#1a73e8] border-l-transparent rounded-full animate-spin mb-3"></div>
           <div className="text-gray-500">Загрузка сообщений...</div>
@@ -58,8 +58,8 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
   
   if (safeMessages.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-16">
-        Нет сообщений
+      <div className="text-center text-gray-500 py-16 min-h-[300px] flex items-center justify-center">
+        <div>Нет сообщений</div>
       </div>
     );
   }
@@ -68,14 +68,14 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
   const messagesByDateEntries = Object.entries(messagesByDate);
   if (messagesByDateEntries.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-16">
-        Ошибка форматирования сообщений
+      <div className="text-center text-gray-500 py-16 min-h-[300px] flex items-center justify-center">
+        <div>Ошибка форматирования сообщений</div>
       </div>
     );
   }
   
   return (
-    <div className="flex flex-col space-y-6 pb-8">
+    <div className="flex flex-col space-y-6 pb-10">
       {messagesByDateEntries.map(([date, dateMessages]) => (
         <MessageGroup key={date} date={date} messages={dateMessages || []} />
       ))}

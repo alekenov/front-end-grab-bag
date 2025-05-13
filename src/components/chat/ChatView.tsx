@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useChatApi } from "@/hooks/chat";
 import { MessageList } from "./MessageList";
@@ -156,7 +155,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   }
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       <ChatHeader 
         onBack={() => setCurrentChatId?.(null)}
         contactName={name || "Новый контакт"}
@@ -164,22 +163,20 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
         onUpdateContact={handleUpdateContact}
       />
       
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#f5f7fb]">
-        <ScrollArea className="flex-1">
-          <div className="px-4 py-6">
-            <MessageList 
-              messages={messages} 
-              isLoading={messagesLoading && !isDemoChat} 
-            />
-            <div ref={messageEndRef} className="h-8" />
-          </div>
-        </ScrollArea>
+      <div className="flex-1 overflow-y-auto bg-[#f5f7fb]">
+        <div className="px-4 py-6">
+          <MessageList 
+            messages={messages} 
+            isLoading={messagesLoading && !isDemoChat} 
+          />
+          <div ref={messageEndRef} className="h-8" />
+        </div>
       </div>
       
       <MessageInput 
         onSendMessage={handleSendMessage} 
         currentChatId={currentChatId}
       />
-    </>
+    </div>
   );
 }

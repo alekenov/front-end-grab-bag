@@ -64,7 +64,7 @@ export default function ChatsPage() {
 
   return (
     <AppLayout title="Чаты" activePage="chats">
-      <div className="flex-1 flex flex-col overflow-hidden bg-[#f5f7fb]">
+      <div className="flex h-full w-full overflow-hidden">
         {!currentChatId ? (
           <ChatListContainer 
             currentChatId={currentChatId}
