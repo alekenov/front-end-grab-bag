@@ -10,12 +10,17 @@ interface MessageListProps {
 }
 
 export function MessageList({ messages, isLoading = false }: MessageListProps) {
+  // Подробное логирование для отладки
+  console.log("[MessageList] Received messages:", messages);
+  console.log("[MessageList] Is loading:", isLoading);
+  
   // Группируем сообщения по дате
   const messagesByDate = useMemo(() => {
     // Убедимся, что messages всегда массив и не пустой
     const safeMessages = Array.isArray(messages) ? messages : [];
     
     if (safeMessages.length === 0) {
+      console.log("[MessageList] No messages or empty array");
       return {};
     }
     
@@ -24,7 +29,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
     safeMessages.forEach((message) => {
       // Проверяем, что message и message.timestamp существуют
       if (!message || !message.timestamp) {
-        console.warn('Message is missing or has no timestamp:', message);
+        console.warn('[MessageList] Message is missing or has no timestamp:', message);
         return;
       }
       
@@ -35,10 +40,11 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
         }
         grouped[date].push(message);
       } catch (error) {
-        console.error('Error formatting message date:', error, message);
+        console.error('[MessageList] Error formatting message date:', error, message);
       }
     });
     
+    console.log("[MessageList] Grouped messages:", grouped);
     return grouped;
   }, [messages]);
   
@@ -59,7 +65,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
   if (safeMessages.length === 0) {
     return (
       <div className="text-center text-gray-500 py-16 min-h-[300px] flex items-center justify-center">
-        <div>Нет сообщений</div>
+        <div>Начните общение с клиентом!</div>
       </div>
     );
   }
@@ -69,7 +75,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
   if (messagesByDateEntries.length === 0) {
     return (
       <div className="text-center text-gray-500 py-16 min-h-[300px] flex items-center justify-center">
-        <div>Ошибка форматирования сообщений</div>
+        <div>Ошибка форматирования сообщений. Пожалуйста, обновите страницу.</div>
       </div>
     );
   }

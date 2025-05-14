@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useChatApi } from "@/hooks/chat";
 import { MessageList } from "./MessageList";
@@ -7,7 +8,7 @@ import { EmptyState } from "./EmptyState";
 import { Product } from "@/types/product";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useChatDetails } from "./hooks/useChatDetails";
 
 interface ChatViewProps {
   currentChatId: string | null;
@@ -18,17 +19,26 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const chatApi = useChatApi();
-  const [name, setName] = useState("");
+  
+  // Используем хук для получения деталей чата
+  const { chatName, setChatName, chatDetails } = useChatDetails(currentChatId);
   const [tags, setTags] = useState<string[]>([]);
   const messageEndRef = useRef<HTMLDivElement>(null);
   
-  // Получаем детали чата
+  // Получаем сообщения чата
   const {
     data: messages = [],
     isLoading: messagesLoading,
     error: messagesError,
     refetch: refetchMessages,
   } = currentChatId ? chatApi.getMessages(currentChatId) : { data: [], isLoading: false, error: null, refetch: () => Promise.resolve() };
+  
+  // Логируем загрузку сообщений для отладки
+  useEffect(() => {
+    console.log("[ChatView] Messages loading:", messagesLoading);
+    console.log("[ChatView] Messages error:", messagesError);
+    console.log("[ChatView] Messages count:", messages?.length || 0);
+  }, [messages, messagesLoading, messagesError]);
   
   // Автоскролл при новых сообщениях
   useEffect(() => {
@@ -47,6 +57,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     
     // Инвалидируем и обновляем данные
     queryClient.invalidateQueries({ queryKey: ['messages-api', currentChatId] });
+    queryClient.invalidateQueries({ queryKey: ['chat', currentChatId] });
     queryClient.invalidateQueries({ queryKey: ['chats-api'] });
     
     // Явно запрашиваем обновление данных
@@ -61,6 +72,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     if (!currentChatId) return;
     
     console.log("[ChatView] Setting up chat view for:", currentChatId);
+    console.log("[ChatView] Chat details:", chatDetails);
     
     // Форсируем обновление данных при монтировании компонента
     forceRefresh();
@@ -113,11 +125,11 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
       clearInterval(intervalId);
       console.log("[ChatView] Cleaning up for chat:", currentChatId);
     };
-  }, [currentChatId, chatApi, refetchMessages, queryClient, forceRefresh, toast]);
+  }, [currentChatId, chatApi, refetchMessages, queryClient, forceRefresh, toast, chatDetails]);
   
   // Обработчик обновления контакта
   const handleUpdateContact = (name: string, tags: string[]) => {
-    setName(name);
+    setChatName(name);
     setTags(tags);
     console.log("[ChatView] Contact updated:", { name, tags });
   };
@@ -158,7 +170,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     <div className="flex flex-col h-full">
       <ChatHeader 
         onBack={() => setCurrentChatId?.(null)}
-        contactName={name || "Новый контакт"}
+        contactName={chatName || "Новый контакт"}
         tags={tags}
         onUpdateContact={handleUpdateContact}
       />
