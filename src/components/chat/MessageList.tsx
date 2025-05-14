@@ -16,7 +16,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
   
   // Группируем сообщения по дате
   const messagesByDate = useMemo(() => {
-    // Убедимся, что messages всегда массив и не пустой
+    // Убедимся, что messages всегда массив
     const safeMessages = Array.isArray(messages) ? messages : [];
     
     if (safeMessages.length === 0) {
@@ -27,10 +27,16 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
     const grouped: MessagesByDate = {};
     
     safeMessages.forEach((message) => {
-      // Проверяем, что message и message.timestamp существуют
-      if (!message || !message.timestamp) {
-        console.warn('[MessageList] Message is missing or has no timestamp:', message);
+      // Проверка наличия сообщения и временной метки
+      if (!message) {
+        console.warn('[MessageList] Message is undefined or null');
         return;
+      }
+      
+      if (!message.timestamp) {
+        console.warn('[MessageList] Message has no timestamp:', message);
+        // Используем текущую дату для сообщений без временной метки
+        message.timestamp = new Date().toISOString();
       }
       
       try {
@@ -48,6 +54,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
     return grouped;
   }, [messages]);
   
+  // Отображение состояния загрузки
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
@@ -59,7 +66,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
     );
   }
   
-  // Проверяем, что messages массив и не пустой
+  // Проверка наличия сообщений
   const safeMessages = Array.isArray(messages) ? messages : [];
   
   if (safeMessages.length === 0) {
@@ -70,7 +77,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
     );
   }
   
-  // Проверяем, что объект messagesByDate не пустой
+  // Проверка наличия сгруппированных сообщений
   const messagesByDateEntries = Object.entries(messagesByDate);
   if (messagesByDateEntries.length === 0) {
     return (
@@ -80,6 +87,7 @@ export function MessageList({ messages, isLoading = false }: MessageListProps) {
     );
   }
   
+  // Отображаем сгруппированные сообщения
   return (
     <div className="flex flex-col space-y-6 pb-10">
       {messagesByDateEntries.map(([date, dateMessages]) => (

@@ -5,18 +5,20 @@ import { Chat, SupabaseChat } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 
 export function useChatDetails(currentChatId: string | null) {
-  const [chatName, setChatName] = useState("");
+  const [chatName, setChatName] = useState<string>("");
   
-  // Fetch chat details
+  // Запрос деталей чата
   const { data: chatDetails, error: chatError } = useQuery({
     queryKey: ['chat', currentChatId],
     queryFn: async () => {
       if (!currentChatId) return null;
       
+      console.log('[useChatDetails] Fetching details for chat:', currentChatId);
+      
       try {
         // Проверяем, является ли чат демо-чатом
         if (currentChatId.startsWith('demo-')) {
-          // Для демо-чатов возвращаем заглушку
+          console.log('[useChatDetails] Using demo chat data');
           const demoChat: Chat = {
             id: currentChatId,
             name: "Демо чат",
@@ -26,6 +28,7 @@ export function useChatDetails(currentChatId: string | null) {
           return demoChat;
         }
         
+        // Запрашиваем данные из Supabase
         const { data, error } = await supabase
           .from('chats')
           .select('*')
@@ -33,55 +36,59 @@ export function useChatDetails(currentChatId: string | null) {
           .single();
           
         if (error) {
-          console.error('Error fetching chat details:', error);
+          console.error('[useChatDetails] Error fetching chat details:', error);
           throw error;
         }
         
-        // Convert Supabase data to our app format
+        console.log('[useChatDetails] Raw chat data:', data);
+        
+        // Преобразуем данные из Supabase в формат приложения
         const supabaseChat = data as SupabaseChat;
         const chat: Chat = {
           id: supabaseChat.id,
           name: supabaseChat.name || (supabaseChat.phone_number ? `WhatsApp ${supabaseChat.phone_number}` : "Новый контакт"),
-          aiEnabled: supabaseChat.ai_enabled || false,
+          aiEnabled: Boolean(supabaseChat.ai_enabled),
           unreadCount: supabaseChat.unread_count || 0,
-          created_at: supabaseChat.created_at || undefined,
-          updated_at: supabaseChat.updated_at || undefined,
-          source: supabaseChat.source || "web"
+          created_at: supabaseChat.created_at,
+          updated_at: supabaseChat.updated_at,
+          source: supabaseChat.source
         };
         
+        console.log('[useChatDetails] Formatted chat data:', chat);
         return chat;
       } catch (error) {
-        console.error('Error in chat details query:', error);
+        console.error('[useChatDetails] Error in chat details query:', error);
         
-        // Возвращаем пустой объект для демо режима при ошибке
+        // Возвращаем демо-чат для демо режима даже при ошибке
         if (currentChatId.startsWith('demo-')) {
-          const demoChat: Chat = {
+          return {
             id: currentChatId,
             name: "Демо чат",
             aiEnabled: true,
             unreadCount: 0,
           };
-          return demoChat;
         }
         
         return null;
       }
     },
     enabled: !!currentChatId,
-    staleTime: 30000 // Кешируем данные на 30 секунд
+    staleTime: 30000, // Кешируем данные на 30 секунд
+    retry: 1
   });
 
+  // Обновляем состояние имени чата при получении данных
   useEffect(() => {
     if (chatDetails) {
+      console.log('[useChatDetails] Setting chat name:', chatDetails.name);
       setChatName(chatDetails.name || "");
-      console.log("[useChatDetails] Chat details loaded:", chatDetails);
     }
   }, [chatDetails]);
 
-  // Логируем ошибки для отладки
+  // Логирование ошибок
   useEffect(() => {
     if (chatError) {
-      console.error('[useChatDetails] Chat details error:', chatError);
+      console.error('[useChatDetails] Error fetching chat details:', chatError);
     }
   }, [chatError]);
 

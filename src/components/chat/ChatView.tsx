@@ -20,8 +20,9 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const queryClient = useQueryClient();
   const chatApi = useChatApi();
   
-  // Используем хук для получения деталей чата
+  // Используем хук useChatDetails для получения информации о чате
   const { chatName, setChatName, chatDetails } = useChatDetails(currentChatId);
+  
   const [tags, setTags] = useState<string[]>([]);
   const messageEndRef = useRef<HTMLDivElement>(null);
   
@@ -31,14 +32,16 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     isLoading: messagesLoading,
     error: messagesError,
     refetch: refetchMessages,
-  } = currentChatId ? chatApi.getMessages(currentChatId) : { data: [], isLoading: false, error: null, refetch: () => Promise.resolve() };
+  } = chatApi.getMessages(currentChatId);
   
-  // Логируем загрузку сообщений для отладки
+  // Логируем статус загрузки сообщений
   useEffect(() => {
+    console.log("[ChatView] Chat ID:", currentChatId);
+    console.log("[ChatView] Chat details:", chatDetails);
     console.log("[ChatView] Messages loading:", messagesLoading);
     console.log("[ChatView] Messages error:", messagesError);
     console.log("[ChatView] Messages count:", messages?.length || 0);
-  }, [messages, messagesLoading, messagesError]);
+  }, [currentChatId, chatDetails, messages, messagesLoading, messagesError]);
   
   // Автоскролл при новых сообщениях
   useEffect(() => {
@@ -49,35 +52,34 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     }
   }, [messages]);
   
-  // Принудительно обновляем данные при монтировании компонента
+  // Принудительное обновление данных
   const forceRefresh = useCallback(() => {
     if (!currentChatId) return;
     
     console.log("[ChatView] Force refreshing data for chat:", currentChatId);
     
-    // Инвалидируем и обновляем данные
+    // Инвалидируем запросы в кеше
     queryClient.invalidateQueries({ queryKey: ['messages-api', currentChatId] });
     queryClient.invalidateQueries({ queryKey: ['chat', currentChatId] });
     queryClient.invalidateQueries({ queryKey: ['chats-api'] });
     
-    // Явно запрашиваем обновление данных
+    // Принудительно запрашиваем данные
     setTimeout(() => {
       refetchMessages();
       chatApi.refetchChats();
     }, 100);
   }, [currentChatId, queryClient, refetchMessages, chatApi]);
   
-  // Эффект для проверки товара в localStorage и обработка обновлений
+  // Инициализация и периодическое обновление
   useEffect(() => {
     if (!currentChatId) return;
     
     console.log("[ChatView] Setting up chat view for:", currentChatId);
-    console.log("[ChatView] Chat details:", chatDetails);
     
-    // Форсируем обновление данных при монтировании компонента
+    // Обновляем данные при монтировании
     forceRefresh();
     
-    // Проверяем наличие продукта в localStorage
+    // Проверяем наличие товара в localStorage
     const checkForProduct = () => {
       const selectedProductJson = localStorage.getItem("selected_product");
       if (selectedProductJson && currentChatId) {
@@ -113,19 +115,19 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     // Проверяем при монтировании
     checkForProduct();
     
-    // Настраиваем интервал для периодической проверки
+    // Настраиваем интервал обновления
     const intervalId = setInterval(() => {
       console.log("[ChatView] Checking for updates");
       refetchMessages();
       chatApi.refetchChats();
     }, 5000);
     
-    // Очищаем интервал при размонтировании
+    // Очистка при размонтировании
     return () => {
       clearInterval(intervalId);
       console.log("[ChatView] Cleaning up for chat:", currentChatId);
     };
-  }, [currentChatId, chatApi, refetchMessages, queryClient, forceRefresh, toast, chatDetails]);
+  }, [currentChatId, chatApi, refetchMessages, toast, forceRefresh]);
   
   // Обработчик обновления контакта
   const handleUpdateContact = (name: string, tags: string[]) => {
@@ -134,7 +136,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     console.log("[ChatView] Contact updated:", { name, tags });
   };
   
-  // Обработчик отправки сообщения с обработкой ошибок
+  // Обработчик отправки сообщения
   const handleSendMessage = async (content: string, product?: Product) => {
     if (!currentChatId || !content.trim()) return;
     
@@ -155,16 +157,13 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     }
   };
 
+  // Если нет выбранного чата, показываем пустое состояние
   if (!currentChatId) {
     return <EmptyState />;
   }
 
-  // Проверяем наличие demo в ID чата и создаем демо-сообщения если нужно
+  // Проверяем наличие 'demo' в ID чата
   const isDemoChat = currentChatId.startsWith('demo-');
-
-  if (messagesError) {
-    console.error('[ChatView] Messages error:', messagesError);
-  }
 
   return (
     <div className="flex flex-col h-full">
