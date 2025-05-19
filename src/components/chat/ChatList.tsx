@@ -20,7 +20,7 @@ interface ChatListProps {
 const isChatActive = (currentId: string | null, chatId: string): boolean => {
   if (!currentId) return false;
   
-  // Проверка на равенство с учетом возможной нормализации ID (для демо-чатов)
+  // Проверка на равенство напрямую
   if (currentId === chatId) return true;
   
   // Проверка для числовых ID (демо-чаты)
@@ -37,12 +37,18 @@ const isChatActive = (currentId: string | null, chatId: string): boolean => {
     return true;
   }
   
+  // Проверка на UUID-формат или числовой ID
+  if (!currentId.includes('-') && !isNaN(Number(currentId)) &&
+      chatId.includes('-') && chatId !== `demo-${currentId}`) {
+    return false;
+  }
+  
   return false;
 };
 
 export function ChatList({ searchQuery, currentChatId, setCurrentChatId, filters = {} }: ChatListProps) {
   const chatApi = useChatApi();
-  // Fix 1: Use chats, isLoadingChats directly instead of calling getChats()
+  // Use chats, isLoadingChats directly instead of calling getChats()
   const { chats = [], isLoadingChats: isLoading } = chatApi;
   
   // Фильтрация чатов
@@ -97,6 +103,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId, filters
     return (
       <div className="p-6 text-center text-gray-500">
         <div className="mb-2">У вас пока нет активных чатов</div>
+        <div className="text-sm">Создайте новый чат или дождитесь сообщений от клиентов</div>
       </div>
     );
   }
@@ -108,7 +115,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId, filters
           key={chat.id}
           chat={chat}
           isActive={isChatActive(currentChatId, chat.id)}
-          // Fix 2: Use onSelectChat instead of onClick
+          // Use onSelectChat instead of onClick
           onSelectChat={() => setCurrentChatId(chat.id)}
         />
       ))}

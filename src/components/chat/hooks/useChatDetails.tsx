@@ -10,7 +10,14 @@ import { supabase } from "@/integrations/supabase/client";
  */
 const normalizeChatId = (chatId: string | null): string | null => {
   if (!chatId) return null;
-  return isNaN(Number(chatId)) ? chatId : `demo-${chatId}`;
+  
+  // Если это числовой ID без дефисов, преобразуем его в демо-формат
+  if (!isNaN(Number(chatId)) && !chatId.includes('-')) {
+    console.log('[useChatDetails] Converting numeric ID to demo format:', chatId);
+    return `demo-${chatId}`;
+  }
+  
+  return chatId;
 };
 
 export function useChatDetails(currentChatId: string | null) {
@@ -18,6 +25,16 @@ export function useChatDetails(currentChatId: string | null) {
   
   // Нормализуем ID чата для единообразия
   const normalizedChatId = normalizeChatId(currentChatId);
+  const isDemoChat = normalizedChatId?.startsWith('demo-');
+  
+  // Логируем преобразование ID чата
+  useEffect(() => {
+    if (currentChatId) {
+      console.log('[useChatDetails] Original chat ID:', currentChatId);
+      console.log('[useChatDetails] Normalized chat ID:', normalizedChatId);
+      console.log('[useChatDetails] Is demo chat:', isDemoChat);
+    }
+  }, [currentChatId, normalizedChatId, isDemoChat]);
   
   // Запрос деталей чата
   const { data: chatDetails, error: chatError } = useQuery({
@@ -29,7 +46,7 @@ export function useChatDetails(currentChatId: string | null) {
       
       try {
         // Проверяем, является ли чат демо-чатом
-        if (normalizedChatId.startsWith('demo-')) {
+        if (isDemoChat) {
           console.log('[useChatDetails] Using demo chat data');
           const demoChat: Chat = {
             id: normalizedChatId,
@@ -72,7 +89,7 @@ export function useChatDetails(currentChatId: string | null) {
         console.error('[useChatDetails] Error in chat details query:', error);
         
         // Возвращаем демо-чат для демо режима даже при ошибке
-        if (normalizedChatId.startsWith('demo-')) {
+        if (isDemoChat) {
           return {
             id: normalizedChatId,
             name: "Демо чат",
@@ -81,7 +98,14 @@ export function useChatDetails(currentChatId: string | null) {
           };
         }
         
-        return null;
+        // Возможно, подобрать fallback для отображения вместо ошибки
+        return {
+          id: normalizedChatId,
+          name: "Чат недоступен",
+          aiEnabled: false,
+          unreadCount: 0,
+          error: true
+        };
       }
     },
     enabled: !!normalizedChatId,
@@ -108,6 +132,7 @@ export function useChatDetails(currentChatId: string | null) {
     chatDetails,
     chatName,
     setChatName,
-    chatError
+    chatError,
+    isDemoChat
   };
 }

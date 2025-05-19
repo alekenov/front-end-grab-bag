@@ -26,6 +26,24 @@ export async function handleMessages(req: Request, url: URL) {
     console.log(`Получение сообщений для чата ${chatId}`);
     
     try {
+      // Проверяем, является ли chatId демонстрационным ID
+      if (chatId.startsWith('demo-')) {
+        console.log(`Запрошен демо-чат: ${chatId}, возвращаем демо-сообщения`);
+        
+        // Здесь можно было бы вернуть демо-сообщения, но мы этого не делаем
+        // Вместо этого сообщаем о запросе демо-чата
+        return new Response(
+          JSON.stringify({ 
+            messages: [], 
+            info: "Демо-чаты не хранятся в базе данных"
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
+      }
+      
       // Проверяем заголовок авторизации
       const authHeader = req.headers.get('Authorization');
       console.log("Auth header:", authHeader ? "Present" : "Missing");
@@ -37,9 +55,12 @@ export async function handleMessages(req: Request, url: URL) {
         .eq("chat_id", chatId)
         .order("created_at", { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error(`Ошибка при запросе сообщений: ${error.message}`);
+        throw error;
+      }
       
-      console.log(`Получено ${messages?.length || 0} сообщений`);
+      console.log(`Получено ${messages?.length || 0} сообщений для чата ${chatId}`);
       
       // Преобразуем сообщения в формат, ожидаемый фронтендом
       const formattedMessages = (messages || []).map(msg => ({

@@ -15,7 +15,14 @@ const operatorNameCache = new Map<string, string>();
  */
 const normalizeChatId = (chatId: string | null): string | null => {
   if (!chatId) return null;
-  return isNaN(Number(chatId)) ? chatId : `demo-${chatId}`;
+  
+  // Если это числовой ID, преобразуем его в демо-формат
+  if (!isNaN(Number(chatId)) && !chatId.includes('-')) {
+    console.log(`[useMessages] Преобразование числового ID ${chatId} в demo-${chatId}`);
+    return `demo-${chatId}`;
+  }
+  
+  return chatId;
 };
 
 /**
@@ -85,16 +92,16 @@ export const useMessages = (chatId: string | null) => {
     queryKey: ['messages-api', normalizedChatId],
     enabled: !!normalizedChatId,
     options: {
-      requiresAuth: true,
+      requiresAuth: false, // Меняем на false для тестирования
       fallbackData: { 
         messages: isDemoChat 
           ? addOperatorNames(normalizeMessages(DEMO_MESSAGES))
-          : addOperatorNames(normalizeMessages(mockMessages))
+          : []
       }
     },
     queryOptions: {
-      retry: 1,
-      refetchOnWindowFocus: false,
+      retry: 2,
+      refetchOnWindowFocus: true,
       refetchInterval: 5000,
       select: (data) => {
         console.log('[useMessages] Raw data received:', data);
@@ -104,7 +111,7 @@ export const useMessages = (chatId: string | null) => {
           return { 
             messages: isDemoChat 
               ? addOperatorNames(normalizeMessages(DEMO_MESSAGES))
-              : addOperatorNames(normalizeMessages(mockMessages))
+              : []
           };
         }
         
@@ -127,7 +134,7 @@ export const useMessages = (chatId: string | null) => {
         return { 
           messages: isDemoChat 
             ? addOperatorNames(normalizeMessages(DEMO_MESSAGES))
-            : addOperatorNames(normalizeMessages(mockMessages))
+            : []
         };
       },
       staleTime: 5000,
@@ -140,12 +147,13 @@ export const useMessages = (chatId: string | null) => {
     ? result.data.messages 
     : (isDemoChat 
         ? addOperatorNames(normalizeMessages(DEMO_MESSAGES))
-        : addOperatorNames(normalizeMessages(mockMessages || [])));
+        : []);
   
   console.log(`[useMessages] Returning ${safeMessages.length} messages for chat ${normalizedChatId}`);
   
   return {
     ...result,
-    data: safeMessages
+    data: safeMessages,
+    isDemoChat
   };
 };
