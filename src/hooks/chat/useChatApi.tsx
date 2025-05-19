@@ -1,3 +1,4 @@
+
 import { useMessages } from "./useMessages";
 import { useChats } from "./useChats";
 import { useSendMessage } from "./useSendMessage";
@@ -5,11 +6,12 @@ import { useToggleAI } from "./useToggleAI";
 
 export function useChatApi() {
   // Получаем список чатов
-  const { chats, isLoading: isLoadingChats, error: chatsError, refetch: refetchChats } = useChats();
+  const { data, isPending: isLoadingChats, error: chatsError, refetch: refetchChats } = useChats();
+  const chats = data?.chats || [];
 
   // Хуки для различных операций с чатами
-  const { mutateAsync: sendMessageMutation, isLoading: isSendingMessage } = useSendMessage();
-  const { mutateAsync: toggleAIMutation, isLoading: isTogglingAI } = useToggleAI();
+  const { mutateAsync: sendMessageMutation, isPending: isSendingMessage } = useSendMessage();
+  const { mutateAsync: toggleAIMutation, isPending: isTogglingAI } = useToggleAI();
 
   // Функция для отправки сообщения в указанный чат
   const sendMessage = async (chatId: string, content: string, product?: any) => {

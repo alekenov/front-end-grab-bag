@@ -747,7 +747,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      all_messages: {
+        Row: {
+          chat_id: string | null
+          content: string | null
+          created_at: string | null
+          has_product: boolean | null
+          id: string | null
+          is_from_user: boolean | null
+          product_data: Json | null
+          source: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       binary_quantize: {

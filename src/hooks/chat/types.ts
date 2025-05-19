@@ -13,6 +13,10 @@ export interface ToggleAIParams {
   enabled: boolean;
 }
 
+export interface ChatsResponse {
+  chats: Chat[];
+}
+
 export interface ChatApiHook {
   chats: Chat[];
   isLoadingChats: boolean;
@@ -23,7 +27,10 @@ export interface ChatApiHook {
     isLoading: boolean;
     error: Error | null;
     refetch: () => void;
+    isDemoChat?: boolean;
   };
   sendMessage: (chatId: string, content: string, product?: Product) => Promise<any>;
+  isSendingMessage: boolean;
   toggleAI: (chatId: string, enabled: boolean) => Promise<any>;
+  isTogglingAI: boolean;
 }
