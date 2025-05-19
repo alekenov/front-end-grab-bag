@@ -10,14 +10,26 @@ const OPERATOR_NAMES = ["Анна", "Михаил", "Елена", "Сергей"
 const operatorNameCache = new Map<string, string>();
 
 /**
+ * Функция для нормализации ID чата
+ * Преобразует числовые ID в формат demo-{id}
+ */
+const normalizeChatId = (chatId: string | null): string | null => {
+  if (!chatId) return null;
+  return isNaN(Number(chatId)) ? chatId : `demo-${chatId}`;
+};
+
+/**
  * Хук для получения сообщений чата
  */
 export const useMessages = (chatId: string | null) => {
+  // Нормализуем ID чата для единообразия
+  const normalizedChatId = normalizeChatId(chatId);
+  
   // Проверяем, является ли чат демо-чатом
-  const isDemoChat = chatId?.startsWith('demo-');
+  const isDemoChat = normalizedChatId?.startsWith('demo-');
   
   // В режиме разработки или при отсутствии API используем мок-данные
-  const mockMessages = chatId && !isDemoChat ? TEST_MESSAGES[chatId] || [] : [];
+  const mockMessages = normalizedChatId && !isDemoChat ? TEST_MESSAGES[normalizedChatId] || [] : [];
 
   // Добавляем имена операторов детерминированным способом
   const addOperatorNames = (messages: Message[]): Message[] => {
@@ -69,9 +81,9 @@ export const useMessages = (chatId: string | null) => {
 
   // Получаем данные через API или используем мок-данные
   const result = useApiQuery<{ messages: Message[] }>({
-    endpoint: chatId ? `chat-api/messages?chatId=${chatId}` : '',
-    queryKey: ['messages-api', chatId],
-    enabled: !!chatId,
+    endpoint: normalizedChatId ? `chat-api/messages?chatId=${normalizedChatId}` : '',
+    queryKey: ['messages-api', normalizedChatId],
+    enabled: !!normalizedChatId,
     options: {
       requiresAuth: true,
       fallbackData: { 
@@ -130,7 +142,7 @@ export const useMessages = (chatId: string | null) => {
         ? addOperatorNames(normalizeMessages(DEMO_MESSAGES))
         : addOperatorNames(normalizeMessages(mockMessages || [])));
   
-  console.log(`[useMessages] Returning ${safeMessages.length} messages for chat ${chatId}`);
+  console.log(`[useMessages] Returning ${safeMessages.length} messages for chat ${normalizedChatId}`);
   
   return {
     ...result,

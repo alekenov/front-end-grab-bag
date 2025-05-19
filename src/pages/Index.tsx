@@ -11,6 +11,15 @@ import { useLocation, useSearchParams } from "react-router-dom";
 
 export type TabType = "chat" | "datasources" | "examples";
 
+/**
+ * Функция для нормализации ID чата
+ * Преобразует строковые значения к единому формату
+ */
+const normalizeChatId = (chatId: string | null): string | null => {
+  if (!chatId) return null;
+  return chatId;
+};
+
 export default function Index() {
   const [activeTab, setActiveTab] = useState<TabType>("chat");
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
@@ -25,7 +34,7 @@ export default function Index() {
     
     if (chatIdFromUrl) {
       console.log("Установка ID чата из URL:", chatIdFromUrl);
-      setCurrentChatId(chatIdFromUrl);
+      setCurrentChatId(normalizeChatId(chatIdFromUrl));
       return;
     }
     
@@ -33,7 +42,7 @@ export default function Index() {
     const savedChatId = localStorage.getItem("current_chat_id");
     if (savedChatId) {
       console.log("Установка ID чата из localStorage:", savedChatId);
-      setCurrentChatId(savedChatId);
+      setCurrentChatId(normalizeChatId(savedChatId));
       // Очищаем localStorage, так как ID уже использован
       localStorage.removeItem("current_chat_id");
     }

@@ -14,6 +14,32 @@ interface ChatListProps {
   };
 }
 
+/**
+ * Проверка, является ли чат активным, с учетом нормализации ID
+ */
+const isChatActive = (currentId: string | null, chatId: string): boolean => {
+  if (!currentId) return false;
+  
+  // Проверка на равенство с учетом возможной нормализации ID (для демо-чатов)
+  if (currentId === chatId) return true;
+  
+  // Проверка для числовых ID (демо-чаты)
+  if (currentId.startsWith('demo-') && 
+      !isNaN(Number(currentId.replace('demo-', ''))) && 
+      currentId.replace('demo-', '') === chatId) {
+    return true;
+  }
+  
+  // Проверка в обратную сторону
+  if (chatId.startsWith('demo-') && 
+      !isNaN(Number(chatId.replace('demo-', ''))) && 
+      chatId.replace('demo-', '') === currentId) {
+    return true;
+  }
+  
+  return false;
+};
+
 export function ChatList({ searchQuery, currentChatId, setCurrentChatId, filters = {} }: ChatListProps) {
   const chatApi = useChatApi();
   // Fix 1: Use chats, isLoadingChats directly instead of calling getChats()
@@ -81,7 +107,7 @@ export function ChatList({ searchQuery, currentChatId, setCurrentChatId, filters
         <ChatListItem
           key={chat.id}
           chat={chat}
-          isActive={currentChatId === chat.id}
+          isActive={isChatActive(currentChatId, chat.id)}
           // Fix 2: Use onSelectChat instead of onClick
           onSelectChat={() => setCurrentChatId(chat.id)}
         />

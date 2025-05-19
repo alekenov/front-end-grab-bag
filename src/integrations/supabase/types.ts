@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      api_logs: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: number
+          request: Json | null
+          response: Json | null
+          status: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: number
+          request?: Json | null
+          response?: Json | null
+          status?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: number
+          request?: Json | null
+          response?: Json | null
+          status?: number | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string | null
@@ -164,27 +191,36 @@ export type Database = {
       chats: {
         Row: {
           ai_enabled: boolean | null
+          channel_id: string | null
+          channel_type: string | null
           created_at: string | null
           id: string
           name: string
+          phone_number: string | null
           source: string | null
           unread_count: number | null
           updated_at: string | null
         }
         Insert: {
           ai_enabled?: boolean | null
+          channel_id?: string | null
+          channel_type?: string | null
           created_at?: string | null
           id?: string
           name: string
+          phone_number?: string | null
           source?: string | null
           unread_count?: number | null
           updated_at?: string | null
         }
         Update: {
           ai_enabled?: boolean | null
+          channel_id?: string | null
+          channel_type?: string | null
           created_at?: string | null
           id?: string
           name?: string
+          phone_number?: string | null
           source?: string | null
           unread_count?: number | null
           updated_at?: string | null
@@ -362,28 +398,46 @@ export type Database = {
       }
       facebook_events: {
         Row: {
+          error_details: Json | null
           event_data: Json
           event_type: string
           id: string
+          message_content: string | null
+          message_id: string | null
           processed: boolean | null
           processed_at: string | null
           received_at: string | null
+          request_id: string | null
+          sender_id: string | null
+          status: string | null
         }
         Insert: {
+          error_details?: Json | null
           event_data: Json
           event_type: string
           id?: string
+          message_content?: string | null
+          message_id?: string | null
           processed?: boolean | null
           processed_at?: string | null
           received_at?: string | null
+          request_id?: string | null
+          sender_id?: string | null
+          status?: string | null
         }
         Update: {
+          error_details?: Json | null
           event_data?: Json
           event_type?: string
           id?: string
+          message_content?: string | null
+          message_id?: string | null
           processed?: boolean | null
           processed_at?: string | null
           received_at?: string | null
+          request_id?: string | null
+          sender_id?: string | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -542,6 +596,95 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_events: {
+        Row: {
+          created_at: string
+          error_details: Json | null
+          event_data: Json
+          event_type: string
+          id: string
+          message_content: string | null
+          message_id: string | null
+          processed: boolean | null
+          processed_at: string | null
+          received_at: string
+          request_id: string | null
+          sender_id: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_details?: Json | null
+          event_data?: Json
+          event_type: string
+          id?: string
+          message_content?: string | null
+          message_id?: string | null
+          processed?: boolean | null
+          processed_at?: string | null
+          received_at?: string
+          request_id?: string | null
+          sender_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_details?: Json | null
+          event_data?: Json
+          event_type?: string
+          id?: string
+          message_content?: string | null
+          message_id?: string | null
+          processed?: boolean | null
+          processed_at?: string | null
+          received_at?: string
+          request_id?: string | null
+          sender_id?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      telegram_messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string
+          id: string
+          is_from_user: boolean
+          metadata: Json | null
+          telegram_chat_id: string
+          telegram_message_id: string | null
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_from_user?: boolean
+          metadata?: Json | null
+          telegram_chat_id: string
+          telegram_message_id?: string | null
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_from_user?: boolean
+          metadata?: Json | null
+          telegram_chat_id?: string
+          telegram_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telegram_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_examples: {
         Row: {
           category_id: string | null
@@ -575,6 +718,33 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_logs: {
+        Row: {
+          event_type: string
+          id: number
+          payload: Json | null
+          processed_at: string | null
+          source: string
+          success: boolean | null
+        }
+        Insert: {
+          event_type: string
+          id?: number
+          payload?: Json | null
+          processed_at?: string | null
+          source: string
+          success?: boolean | null
+        }
+        Update: {
+          event_type?: string
+          id?: number
+          payload?: Json | null
+          processed_at?: string | null
+          source?: string
+          success?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -583,6 +753,10 @@ export type Database = {
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
+      }
+      check_if_telegram_events_table_exists: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       get_chats_with_last_messages: {
         Args:

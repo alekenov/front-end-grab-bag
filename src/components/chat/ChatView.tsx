@@ -20,28 +20,33 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const queryClient = useQueryClient();
   const chatApi = useChatApi();
   
-  // Используем хук useChatDetails для получения информации о чате
-  const { chatName, setChatName, chatDetails } = useChatDetails(currentChatId);
+  // Нормализуем ID чата - если это число, считаем его тестовым демо-ID
+  const normalizedChatId = currentChatId ? 
+    (isNaN(Number(currentChatId)) ? currentChatId : `demo-${currentChatId}`) : null;
+  
+  // Используем нормализованный ID для получения деталей чата
+  const { chatName, setChatName, chatDetails } = useChatDetails(normalizedChatId);
   
   const [tags, setTags] = useState<string[]>([]);
   const messageEndRef = useRef<HTMLDivElement>(null);
   
-  // Получаем сообщения чата
+  // Получаем сообщения чата с нормализованным ID
   const {
     data: messages = [],
     isLoading: messagesLoading,
     error: messagesError,
     refetch: refetchMessages,
-  } = chatApi.getMessages(currentChatId);
+  } = chatApi.getMessages(normalizedChatId);
   
   // Логируем статус загрузки сообщений
   useEffect(() => {
-    console.log("[ChatView] Chat ID:", currentChatId);
+    console.log("[ChatView] Chat ID (normalized):", normalizedChatId);
+    console.log("[ChatView] Original Chat ID:", currentChatId);
     console.log("[ChatView] Chat details:", chatDetails);
     console.log("[ChatView] Messages loading:", messagesLoading);
     console.log("[ChatView] Messages error:", messagesError);
     console.log("[ChatView] Messages count:", messages?.length || 0);
-  }, [currentChatId, chatDetails, messages, messagesLoading, messagesError]);
+  }, [normalizedChatId, currentChatId, chatDetails, messages, messagesLoading, messagesError]);
   
   // Автоскролл при новых сообщениях
   useEffect(() => {
@@ -54,13 +59,13 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   
   // Принудительное обновление данных
   const forceRefresh = useCallback(() => {
-    if (!currentChatId) return;
+    if (!normalizedChatId) return;
     
-    console.log("[ChatView] Force refreshing data for chat:", currentChatId);
+    console.log("[ChatView] Force refreshing data for chat:", normalizedChatId);
     
     // Инвалидируем запросы в кеше
-    queryClient.invalidateQueries({ queryKey: ['messages-api', currentChatId] });
-    queryClient.invalidateQueries({ queryKey: ['chat', currentChatId] });
+    queryClient.invalidateQueries({ queryKey: ['messages-api', normalizedChatId] });
+    queryClient.invalidateQueries({ queryKey: ['chat', normalizedChatId] });
     queryClient.invalidateQueries({ queryKey: ['chats-api'] });
     
     // Принудительно запрашиваем данные
@@ -68,13 +73,13 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
       refetchMessages();
       chatApi.refetchChats();
     }, 100);
-  }, [currentChatId, queryClient, refetchMessages, chatApi]);
+  }, [normalizedChatId, queryClient, refetchMessages, chatApi]);
   
   // Инициализация и периодическое обновление
   useEffect(() => {
-    if (!currentChatId) return;
+    if (!normalizedChatId) return;
     
-    console.log("[ChatView] Setting up chat view for:", currentChatId);
+    console.log("[ChatView] Setting up chat view for:", normalizedChatId);
     
     // Обновляем данные при монтировании
     forceRefresh();
@@ -82,14 +87,14 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     // Проверяем наличие товара в localStorage
     const checkForProduct = () => {
       const selectedProductJson = localStorage.getItem("selected_product");
-      if (selectedProductJson && currentChatId) {
+      if (selectedProductJson && normalizedChatId) {
         try {
           const product = JSON.parse(selectedProductJson);
           console.log("[ChatView] Found product in localStorage:", product);
           
           // Отправляем товар в чат
           chatApi.sendMessage(
-            currentChatId, 
+            normalizedChatId, 
             `Букет за ${product.price.toLocaleString()} ₸`, 
             product
           ).then(() => {
@@ -125,9 +130,9 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     // Очистка при размонтировании
     return () => {
       clearInterval(intervalId);
-      console.log("[ChatView] Cleaning up for chat:", currentChatId);
+      console.log("[ChatView] Cleaning up for chat:", normalizedChatId);
     };
-  }, [currentChatId, chatApi, refetchMessages, toast, forceRefresh]);
+  }, [normalizedChatId, chatApi, refetchMessages, toast, forceRefresh]);
   
   // Обработчик обновления контакта
   const handleUpdateContact = (name: string, tags: string[]) => {
@@ -138,10 +143,10 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   
   // Обработчик отправки сообщения
   const handleSendMessage = async (content: string, product?: Product) => {
-    if (!currentChatId || !content.trim()) return;
+    if (!normalizedChatId || !content.trim()) return;
     
     try {
-      await chatApi.sendMessage(currentChatId, content, product);
+      await chatApi.sendMessage(normalizedChatId, content, product);
       
       // Обновляем список сообщений
       setTimeout(() => {
@@ -158,12 +163,12 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   };
 
   // Если нет выбранного чата, показываем пустое состояние
-  if (!currentChatId) {
+  if (!normalizedChatId) {
     return <EmptyState />;
   }
 
   // Проверяем наличие 'demo' в ID чата
-  const isDemoChat = currentChatId.startsWith('demo-');
+  const isDemoChat = normalizedChatId.startsWith('demo-');
 
   return (
     <div className="flex flex-col h-full">
@@ -186,7 +191,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
       
       <MessageInput 
         onSendMessage={handleSendMessage} 
-        currentChatId={currentChatId}
+        currentChatId={normalizedChatId}
       />
     </div>
   );

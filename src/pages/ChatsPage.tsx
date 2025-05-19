@@ -7,6 +7,15 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
+/**
+ * Функция для нормализации ID чата
+ * Преобразует строковые значения к единому формату
+ */
+const normalizeChatId = (chatId: string | null): string | null => {
+  if (!chatId) return null;
+  return chatId;
+};
+
 export default function ChatsPage() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
@@ -47,7 +56,7 @@ export default function ChatsPage() {
     
     if (chatIdFromUrl) {
       console.log("[ChatsPage] Setting current chat ID from URL:", chatIdFromUrl);
-      setCurrentChatId(chatIdFromUrl);
+      setCurrentChatId(normalizeChatId(chatIdFromUrl));
       return;
     }
     
@@ -55,7 +64,7 @@ export default function ChatsPage() {
     const savedChatId = localStorage.getItem("current_chat_id");
     if (savedChatId) {
       console.log("[ChatsPage] Setting current chat ID from localStorage:", savedChatId);
-      setCurrentChatId(savedChatId);
+      setCurrentChatId(normalizeChatId(savedChatId));
       
       // Обновляем URL
       navigate(`/?chatId=${savedChatId}`, { replace: true });

@@ -4,23 +4,35 @@ import { useQuery } from "@tanstack/react-query";
 import { Chat, SupabaseChat } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Функция для нормализации ID чата
+ * Преобразует числовые ID в формат demo-{id}
+ */
+const normalizeChatId = (chatId: string | null): string | null => {
+  if (!chatId) return null;
+  return isNaN(Number(chatId)) ? chatId : `demo-${chatId}`;
+};
+
 export function useChatDetails(currentChatId: string | null) {
   const [chatName, setChatName] = useState<string>("");
   
+  // Нормализуем ID чата для единообразия
+  const normalizedChatId = normalizeChatId(currentChatId);
+  
   // Запрос деталей чата
   const { data: chatDetails, error: chatError } = useQuery({
-    queryKey: ['chat', currentChatId],
+    queryKey: ['chat', normalizedChatId],
     queryFn: async () => {
-      if (!currentChatId) return null;
+      if (!normalizedChatId) return null;
       
-      console.log('[useChatDetails] Fetching details for chat:', currentChatId);
+      console.log('[useChatDetails] Fetching details for chat:', normalizedChatId);
       
       try {
         // Проверяем, является ли чат демо-чатом
-        if (currentChatId.startsWith('demo-')) {
+        if (normalizedChatId.startsWith('demo-')) {
           console.log('[useChatDetails] Using demo chat data');
           const demoChat: Chat = {
-            id: currentChatId,
+            id: normalizedChatId,
             name: "Демо чат",
             aiEnabled: true,
             unreadCount: 0,
@@ -32,7 +44,7 @@ export function useChatDetails(currentChatId: string | null) {
         const { data, error } = await supabase
           .from('chats')
           .select('*')
-          .eq('id', currentChatId)
+          .eq('id', normalizedChatId)
           .single();
           
         if (error) {
@@ -60,9 +72,9 @@ export function useChatDetails(currentChatId: string | null) {
         console.error('[useChatDetails] Error in chat details query:', error);
         
         // Возвращаем демо-чат для демо режима даже при ошибке
-        if (currentChatId.startsWith('demo-')) {
+        if (normalizedChatId.startsWith('demo-')) {
           return {
-            id: currentChatId,
+            id: normalizedChatId,
             name: "Демо чат",
             aiEnabled: true,
             unreadCount: 0,
@@ -72,7 +84,7 @@ export function useChatDetails(currentChatId: string | null) {
         return null;
       }
     },
-    enabled: !!currentChatId,
+    enabled: !!normalizedChatId,
     staleTime: 30000, // Кешируем данные на 30 секунд
     retry: 1
   });
