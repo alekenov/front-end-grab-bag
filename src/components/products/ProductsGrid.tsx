@@ -58,6 +58,11 @@ export function ProductsGrid({ onDelete, onUpdate, inChatMode = false }: Product
     );
   }
 
+  // Безопасно преобразуем categories к строковому массиву
+  const categoriesArray: string[] = Array.isArray(categories) 
+    ? categories.map(category => String(category || ''))
+    : [];
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -86,7 +91,7 @@ export function ProductsGrid({ onDelete, onUpdate, inChatMode = false }: Product
                     setCategoryFilter={setCategoryFilter}
                     priceRange={priceRange}
                     setPriceRange={setPriceRange}
-                    categories={categories}
+                    categories={categoriesArray}
                     priceStats={priceStats}
                   />
                 </div>
@@ -120,7 +125,7 @@ export function ProductsGrid({ onDelete, onUpdate, inChatMode = false }: Product
             setCategoryFilter={setCategoryFilter}
             priceRange={priceRange}
             setPriceRange={setPriceRange}
-            categories={categories}
+            categories={categoriesArray}
             priceStats={priceStats}
           />
         </div>

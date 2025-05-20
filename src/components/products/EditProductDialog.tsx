@@ -102,9 +102,11 @@ export function EditProductDialog({ product, open, onOpenChange, onUpdate }: Edi
     
     try {
       // Убеждаемся, что цена - число
-      const priceNumber = typeof editedProduct.price === 'string' 
-        ? parseInt(editedProduct.price.replace(/\D/g, ""), 10) 
-        : editedProduct.price;
+      const priceValue = typeof editedProduct.price === 'string' 
+        ? editedProduct.price 
+        : String(editedProduct.price);
+      
+      const priceNumber = parseInt(priceValue.toString().replace(/\D/g, ""), 10);
       
       if (isNaN(priceNumber) || priceNumber <= 0) {
         throw new Error("Введите корректную цену");

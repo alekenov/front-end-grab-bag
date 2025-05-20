@@ -48,6 +48,17 @@ export const apiClient = {
   async put<T = any>(endpoint: string, body?: any, options: ApiRequestOptions = {}): Promise<T> {
     return this.request(endpoint, { ...options, method: 'PUT', body });
   },
+  
+  /**
+   * Отправка PATCH запроса
+   * @param endpoint Эндпоинт API
+   * @param body Тело запроса
+   * @param options Дополнительные опции запроса
+   * @returns Promise с результатом запроса
+   */
+  async patch<T = any>(endpoint: string, body?: any, options: ApiRequestOptions = {}): Promise<T> {
+    return this.request(endpoint, { ...options, method: 'PATCH', body });
+  },
 
   /**
    * Отправка DELETE запроса
