@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useOrdersApi } from "@/hooks/orders/useOrdersApi";
 import { OrderStatus, PaymentStatus } from "@/types/order";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ShoppingBag, ArrowRight } from "lucide-react";
@@ -91,7 +91,10 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
                 size="sm" 
                 variant="ghost"
                 className="opacity-0 group-hover:opacity-100 transition-opacity h-8"
-                onClick={() => navigate(`/orders/${order.id}`)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/orders/${order.id}`);
+                }}
               >
                 Детали
                 <ArrowRight className="ml-2 h-3 w-3" />

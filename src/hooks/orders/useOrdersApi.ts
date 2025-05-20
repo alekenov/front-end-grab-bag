@@ -22,8 +22,8 @@ export const useOrdersApi = () => {
           ...(filters.chat_id && { chat_id: filters.chat_id })
         }).toString() : '';
         
-        const endpoint = `orders${queryString ? `?${queryString}` : ''}`;
-        const response = await apiClient.get<{ orders: Order[] }>(endpoint);
+        const endpoint = `orders-api/orders${queryString ? `?${queryString}` : ''}`;
+        const response = await apiClient.get<{ orders: Order[] }>(endpoint, { requiresAuth: true });
         return response.orders || [];
       },
       meta: {
@@ -45,7 +45,7 @@ export const useOrdersApi = () => {
       enabled: !!orderId,
       queryFn: async () => {
         if (!orderId) return null;
-        const response = await apiClient.get<{ order: Order & { items: OrderItem[] } }>(`orders/${orderId}`);
+        const response = await apiClient.get<{ order: Order & { items: OrderItem[] } }>(`orders-api/orders/${orderId}`, { requiresAuth: true });
         return response.order || null;
       },
       meta: {
@@ -63,7 +63,7 @@ export const useOrdersApi = () => {
   // Create a new order
   const createOrder = useMutation({
     mutationFn: async (orderData: Partial<Order>) => {
-      const response = await apiClient.post<{ order: Order }>('orders', orderData);
+      const response = await apiClient.post<{ order: Order }>('orders-api/orders', orderData, { requiresAuth: true });
       return response.order;
     },
     onSuccess: () => {
@@ -85,7 +85,7 @@ export const useOrdersApi = () => {
   // Update an existing order
   const updateOrder = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<Order> }) => {
-      const response = await apiClient.patch<{ order: Order }>(`orders/${id}`, data);
+      const response = await apiClient.patch<{ order: Order }>(`orders-api/orders/${id}`, data, { requiresAuth: true });
       return response.order;
     },
     onSuccess: (_, variables) => {
@@ -108,7 +108,7 @@ export const useOrdersApi = () => {
   // Delete an order
   const deleteOrder = useMutation({
     mutationFn: async (orderId: string) => {
-      return await apiClient.delete(`orders/${orderId}`);
+      return await apiClient.delete(`orders-api/orders/${orderId}`, { requiresAuth: true });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -129,7 +129,7 @@ export const useOrdersApi = () => {
   // Add order items
   const addOrderItem = useMutation({
     mutationFn: async ({ orderId, item }: { orderId: string, item: Partial<OrderItem> }) => {
-      const response = await apiClient.post<{ item: OrderItem }>(`orders/${orderId}/items`, item);
+      const response = await apiClient.post<{ item: OrderItem }>(`orders-api/orders/${orderId}/items`, item, { requiresAuth: true });
       return response.item;
     },
     onSuccess: (_, variables) => {
@@ -151,7 +151,7 @@ export const useOrdersApi = () => {
   // Remove order item
   const removeOrderItem = useMutation({
     mutationFn: async ({ orderId, itemId }: { orderId: string, itemId: string }) => {
-      return await apiClient.delete(`orders/${orderId}/items/${itemId}`);
+      return await apiClient.delete(`orders-api/orders/${orderId}/items/${itemId}`, { requiresAuth: true });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['order', variables.orderId] });
@@ -176,7 +176,7 @@ export const useOrdersApi = () => {
       enabled: !!chatId,
       queryFn: async () => {
         if (!chatId) return [];
-        const response = await apiClient.get<{ orders: Order[] }>(`orders/chat/${chatId}`);
+        const response = await apiClient.get<{ orders: Order[] }>(`orders-api/orders/chat/${chatId}`, { requiresAuth: true });
         return response.orders || [];
       },
       meta: {

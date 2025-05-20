@@ -68,11 +68,11 @@ const router = createBrowserRouter([
         element: <OrdersPage />,
       },
       {
-        path: "orders/:id",
+        path: "orders/:action",
         element: <OrdersPage />,
       },
       {
-        path: "orders/new",
+        path: "orders/:id",
         element: <OrdersPage />,
       },
       {

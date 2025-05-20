@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize the Supabase client for direct database access
@@ -7,7 +8,8 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1N
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Base URL for API requests
-const API_BASE_URL = '/api';
+// Изменяем базовый URL для Edge Functions
+const API_BASE_URL = 'https://xcheceveynzdugmgwrmi.supabase.co/functions/v1';
 
 // API Request Options interface
 export interface ApiRequestOptions {
