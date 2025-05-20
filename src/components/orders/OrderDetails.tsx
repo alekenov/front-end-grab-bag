@@ -16,6 +16,10 @@ import { OrderActions } from "./details/OrderActions";
 import { OrderDetailsLoadingState } from "./details/LoadingState";
 import { OrderNotFoundState } from "./details/NotFoundState";
 
+interface OrderResponse {
+  order: Order;
+}
+
 export function OrderDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -40,7 +44,7 @@ export function OrderDetails() {
       
       setLoading(true);
       try {
-        const response = await apiClient.get(`orders/${id}`);
+        const response = await apiClient.get<OrderResponse>(`orders/${id}`);
         
         if (response && response.order) {
           setOrder(response.order);
@@ -79,7 +83,7 @@ export function OrderDetails() {
       });
       
       // Refresh order data
-      const response = await apiClient.get(`orders/${id}`);
+      const response = await apiClient.get<OrderResponse>(`orders/${id}`);
       if (response && response.order) {
         setOrder(response.order);
       }

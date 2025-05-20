@@ -2,13 +2,20 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize the Supabase client for direct database access
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Base URL for API requests
 const API_BASE_URL = '/api';
+
+// API Request Options interface
+export interface ApiRequestOptions {
+  headers?: HeadersInit;
+  signal?: AbortSignal;
+  cache?: RequestCache;
+}
 
 // Helper to log API request info
 const logRequest = (method: string, endpoint: string, headers: HeadersInit) => {
@@ -36,18 +43,21 @@ const getToken = (): string => {
 
 // Main API client with methods for different HTTP verbs
 export const apiClient = {
-  async get<T>(endpoint: string): Promise<T> {
+  async get<T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
     const url = `${API_BASE_URL}/${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`
+      'Authorization': `Bearer ${getToken()}`,
+      ...(options.headers || {})
     };
     
     logRequest('GET', url, headers);
     
     const response = await fetch(url, { 
       method: 'GET',
-      headers 
+      headers,
+      signal: options.signal,
+      cache: options.cache
     });
     
     logResponse(response.status, response.headers);
@@ -59,11 +69,12 @@ export const apiClient = {
     return await response.json() as T;
   },
   
-  async post<T>(endpoint: string, data: any): Promise<T> {
+  async post<T>(endpoint: string, data: any, options: ApiRequestOptions = {}): Promise<T> {
     const url = `${API_BASE_URL}/${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`
+      'Authorization': `Bearer ${getToken()}`,
+      ...(options.headers || {})
     };
     
     logRequest('POST', url, headers);
@@ -71,7 +82,9 @@ export const apiClient = {
     const response = await fetch(url, {
       method: 'POST',
       headers,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      signal: options.signal,
+      cache: options.cache
     });
     
     logResponse(response.status, response.headers);
@@ -83,11 +96,12 @@ export const apiClient = {
     return await response.json() as T;
   },
   
-  async put<T>(endpoint: string, data: any): Promise<T> {
+  async put<T>(endpoint: string, data: any, options: ApiRequestOptions = {}): Promise<T> {
     const url = `${API_BASE_URL}/${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`
+      'Authorization': `Bearer ${getToken()}`,
+      ...(options.headers || {})
     };
     
     logRequest('PUT', url, headers);
@@ -95,7 +109,9 @@ export const apiClient = {
     const response = await fetch(url, {
       method: 'PUT',
       headers,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      signal: options.signal,
+      cache: options.cache
     });
     
     logResponse(response.status, response.headers);
@@ -107,11 +123,12 @@ export const apiClient = {
     return await response.json() as T;
   },
   
-  async patch<T>(endpoint: string, data: any): Promise<T> {
+  async patch<T>(endpoint: string, data: any, options: ApiRequestOptions = {}): Promise<T> {
     const url = `${API_BASE_URL}/${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`
+      'Authorization': `Bearer ${getToken()}`,
+      ...(options.headers || {})
     };
     
     logRequest('PATCH', url, headers);
@@ -119,7 +136,9 @@ export const apiClient = {
     const response = await fetch(url, {
       method: 'PATCH',
       headers,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      signal: options.signal,
+      cache: options.cache
     });
     
     logResponse(response.status, response.headers);
@@ -131,18 +150,21 @@ export const apiClient = {
     return await response.json() as T;
   },
   
-  async delete<T>(endpoint: string): Promise<T> {
+  async delete<T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
     const url = `${API_BASE_URL}/${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`
+      'Authorization': `Bearer ${getToken()}`,
+      ...(options.headers || {})
     };
     
     logRequest('DELETE', url, headers);
     
     const response = await fetch(url, {
       method: 'DELETE',
-      headers
+      headers,
+      signal: options.signal,
+      cache: options.cache
     });
     
     logResponse(response.status, response.headers);

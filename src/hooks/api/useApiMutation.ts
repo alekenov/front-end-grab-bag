@@ -8,8 +8,8 @@ import { useToast } from "@/hooks/use-toast";
  */
 interface UseApiMutationParams<TData = unknown, TVariables = unknown> {
   endpoint: string;
-  method?: 'POST' | 'PUT' | 'DELETE';
-  options?: Omit<ApiRequestOptions, 'method'>;
+  method?: 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  options?: ApiRequestOptions;
   mutationOptions?: Omit<UseMutationOptions<TData, Error, TVariables>, 'mutationFn'>;
   successMessage?: string;
   errorMessage?: string;
@@ -36,8 +36,14 @@ export function useApiMutation<TData = unknown, TVariables = unknown>({
             return await apiClient.post<TData>(endpoint, variables, options);
           case 'PUT':
             return await apiClient.put<TData>(endpoint, variables, options);
+          case 'PATCH':
+            return await apiClient.patch<TData>(endpoint, variables, options);
           case 'DELETE':
-            return await apiClient.delete<TData>(`${endpoint}${variables ? `/${variables}` : ''}`, options);
+            // For DELETE, we might want to include the ID as part of the URL
+            if (variables) {
+              return await apiClient.delete<TData>(`${endpoint}/${variables}`, options);
+            }
+            return await apiClient.delete<TData>(endpoint, options);
           default:
             return await apiClient.post<TData>(endpoint, variables, options);
         }

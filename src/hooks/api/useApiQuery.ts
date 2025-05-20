@@ -13,7 +13,7 @@ const DEBUG = true;
 interface UseApiQueryParams<TData = unknown> {
   endpoint: string;
   enabled?: boolean;
-  options?: Omit<ApiRequestOptions, 'method'>;
+  options?: ApiRequestOptions;
   queryOptions?: Omit<UseQueryOptions<TData, Error, TData>, 'queryKey' | 'queryFn'>;
   queryKey?: string[];
   errorMessage?: string;
