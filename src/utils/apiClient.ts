@@ -15,6 +15,8 @@ export interface ApiRequestOptions {
   headers?: HeadersInit;
   signal?: AbortSignal;
   cache?: RequestCache;
+  requiresAuth?: boolean;  // Add this property
+  fallbackData?: any;      // Add this for fallback data
 }
 
 // Helper to log API request info
@@ -47,7 +49,7 @@ export const apiClient = {
     const url = `${API_BASE_URL}/${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
+      'Authorization': options.requiresAuth !== false ? `Bearer ${getToken()}` : '',
       ...(options.headers || {})
     };
     
@@ -66,6 +68,11 @@ export const apiClient = {
       throw new Error(`API Error: ${response.status}`);
     }
     
+    // Handle fallback data if provided
+    if (options.fallbackData !== undefined && !response.ok) {
+      return options.fallbackData;
+    }
+    
     return await response.json() as T;
   },
   
@@ -73,7 +80,7 @@ export const apiClient = {
     const url = `${API_BASE_URL}/${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
+      'Authorization': options.requiresAuth !== false ? `Bearer ${getToken()}` : '',
       ...(options.headers || {})
     };
     
@@ -93,6 +100,11 @@ export const apiClient = {
       throw new Error(`API Error: ${response.status}`);
     }
     
+    // Handle fallback data if provided
+    if (options.fallbackData !== undefined && !response.ok) {
+      return options.fallbackData;
+    }
+    
     return await response.json() as T;
   },
   
@@ -100,7 +112,7 @@ export const apiClient = {
     const url = `${API_BASE_URL}/${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
+      'Authorization': options.requiresAuth !== false ? `Bearer ${getToken()}` : '',
       ...(options.headers || {})
     };
     
@@ -120,6 +132,11 @@ export const apiClient = {
       throw new Error(`API Error: ${response.status}`);
     }
     
+    // Handle fallback data if provided
+    if (options.fallbackData !== undefined && !response.ok) {
+      return options.fallbackData;
+    }
+    
     return await response.json() as T;
   },
   
@@ -127,7 +144,7 @@ export const apiClient = {
     const url = `${API_BASE_URL}/${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
+      'Authorization': options.requiresAuth !== false ? `Bearer ${getToken()}` : '',
       ...(options.headers || {})
     };
     
@@ -147,6 +164,11 @@ export const apiClient = {
       throw new Error(`API Error: ${response.status}`);
     }
     
+    // Handle fallback data if provided
+    if (options.fallbackData !== undefined && !response.ok) {
+      return options.fallbackData;
+    }
+    
     return await response.json() as T;
   },
   
@@ -154,7 +176,7 @@ export const apiClient = {
     const url = `${API_BASE_URL}/${endpoint}`;
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getToken()}`,
+      'Authorization': options.requiresAuth !== false ? `Bearer ${getToken()}` : '',
       ...(options.headers || {})
     };
     
@@ -171,6 +193,11 @@ export const apiClient = {
     
     if (!response.ok) {
       throw new Error(`API Error: ${response.status}`);
+    }
+    
+    // Handle fallback data if provided
+    if (options.fallbackData !== undefined && !response.ok) {
+      return options.fallbackData;
     }
     
     return await response.json() as T;
