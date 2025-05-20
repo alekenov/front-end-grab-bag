@@ -1,8 +1,13 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "@/utils/apiClient";
 import { useToast } from "@/hooks/use-toast";
 import { Order, OrderItem, OrdersFilter } from "@/types/order";
+import { 
+  mockOrders, 
+  getFilteredMockOrders, 
+  getMockOrderById, 
+  getMockOrdersByChatId 
+} from "@/data/mockOrders";
 
 export const useOrdersApi = () => {
   const queryClient = useQueryClient();
@@ -13,27 +18,8 @@ export const useOrdersApi = () => {
     return useQuery({
       queryKey: ['orders', filters],
       queryFn: async () => {
-        const queryString = filters ? new URLSearchParams({
-          ...(filters.status && { status: filters.status }),
-          ...(filters.dateFrom && { dateFrom: filters.dateFrom.toISOString() }),
-          ...(filters.dateTo && { dateTo: filters.dateTo.toISOString() }),
-          ...(filters.search && { search: filters.search }),
-          ...(filters.customer_id && { customer_id: filters.customer_id }),
-          ...(filters.chat_id && { chat_id: filters.chat_id })
-        }).toString() : '';
-        
-        const endpoint = `orders-api/orders${queryString ? `?${queryString}` : ''}`;
-        const response = await apiClient.get<{ orders: Order[] }>(endpoint, { requiresAuth: true });
-        return response.orders || [];
-      },
-      meta: {
-        onError: (error: Error) => {
-          toast({
-            variant: "destructive",
-            title: "Ошибка загрузки заказов",
-            description: error.message,
-          });
-        }
+        // Используем моковые данные вместо API
+        return getFilteredMockOrders(filters);
       }
     });
   };
@@ -45,17 +31,8 @@ export const useOrdersApi = () => {
       enabled: !!orderId,
       queryFn: async () => {
         if (!orderId) return null;
-        const response = await apiClient.get<{ order: Order & { items: OrderItem[] } }>(`orders-api/orders/${orderId}`, { requiresAuth: true });
-        return response.order || null;
-      },
-      meta: {
-        onError: (error: Error) => {
-          toast({
-            variant: "destructive",
-            title: "Ошибка загрузки заказа",
-            description: error.message,
-          });
-        }
+        // Используем моковые данные вместо API
+        return getMockOrderById(orderId);
       }
     });
   };
@@ -63,8 +40,28 @@ export const useOrdersApi = () => {
   // Create a new order
   const createOrder = useMutation({
     mutationFn: async (orderData: Partial<Order>) => {
-      const response = await apiClient.post<{ order: Order }>('orders-api/orders', orderData, { requiresAuth: true });
-      return response.order;
+      // Имитация создания заказа
+      const newOrder: Order = {
+        id: `ord-${Math.floor(Math.random() * 10000)}`,
+        customer_id: orderData.customer_id || null,
+        customer_name: orderData.customer_name,
+        customer_phone: orderData.customer_phone,
+        chat_id: orderData.chat_id || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: orderData.status || 'new',
+        total_amount: orderData.total_amount || 0,
+        payment_status: orderData.payment_status || 'pending',
+        delivery_address: orderData.delivery_address || null,
+        delivery_date: orderData.delivery_date || null,
+        comment: orderData.comment || null,
+        items: []
+      };
+      
+      // Добавляем новый заказ в моковый массив
+      mockOrders.push(newOrder);
+      
+      return newOrder;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -85,8 +82,21 @@ export const useOrdersApi = () => {
   // Update an existing order
   const updateOrder = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<Order> }) => {
-      const response = await apiClient.patch<{ order: Order }>(`orders-api/orders/${id}`, data, { requiresAuth: true });
-      return response.order;
+      // Находим заказ в моковых данных
+      const orderIndex = mockOrders.findIndex(order => order.id === id);
+      if (orderIndex === -1) {
+        throw new Error("Заказ не найден");
+      }
+      
+      // Обновляем заказ
+      const updatedOrder = {
+        ...mockOrders[orderIndex],
+        ...data,
+        updated_at: new Date().toISOString()
+      };
+      
+      mockOrders[orderIndex] = updatedOrder;
+      return updatedOrder;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -108,7 +118,15 @@ export const useOrdersApi = () => {
   // Delete an order
   const deleteOrder = useMutation({
     mutationFn: async (orderId: string) => {
-      return await apiClient.delete(`orders-api/orders/${orderId}`, { requiresAuth: true });
+      // Находим индекс заказа в моковых данных
+      const orderIndex = mockOrders.findIndex(order => order.id === orderId);
+      if (orderIndex === -1) {
+        throw new Error("Заказ не найден");
+      }
+      
+      // Удаляем заказ из массива
+      mockOrders.splice(orderIndex, 1);
+      return { success: true };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -126,11 +144,39 @@ export const useOrdersApi = () => {
     }
   });
 
-  // Add order items
+  // Add order item
   const addOrderItem = useMutation({
     mutationFn: async ({ orderId, item }: { orderId: string, item: Partial<OrderItem> }) => {
-      const response = await apiClient.post<{ item: OrderItem }>(`orders-api/orders/${orderId}/items`, item, { requiresAuth: true });
-      return response.item;
+      // Находим заказ в моковых данных
+      const order = mockOrders.find(o => o.id === orderId);
+      if (!order) {
+        throw new Error("Заказ не найден");
+      }
+      
+      // Создаем новый элемент заказа
+      const newItem: OrderItem = {
+        id: `item-${Math.floor(Math.random() * 10000)}`,
+        order_id: orderId,
+        product_id: item.product_id || 0,
+        product_name: item.product_name,
+        product_image: item.product_image,
+        quantity: item.quantity || 1,
+        price: item.price || 0,
+        created_at: new Date().toISOString()
+      };
+      
+      // Если у заказа нет массива items, создаем его
+      if (!order.items) {
+        order.items = [];
+      }
+      
+      // Добавляем элемент к заказу
+      order.items.push(newItem);
+      
+      // Обновляем общую сумму заказа
+      order.total_amount = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      return newItem;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['order', variables.orderId] });
@@ -151,7 +197,25 @@ export const useOrdersApi = () => {
   // Remove order item
   const removeOrderItem = useMutation({
     mutationFn: async ({ orderId, itemId }: { orderId: string, itemId: string }) => {
-      return await apiClient.delete(`orders-api/orders/${orderId}/items/${itemId}`, { requiresAuth: true });
+      // Находим заказ в моковых данных
+      const order = mockOrders.find(o => o.id === orderId);
+      if (!order || !order.items) {
+        throw new Error("Заказ или элементы заказа не найдены");
+      }
+      
+      // Находим индекс элемента для удаления
+      const itemIndex = order.items.findIndex(item => item.id === itemId);
+      if (itemIndex === -1) {
+        throw new Error("Элемент заказа не найден");
+      }
+      
+      // Удаляем элемент из заказа
+      order.items.splice(itemIndex, 1);
+      
+      // Обновляем общую сумму заказа
+      order.total_amount = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      
+      return { success: true };
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['order', variables.orderId] });
@@ -176,13 +240,8 @@ export const useOrdersApi = () => {
       enabled: !!chatId,
       queryFn: async () => {
         if (!chatId) return [];
-        const response = await apiClient.get<{ orders: Order[] }>(`orders-api/orders/chat/${chatId}`, { requiresAuth: true });
-        return response.orders || [];
-      },
-      meta: {
-        onError: (error: Error) => {
-          console.error("Ошибка загрузки заказов для чата:", error);
-        }
+        // Используем моковые данные вместо API
+        return getMockOrdersByChatId(chatId);
       }
     });
   };

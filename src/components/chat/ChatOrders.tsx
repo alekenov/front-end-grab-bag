@@ -16,7 +16,7 @@ interface ChatOrdersProps {
 export function ChatOrders({ chatId }: ChatOrdersProps) {
   const navigate = useNavigate();
   const { getOrdersByChatId } = useOrdersApi();
-  const { data: orders = [], isLoading } = getOrdersByChatId(chatId);
+  const { data: orders = [], isLoading } = getOrdersByChatId(chatId || "");
   
   const sortedOrders = useMemo(() => {
     return [...orders].sort(
@@ -70,7 +70,11 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
       </div>
       
       {sortedOrders.map(order => (
-        <Card key={order.id} className="relative overflow-hidden group">
+        <Card 
+          key={order.id} 
+          className="relative overflow-hidden group cursor-pointer"
+          onClick={() => navigate(`/orders/${order.id}`)}
+        >
           <CardContent className="p-4">
             <div className="flex justify-between items-start mb-2">
               <div>

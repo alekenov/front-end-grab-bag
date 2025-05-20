@@ -9,12 +9,14 @@ import GuidePage from "@/pages/GuidePage";
 import ApiPage from "@/pages/ApiPage";
 import OrdersPage from "@/pages/OrdersPage";
 import ChatsPage from "@/pages/ChatsPage";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 // Wrapper component to provide props to AppLayout
 const AppLayoutWrapper = () => {
-  // Determine the active page based on the current path
-  const path = window.location.pathname;
+  // Используем хук useLocation для получения текущего пути
+  const location = useLocation();
+  const path = location.pathname;
+  
   let activePage = "chats";
   let title = "Чаты";
   

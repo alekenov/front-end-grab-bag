@@ -4,8 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Order } from "@/types/order";
-import { apiClient } from "@/utils/apiClient";
+import { useOrdersApi } from "@/hooks/orders/useOrdersApi";
 
 // Import all the smaller components
 import { OrderStatusBadge, PaymentStatusBadge } from "./details/OrderStatusBadges";
@@ -16,113 +15,65 @@ import { OrderActions } from "./details/OrderActions";
 import { OrderDetailsLoadingState } from "./details/LoadingState";
 import { OrderNotFoundState } from "./details/NotFoundState";
 
-interface OrderResponse {
-  order: Order;
-}
-
 export function OrderDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { getOrderById, updateOrder, deleteOrder } = useOrdersApi();
   
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: order, isLoading } = getOrderById(id || null);
   const [editing, setEditing] = useState(false);
   
   const [formData, setFormData] = useState({
-    status: 'new' as Order['status'],
-    payment_status: 'pending' as Order['payment_status'],
+    status: 'new' as const,
+    payment_status: 'pending' as const,
     delivery_address: '',
     delivery_date: '',
     comment: ''
   });
   
-  // Fetch order data when the component mounts or ID changes
+  // Обновляем formData когда получили данные заказа
   useEffect(() => {
-    const fetchOrder = async () => {
-      if (!id) return;
-      
-      setLoading(true);
-      try {
-        const response = await apiClient.get<OrderResponse>(`orders/${id}`);
-        
-        if (response && response.order) {
-          setOrder(response.order);
-          setFormData({
-            status: response.order.status,
-            payment_status: response.order.payment_status,
-            delivery_address: response.order.delivery_address || '',
-            delivery_date: response.order.delivery_date || '',
-            comment: response.order.comment || ''
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching order:", error);
-        toast({
-          title: "Ошибка",
-          description: "Не удалось загрузить данные заказа",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchOrder();
-  }, [id, toast]);
+    if (order) {
+      setFormData({
+        status: order.status,
+        payment_status: order.payment_status,
+        delivery_address: order.delivery_address || '',
+        delivery_date: order.delivery_date || '',
+        comment: order.comment || ''
+      });
+    }
+  }, [order]);
   
   const handleUpdateOrder = async () => {
     if (!order || !id) return;
     
-    try {
-      await apiClient.patch(`orders/${id}`, formData);
-      
-      toast({
-        title: "Заказ обновлен",
-        description: "Изменения успешно сохранены",
-      });
-      
-      // Refresh order data
-      const response = await apiClient.get<OrderResponse>(`orders/${id}`);
-      if (response && response.order) {
-        setOrder(response.order);
+    updateOrder.mutate(
+      { 
+        id, 
+        data: formData 
+      },
+      {
+        onSuccess: () => {
+          setEditing(false);
+        }
       }
-      
-      setEditing(false);
-    } catch (error) {
-      console.error("Error updating order:", error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось обновить заказ",
-        variant: "destructive",
-      });
-    }
+    );
   };
   
   const handleDeleteOrder = async () => {
     if (!order || !id) return;
     
     if (window.confirm("Вы уверены, что хотите удалить этот заказ?")) {
-      try {
-        await apiClient.delete(`orders/${id}`);
-        
-        toast({
-          title: "Заказ удален",
-        });
-        
-        navigate("/orders");
-      } catch (error) {
-        console.error("Error deleting order:", error);
-        toast({
-          title: "Ошибка",
-          description: "Не удалось удалить заказ",
-          variant: "destructive",
-        });
-      }
+      deleteOrder.mutate(id, {
+        onSuccess: () => {
+          navigate("/orders");
+        }
+      });
     }
   };
   
-  if (loading) {
+  if (isLoading) {
     return <OrderDetailsLoadingState />;
   }
   
