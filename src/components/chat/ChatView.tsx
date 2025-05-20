@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useChatDetails } from "./hooks/useChatDetails";
 import { ChatOrders } from "./ChatOrders";
 import { CreateOrderFromChat } from "./CreateOrderFromChat";
-import { useProducts } from "@/hooks/products/useProductsApi";
+import { useProductsApi } from "@/hooks/products/useProductsApi";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ChatViewProps {
@@ -23,7 +23,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const chatApi = useChatApi();
-  const { data: products = [] } = useProducts();
+  const { products = [] } = useProductsApi();
   
   // Нормализуем ID чата - если это число, считаем его тестовым демо-ID
   const normalizedChatId = currentChatId ? 

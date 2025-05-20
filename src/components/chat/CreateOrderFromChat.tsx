@@ -16,6 +16,7 @@ import { useOrdersApi } from "@/hooks/orders/useOrdersApi";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/utils/apiClient";
 
 interface CreateOrderFromChatProps {
   chatId: string;
@@ -47,7 +48,7 @@ export function CreateOrderFromChat({ chatId, products, onOrderCreated }: Create
     });
   };
   
-  const updateQuantity = (productId: number, delta: number) => {
+  const updateQuantity = (productId: string, delta: number) => {
     setSelectedProducts(prev => 
       prev.map(item => 
         item.product.id === productId 
@@ -83,7 +84,7 @@ export function CreateOrderFromChat({ chatId, products, onOrderCreated }: Create
       // Add items to the order
       for (const item of selectedProducts) {
         await apiClient.post(`orders/${order.id}/items`, {
-          product_id: item.product.id,
+          product_id: Number(item.product.id),
           quantity: item.quantity,
           price: item.product.price
         });
@@ -146,9 +147,9 @@ export function CreateOrderFromChat({ chatId, products, onOrderCreated }: Create
                   >
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center">
-                        {product.image_url && (
+                        {product.imageUrl && (
                           <img 
-                            src={product.image_url} 
+                            src={product.imageUrl} 
                             alt={product.name} 
                             className="w-10 h-10 object-cover rounded mr-2"
                           />

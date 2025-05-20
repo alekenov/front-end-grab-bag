@@ -22,9 +22,10 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import { useProducts } from "@/hooks/products/useProductsApi";
+import { useProducts } from "@/hooks/products/useProducts";
 import { Product } from "@/types/product";
 import { OrderStatus, PaymentStatus } from "@/types/order";
+import { apiClient } from "@/utils/apiClient";
 
 // Helper hook to get customer info
 const useCustomers = () => {
@@ -53,7 +54,7 @@ export function CreateOrderForm() {
   });
   
   const [selectedProducts, setSelectedProducts] = useState<Array<{ product: Product, quantity: number }>>([]);
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   
   const [totalAmount, setTotalAmount] = useState(0);
@@ -91,7 +92,7 @@ export function CreateOrderForm() {
     setQuantity(1);
   };
   
-  const handleRemoveProduct = (productId: number) => {
+  const handleRemoveProduct = (productId: string) => {
     setSelectedProducts(selectedProducts.filter(item => item.product.id !== productId));
   };
   
@@ -112,7 +113,7 @@ export function CreateOrderForm() {
       if (newOrder && newOrder.id) {
         const orderItems = selectedProducts.map(item => ({
           order_id: newOrder.id,
-          product_id: item.product.id,
+          product_id: Number(item.product.id),
           price: item.product.price,
           quantity: item.quantity
         }));
@@ -246,7 +247,7 @@ export function CreateOrderForm() {
             <div className="flex-grow">
               <Select
                 value={selectedProductId?.toString() || ""}
-                onValueChange={(value) => setSelectedProductId(value ? parseInt(value) : null)}
+                onValueChange={(value) => setSelectedProductId(value ? value : null)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите товар" />
@@ -297,9 +298,9 @@ export function CreateOrderForm() {
                   <TableRow key={product.id}>
                     <TableCell>
                       <div className="flex items-center">
-                        {product.image_url && (
+                        {product.imageUrl && (
                           <img 
-                            src={product.image_url}
+                            src={product.imageUrl}
                             alt={product.name} 
                             className="h-10 w-10 object-cover rounded mr-3"
                           />
