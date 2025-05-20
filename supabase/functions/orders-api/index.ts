@@ -124,6 +124,24 @@ serve(async (req) => {
       });
     }
 
+    // GET /orders/chat/:chatId - Get orders by chat ID
+    if (req.method === "GET" && path.match(/^\/orders\/chat\/[a-zA-Z0-9-]+$/)) {
+      const chatId = path.split("/")[3];
+      
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("chat_id", chatId)
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      
+      return new Response(JSON.stringify({ orders: data }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // PATCH /orders/:id - Update an order
     if (req.method === "PATCH" && path.match(/^\/orders\/[a-zA-Z0-9-]+$/)) {
       const id = path.split("/")[2];

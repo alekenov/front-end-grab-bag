@@ -31,7 +31,7 @@ const AppLayoutWrapper = () => {
     activePage = "api";
     title = "API";
   } else if (path.startsWith("/orders")) {
-    activePage = "products";
+    activePage = "orders";
     title = "Заказы";
   } else if (path === "/" || path.startsWith("/chats")) {
     activePage = "chats";
