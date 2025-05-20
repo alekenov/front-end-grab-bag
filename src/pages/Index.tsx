@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ChatsPage from "./ChatsPage";
-import { MessageSquare, Database, LineChart, HelpCircle, ShoppingBag } from "lucide-react";
+import { MessageSquare, Database, LineChart, HelpCircle, ShoppingBag, Package } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -52,7 +52,7 @@ export default function Index() {
               variant="ghost"
               className="px-4 py-2 text-gray-600"
             >
-              <Database className="mr-2 h-4 w-4" />
+              <ShoppingBag className="mr-2 h-4 w-4" />
               Товары
             </Button>
           </Link>
@@ -61,7 +61,7 @@ export default function Index() {
               variant="ghost"
               className="px-4 py-2 text-gray-600"
             >
-              <ShoppingBag className="mr-2 h-4 w-4" />
+              <Package className="mr-2 h-4 w-4" />
               Заказы
             </Button>
           </Link>
@@ -115,7 +115,7 @@ function MobileTabBar() {
         to="/products"
         className="flex flex-1 flex-col items-center justify-center h-full text-gray-500"
       >
-        <Database className="h-5 w-5" />
+        <ShoppingBag className="h-5 w-5" />
         <span className="text-xs mt-1">Товары</span>
       </Link>
       
@@ -123,7 +123,7 @@ function MobileTabBar() {
         to="/orders"
         className="flex flex-1 flex-col items-center justify-center h-full text-gray-500"
       >
-        <ShoppingBag className="h-5 w-5" />
+        <Package className="h-5 w-5" />
         <span className="text-xs mt-1">Заказы</span>
       </Link>
       
