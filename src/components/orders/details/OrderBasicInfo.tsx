@@ -1,0 +1,112 @@
+
+import { format, parseISO } from "date-fns";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User, MessageSquare } from "lucide-react";
+import { Order, OrderStatus, PaymentStatus } from "@/types/order";
+import { useNavigate } from "react-router-dom";
+
+interface OrderBasicInfoProps {
+  order: Order;
+  editing: boolean;
+  formData: {
+    status: OrderStatus;
+    payment_status: PaymentStatus;
+  };
+  setFormData: (data: any) => void;
+}
+
+export function OrderBasicInfo({ order, editing, formData, setFormData }: OrderBasicInfoProps) {
+  const navigate = useNavigate();
+  
+  if (editing) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <h3 className="font-medium mb-4">Основная информация</h3>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Статус заказа</label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => setFormData({ ...formData, status: value as OrderStatus })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new">Новый</SelectItem>
+                  <SelectItem value="processing">В обработке</SelectItem>
+                  <SelectItem value="completed">Выполнен</SelectItem>
+                  <SelectItem value="cancelled">Отменен</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Статус оплаты</label>
+              <Select
+                value={formData.payment_status}
+                onValueChange={(value) => setFormData({ ...formData, payment_status: value as PaymentStatus })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Ожидает оплаты</SelectItem>
+                  <SelectItem value="paid">Оплачен</SelectItem>
+                  <SelectItem value="cancelled">Отменен</SelectItem>
+                  <SelectItem value="refunded">Возврат средств</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <h3 className="font-medium mb-4">Основная информация</h3>
+        
+        <div className="space-y-4">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Дата создания:</span>
+            <span>{format(parseISO(order.created_at), 'dd.MM.yyyy HH:mm')}</span>
+          </div>
+          
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Сумма заказа:</span>
+            <span className="font-semibold">{order.total_amount.toLocaleString()} ₸</span>
+          </div>
+          
+          {order.customer_name && (
+            <div className="flex items-start text-sm">
+              <User className="h-4 w-4 mr-2 mt-0.5 text-gray-500" />
+              <div>
+                <div>{order.customer_name}</div>
+                {order.customer_phone && <div className="text-gray-500">{order.customer_phone}</div>}
+              </div>
+            </div>
+          )}
+          
+          {order.chat_id && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="w-full"
+              onClick={() => navigate(`/chats?id=${order.chat_id}`)}
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Перейти к чату
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
