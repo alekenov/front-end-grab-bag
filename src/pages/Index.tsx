@@ -1,11 +1,11 @@
 
 import { useState } from "react";
-import { ChatsPage } from "./ChatsPage";
+import ChatsPage from "./ChatsPage";
 import { MessageSquare, Database, LineChart, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-export type TabType = "chats" | "products" | "analytics" | "guide";
+export type TabType = "chats" | "products" | "analytics" | "guide" | "chat" | "datasources" | "examples";
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState<TabType>("chats");
