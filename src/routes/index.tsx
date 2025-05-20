@@ -69,8 +69,9 @@ const router = createBrowserRouter([
         path: "orders",
         element: <OrdersPage />,
       },
+      // Порядок маршрутов важен! Конкретные пути должны идти перед параметризованными
       {
-        path: "orders/:action",
+        path: "orders/new",
         element: <OrdersPage />,
       },
       {

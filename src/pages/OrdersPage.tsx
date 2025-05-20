@@ -5,10 +5,15 @@ import { OrderDetails } from "@/components/orders/OrderDetails";
 import { CreateOrderForm } from "@/components/orders/CreateOrderForm";
 
 export default function OrdersPage() {
-  const { id, action } = useParams<{ id: string, action: string }>();
+  // Получаем параметры из URL
+  const params = useParams();
+  const id = params.id;
+  
+  // Проверяем точный путь для действия "new"
+  const isNewOrder = window.location.pathname.endsWith("/orders/new");
   
   // Show create form for /orders/new
-  if (action === 'new') {
+  if (isNewOrder) {
     return (
       <div className="container py-6">
         <CreateOrderForm />

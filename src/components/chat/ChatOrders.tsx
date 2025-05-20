@@ -1,7 +1,7 @@
 
 import { useMemo } from "react";
 import { useOrdersApi } from "@/hooks/orders/useOrdersApi";
-import { OrderStatus, PaymentStatus } from "@/types/order";
+import { OrderStatus } from "@/types/order";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,11 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
     }
   };
 
+  const goToOrderDetails = (orderId: string) => {
+    console.log("Navigating to order details:", orderId);
+    navigate(`/orders/${orderId}`);
+  };
+
   if (isLoading) {
     return (
       <div className="text-center p-4">
@@ -73,7 +78,7 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
         <Card 
           key={order.id} 
           className="relative overflow-hidden group cursor-pointer"
-          onClick={() => navigate(`/orders/${order.id}`)}
+          onClick={() => goToOrderDetails(order.id)}
         >
           <CardContent className="p-4">
             <div className="flex justify-between items-start mb-2">
@@ -97,7 +102,7 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
                 className="opacity-0 group-hover:opacity-100 transition-opacity h-8"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/orders/${order.id}`);
+                  goToOrderDetails(order.id);
                 }}
               >
                 Детали

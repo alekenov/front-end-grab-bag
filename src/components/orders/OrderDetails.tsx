@@ -22,6 +22,9 @@ export function OrderDetails() {
   const { toast } = useToast();
   const { getOrderById, updateOrder, deleteOrder } = useOrdersApi();
   
+  // Добавляем явный console.log для отладки
+  console.log("OrderDetails component rendered with ID:", id);
+  
   const { data: order, isLoading } = getOrderById(id || null);
   const [editing, setEditing] = useState(false);
   
@@ -42,6 +45,7 @@ export function OrderDetails() {
   // Обновляем formData когда получили данные заказа
   useEffect(() => {
     if (order) {
+      console.log("Order data received:", order);
       setFormData({
         status: order.status,
         payment_status: order.payment_status,
