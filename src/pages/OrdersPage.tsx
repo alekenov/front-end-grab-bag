@@ -1,5 +1,5 @@
 
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { OrdersList } from "@/components/orders/OrdersList";
 import { OrderDetails } from "@/components/orders/OrderDetails";
 import { CreateOrderForm } from "@/components/orders/CreateOrderForm";
@@ -7,13 +7,19 @@ import { CreateOrderForm } from "@/components/orders/CreateOrderForm";
 export default function OrdersPage() {
   // Получаем параметры из URL
   const params = useParams();
+  const location = useLocation();
   const id = params.id;
   
+  // Добавим логирование для отладки
+  console.log("OrdersPage rendered with path:", location.pathname);
+  console.log("OrdersPage params.id:", id);
+  
   // Проверяем точный путь для действия "new"
-  const isNewOrder = window.location.pathname.endsWith("/orders/new");
+  const isNewOrder = location.pathname.endsWith("/orders/new");
   
   // Show create form for /orders/new
   if (isNewOrder) {
+    console.log("Rendering CreateOrderForm");
     return (
       <div className="container py-6">
         <CreateOrderForm />
@@ -23,6 +29,7 @@ export default function OrdersPage() {
   
   // Show order details for /orders/:id
   if (id) {
+    console.log("Rendering OrderDetails for id:", id);
     return (
       <div className="container py-6">
         <OrderDetails />
@@ -31,6 +38,7 @@ export default function OrdersPage() {
   }
   
   // Show orders list for /orders
+  console.log("Rendering OrdersList");
   return (
     <div className="container py-6">
       <OrdersList />

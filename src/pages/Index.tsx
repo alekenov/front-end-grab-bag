@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ChatsPage from "./ChatsPage";
-import { MessageSquare, Database, LineChart, HelpCircle, ShoppingBag, Package } from "lucide-react";
+import { MessageSquare, LineChart, HelpCircle, ShoppingBag, Package } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 

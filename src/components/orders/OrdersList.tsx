@@ -69,6 +69,9 @@ export function OrdersList() {
   const viewOrderDetails = (orderId: string) => {
     navigate(`/orders/${orderId}`);
   };
+  
+  // Добавим логирование для отладки
+  console.log("Orders data:", orders);
 
   return (
     <div className="space-y-6">
@@ -88,7 +91,7 @@ export function OrdersList() {
               <SelectValue placeholder="Все статусы" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Все статусы</SelectItem>
+              <SelectItem value="all">Все статусы</SelectItem>
               <SelectItem value="new">Новый</SelectItem>
               <SelectItem value="processing">В обработке</SelectItem>
               <SelectItem value="completed">Выполнен</SelectItem>

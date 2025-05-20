@@ -39,6 +39,9 @@ const AppLayoutWrapper = () => {
     activePage = "chats";
     title = "Чаты";
   }
+
+  console.log("Current route path:", path);
+  console.log("Active page set to:", activePage);
   
   return (
     <AppLayout title={title} activePage={activePage as any}>
@@ -65,17 +68,18 @@ const router = createBrowserRouter([
         path: "products",
         element: <ProductsPage />,
       },
-      {
-        path: "orders",
-        element: <OrdersPage />,
-      },
-      // Порядок маршрутов важен! Конкретные пути должны идти перед параметризованными
+      // Важно: порядок маршрутов имеет значение!
+      // Сначала идут конкретные пути, потом параметризованные
       {
         path: "orders/new",
         element: <OrdersPage />,
       },
       {
         path: "orders/:id",
+        element: <OrdersPage />,
+      },
+      {
+        path: "orders",
         element: <OrdersPage />,
       },
       {

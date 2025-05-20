@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Order, OrderItem, OrdersFilter } from "@/types/order";
@@ -19,6 +18,7 @@ export const useOrdersApi = () => {
       queryKey: ['orders', filters],
       queryFn: async () => {
         // Используем моковые данные вместо API
+        console.log("Getting filtered orders with filters:", filters);
         return getFilteredMockOrders(filters);
       }
     });
@@ -28,11 +28,15 @@ export const useOrdersApi = () => {
   const getOrderById = (orderId: string | null) => {
     return useQuery({
       queryKey: ['order', orderId],
-      enabled: !!orderId,
+      enabled: !!orderId && orderId !== "",
       queryFn: async () => {
-        if (!orderId) return null;
+        if (!orderId || orderId === "") return null;
+        
         // Используем моковые данные вместо API
-        return getMockOrderById(orderId);
+        console.log("Fetching order with ID:", orderId);
+        const order = getMockOrderById(orderId);
+        console.log("Order found:", order);
+        return order;
       }
     });
   };

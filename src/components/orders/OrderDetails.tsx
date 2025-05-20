@@ -25,7 +25,7 @@ export function OrderDetails() {
   // Добавляем явный console.log для отладки
   console.log("OrderDetails component rendered with ID:", id);
   
-  const { data: order, isLoading } = getOrderById(id || null);
+  const { data: order, isLoading } = getOrderById(id || "");
   const [editing, setEditing] = useState(false);
   
   const [formData, setFormData] = useState<{
@@ -47,8 +47,8 @@ export function OrderDetails() {
     if (order) {
       console.log("Order data received:", order);
       setFormData({
-        status: order.status,
-        payment_status: order.payment_status,
+        status: order.status as OrderStatus,
+        payment_status: order.payment_status as PaymentStatus,
         delivery_address: order.delivery_address || '',
         delivery_date: order.delivery_date || '',
         comment: order.comment || ''
