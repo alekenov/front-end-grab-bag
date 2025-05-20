@@ -14,6 +14,7 @@ import { OrderItemsTable } from "./details/OrderItemsTable";
 import { OrderActions } from "./details/OrderActions";
 import { OrderDetailsLoadingState } from "./details/LoadingState";
 import { OrderNotFoundState } from "./details/NotFoundState";
+import { OrderStatus, PaymentStatus } from "@/types/order";
 
 export function OrderDetails() {
   const { id } = useParams<{ id: string }>();
@@ -24,9 +25,15 @@ export function OrderDetails() {
   const { data: order, isLoading } = getOrderById(id || null);
   const [editing, setEditing] = useState(false);
   
-  const [formData, setFormData] = useState({
-    status: 'new' as const,
-    payment_status: 'pending' as const,
+  const [formData, setFormData] = useState<{
+    status: OrderStatus;
+    payment_status: PaymentStatus;
+    delivery_address: string;
+    delivery_date: string;
+    comment: string;
+  }>({
+    status: 'new',
+    payment_status: 'pending',
     delivery_address: '',
     delivery_date: '',
     comment: ''
