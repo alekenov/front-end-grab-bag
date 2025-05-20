@@ -1,14 +1,16 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ChatsPage from "./ChatsPage";
-import { MessageSquare, Database, LineChart, HelpCircle } from "lucide-react";
+import { MessageSquare, Database, LineChart, HelpCircle, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-export type TabType = "chats" | "products" | "analytics" | "guide" | "chat" | "datasources" | "examples";
+export type TabType = "chats" | "products" | "analytics" | "guide" | "chat" | "datasources" | "examples" | "orders";
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState<TabType>("chats");
+  const navigate = useNavigate();
 
   // Основное содержание страницы
   const renderContent = () => {
@@ -16,11 +18,17 @@ export default function Index() {
       case "chats":
         return <ChatsPage />;
       case "products":
-        return <div className="p-4">Перенаправление на страницу товаров...</div>;
+        navigate("/products");
+        return null;
       case "analytics":
-        return <div className="p-4">Перенаправление на страницу аналитики...</div>;
+        navigate("/analytics");
+        return null;
       case "guide":
-        return <div className="p-4">Перенаправление на страницу руководства...</div>;
+        navigate("/guide");
+        return null;
+      case "orders":
+        navigate("/orders");
+        return null;
       default:
         return <ChatsPage />;
     }
@@ -46,6 +54,15 @@ export default function Index() {
             >
               <Database className="mr-2 h-4 w-4" />
               Товары
+            </Button>
+          </Link>
+          <Link to="/orders">
+            <Button
+              variant="ghost"
+              className="px-4 py-2 text-gray-600"
+            >
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              Заказы
             </Button>
           </Link>
           <Link to="/analytics">
@@ -100,6 +117,14 @@ function MobileTabBar() {
       >
         <Database className="h-5 w-5" />
         <span className="text-xs mt-1">Товары</span>
+      </Link>
+      
+      <Link
+        to="/orders"
+        className="flex flex-1 flex-col items-center justify-center h-full text-gray-500"
+      >
+        <ShoppingBag className="h-5 w-5" />
+        <span className="text-xs mt-1">Заказы</span>
       </Link>
       
       <Link
