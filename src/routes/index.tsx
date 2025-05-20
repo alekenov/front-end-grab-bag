@@ -1,39 +1,59 @@
 
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
-import ChatsPage from "@/pages/ChatsPage";
-import GuidePage from "@/pages/GuidePage";
-import AnalyticsPage from "@/pages/AnalyticsPage";
-import ApiPage from "@/pages/ApiPage";
+import { createBrowserRouter } from "react-router-dom";
+import AppLayout from "@/components/layout/AppLayout";
+import Index from "@/pages/Index";
+import NotFound from "@/pages/NotFound";
 import ProductsPage from "@/pages/ProductsPage";
+import AnalyticsPage from "@/pages/AnalyticsPage";
+import GuidePage from "@/pages/GuidePage";
+import ApiPage from "@/pages/ApiPage";
+import OrdersPage from "@/pages/OrdersPage";
+import ChatsPage from "@/pages/ChatsPage";
 
-const routes = createBrowserRouter([
+const router = createBrowserRouter([
   {
     path: "/",
-    element: <ChatsPage />,
-  },
-  {
-    path: "/guide",
-    element: <GuidePage />,
-  },
-  {
-    path: "/analytics",
-    element: <AnalyticsPage />,
-  },
-  {
-    path: "/api",
-    element: <ApiPage />,
-  },
-  {
-    path: "/products",
-    element: <ProductsPage />,
-  },
-  {
-    // Add redirect for the old knowledge route
-    path: "/knowledge",
-    element: <Navigate to="/guide" replace />,
+    element: <AppLayout />,
+    errorElement: <NotFound />,
+    children: [
+      {
+        index: true,
+        element: <Index />,
+      },
+      {
+        path: "chats",
+        element: <ChatsPage />,
+      },
+      {
+        path: "products",
+        element: <ProductsPage />,
+      },
+      {
+        path: "orders",
+        element: <OrdersPage />,
+      },
+      {
+        path: "orders/:id",
+        element: <OrdersPage />,
+      },
+      {
+        path: "orders/:action",
+        element: <OrdersPage />,
+      },
+      {
+        path: "analytics",
+        element: <AnalyticsPage />,
+      },
+      {
+        path: "api",
+        element: <ApiPage />,
+      },
+      {
+        path: "guide",
+        element: <GuidePage />,
+      },
+    ],
   },
 ]);
 
-export function Routes() {
-  return <RouterProvider router={routes} />;
-}
+export default router;

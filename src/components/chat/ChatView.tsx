@@ -9,6 +9,10 @@ import { Product } from "@/types/product";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useChatDetails } from "./hooks/useChatDetails";
+import { ChatOrders } from "./ChatOrders";
+import { CreateOrderFromChat } from "./CreateOrderFromChat";
+import { useProducts } from "@/hooks/products/useProductsApi";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ChatViewProps {
   currentChatId: string | null;
@@ -19,6 +23,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const chatApi = useChatApi();
+  const { data: products = [] } = useProducts();
   
   // Нормализуем ID чата - если это число, считаем его тестовым демо-ID
   const normalizedChatId = currentChatId ? 
@@ -27,6 +32,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   // Используем нормализованный ID для получения деталей чата
   const { chatName, setChatName, chatDetails } = useChatDetails(normalizedChatId);
   
+  const [tabs, setTabs] = useState<string>("messages");
   const [tags, setTags] = useState<string[]>([]);
   const messageEndRef = useRef<HTMLDivElement>(null);
   
@@ -69,6 +75,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     queryClient.invalidateQueries({ queryKey: ['messages-api', normalizedChatId] });
     queryClient.invalidateQueries({ queryKey: ['chat', normalizedChatId] });
     queryClient.invalidateQueries({ queryKey: ['chats-api'] });
+    queryClient.invalidateQueries({ queryKey: ['orders', 'chat', normalizedChatId] });
     
     // Принудительно запрашиваем данные
     setTimeout(() => {
@@ -208,15 +215,37 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
         onUpdateContact={handleUpdateContact}
       />
       
-      <div className="flex-1 overflow-y-auto bg-[#f5f7fb]">
-        <div className="px-4 py-6">
-          <MessageList 
-            messages={messages} 
-            isLoading={messagesLoading && !isDemoChatView} 
-          />
-          <div ref={messageEndRef} className="h-8" />
+      <Tabs value={tabs} onValueChange={setTabs} className="flex-1 flex flex-col overflow-hidden">
+        <div className="border-b px-4">
+          <TabsList className="h-10">
+            <TabsTrigger value="messages" className="data-[state=active]:bg-transparent">Сообщения</TabsTrigger>
+            <TabsTrigger value="orders" className="data-[state=active]:bg-transparent">Заказы</TabsTrigger>
+          </TabsList>
         </div>
-      </div>
+        
+        <TabsContent value="messages" className="flex-1 overflow-y-auto bg-[#f5f7fb] p-0 m-0">
+          <div className="px-4 py-6">
+            <MessageList 
+              messages={messages} 
+              isLoading={messagesLoading && !isDemoChatView} 
+            />
+            <div ref={messageEndRef} className="h-8" />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="orders" className="flex-1 overflow-y-auto bg-[#f5f7fb] p-0 m-0">
+          <div className="p-4 flex justify-end">
+            {!isDemoChatView && (
+              <CreateOrderFromChat 
+                chatId={normalizedChatId} 
+                products={products}
+                onOrderCreated={forceRefresh}
+              />
+            )}
+          </div>
+          <ChatOrders chatId={normalizedChatId} />
+        </TabsContent>
+      </Tabs>
       
       <MessageInput 
         onSendMessage={handleSendMessage} 
