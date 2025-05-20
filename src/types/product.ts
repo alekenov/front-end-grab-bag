@@ -1,9 +1,14 @@
 
 export interface Product {
   id: string;
+  name?: string;
   imageUrl: string;
   price: number;
   createdAt: string;
+  category?: string;
+  description?: string;
+  availability?: boolean;
+  quantity?: number;
 }
 
 export type NewProduct = Omit<Product, "id" | "createdAt">;

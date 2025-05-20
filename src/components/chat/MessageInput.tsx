@@ -8,6 +8,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { useNavigate } from "react-router-dom";
 import { Product } from "@/types/product";
 import { useQueryClient } from "@tanstack/react-query";
+import { ProductSearchInChat } from "./ProductSearchInChat";
 
 interface MessageInputProps {
   onSendMessage: (message: string, product?: Product) => void;
@@ -34,7 +35,7 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
         
         if (currentChatId) {
           // Send the product to chat
-          onSendMessage(`Букет за ${product.price.toLocaleString()} ₸`, product);
+          onSendMessage(`${product.name || `Букет за ${product.price.toLocaleString()} ₸`}`, product);
           
           // Clear the selected product from localStorage
           localStorage.removeItem("selected_product");
@@ -117,39 +118,47 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
     navigate('/products', { state: { fromChat: true } });
   };
 
+  // Если нет выбранного чата, не показываем ввод сообщения
+  if (!currentChatId) {
+    return null;
+  }
+
   return (
     <div className="fixed left-0 right-0 bottom-14 md:sticky md:bottom-0 p-3 md:p-4 bg-white border-t border-[#e1e4e8] flex gap-2 z-20">
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-9 w-9 shrink-0 rounded-full hover:bg-gray-100"
-          >
-            <Paperclip className="h-5 w-5 text-gray-500" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-48 p-2">
-          <div className="flex flex-col gap-2">
+      <div className="flex items-center">
+        <Popover>
+          <PopoverTrigger asChild>
             <Button 
               variant="ghost" 
-              className="justify-start gap-2" 
-              onClick={handleFileSelect}
+              size="icon" 
+              className="h-9 w-9 shrink-0 rounded-full hover:bg-gray-100"
             >
-              <Image className="h-5 w-5" />
-              <span>Добавить медиа</span>
+              <Paperclip className="h-5 w-5 text-gray-500" />
             </Button>
-            <Button 
-              variant="ghost" 
-              className="justify-start gap-2" 
-              onClick={handleProductsNavigate}
-            >
-              <ShoppingBag className="h-5 w-5" />
-              <span>Выбрать товар</span>
-            </Button>
-          </div>
-        </PopoverContent>
-      </Popover>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-2">
+            <div className="flex flex-col gap-2">
+              <Button 
+                variant="ghost" 
+                className="justify-start gap-2" 
+                onClick={handleFileSelect}
+              >
+                <Image className="h-5 w-5" />
+                <span>Добавить фото</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="justify-start gap-2" 
+                onClick={handleProductsNavigate}
+              >
+                <ShoppingBag className="h-5 w-5" />
+                <span>Выбрать товар</span>
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+      
       <Textarea 
         value={message}
         onChange={(e) => setMessage(e.target.value)}
@@ -159,14 +168,25 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
         ref={textareaRef}
         disabled={disabled}
       />
-      <Button 
-        onClick={handleSend} 
-        size="icon" 
-        className="h-9 w-9 shrink-0 rounded-full bg-[#1a73e8] hover:bg-[#1558b3]"
-        disabled={!message.trim() || disabled}
-      >
-        <Send className="h-5 w-5" />
-      </Button>
+      
+      <div className="flex items-center gap-2">
+        <ProductSearchInChat
+          currentChatId={currentChatId}
+          onSelectProduct={(product) => {
+            // Имитируем выбор продукта через localStorage
+            localStorage.setItem("selected_product", JSON.stringify(product));
+          }}
+        />
+        
+        <Button 
+          onClick={handleSend} 
+          size="icon" 
+          className="h-9 w-9 shrink-0 rounded-full bg-[#1a73e8] hover:bg-[#1558b3]"
+          disabled={!message.trim() || disabled}
+        >
+          <Send className="h-5 w-5" />
+        </Button>
+      </div>
     </div>
   );
 }

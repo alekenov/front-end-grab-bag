@@ -117,6 +117,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "chat_customers_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_chats_mapping"
+            referencedColumns: ["chat_uuid"]
+          },
+          {
             foreignKeyName: "chat_customers_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
@@ -178,6 +185,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chats"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_tags_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_chats_mapping"
+            referencedColumns: ["chat_uuid"]
           },
           {
             foreignKeyName: "chat_tags_tag_id_fkey"
@@ -450,6 +464,7 @@ export type Database = {
           id: string
           is_from_user: boolean | null
           product_data: Json | null
+          source: string | null
         }
         Insert: {
           chat_id?: string | null
@@ -459,6 +474,7 @@ export type Database = {
           id?: string
           is_from_user?: boolean | null
           product_data?: Json | null
+          source?: string | null
         }
         Update: {
           chat_id?: string | null
@@ -468,6 +484,7 @@ export type Database = {
           id?: string
           is_from_user?: boolean | null
           product_data?: Json | null
+          source?: string | null
         }
         Relationships: [
           {
@@ -476,6 +493,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chats"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_chats_mapping"
+            referencedColumns: ["chat_uuid"]
           },
         ]
       }
@@ -683,6 +707,13 @@ export type Database = {
             referencedRelation: "chats"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "telegram_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_chats_mapping"
+            referencedColumns: ["chat_uuid"]
+          },
         ]
       }
       training_examples: {
@@ -760,8 +791,39 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_chats_mapping: {
+        Row: {
+          chat_uuid: string | null
+          name: string | null
+          telegram_chat_id: string | null
+        }
+        Insert: {
+          chat_uuid?: string | null
+          name?: string | null
+          telegram_chat_id?: string | null
+        }
+        Update: {
+          chat_uuid?: string | null
+          name?: string | null
+          telegram_chat_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      api_sync_telegram_messages: {
+        Args: { p_telegram_id?: string; p_chat_uuid?: string }
+        Returns: {
+          chat_id: string | null
+          content: string
+          created_at: string | null
+          has_product: boolean | null
+          id: string
+          is_from_user: boolean | null
+          product_data: Json | null
+          source: string | null
+        }[]
+      }
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
@@ -803,6 +865,10 @@ export type Database = {
           last_message_product_price: number
           tags: Json
         }[]
+      }
+      get_telegram_chat_id: {
+        Args: { db_chat_id: string }
+        Returns: string
       }
       gtrgm_compress: {
         Args: { "": unknown }
@@ -942,6 +1008,15 @@ export type Database = {
       sparsevec_typmod_in: {
         Args: { "": unknown[] }
         Returns: number
+      }
+      sync_telegram_messages: {
+        Args: { telegram_id: string }
+        Returns: {
+          id: string
+          content: string
+          is_from_user: boolean
+          created_at: string
+        }[]
       }
       vector_avg: {
         Args: { "": number[] }
