@@ -26,11 +26,13 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { OrderStatusActions } from "./details/OrderStatusActions";
 
 export function OrdersList() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<OrdersFilter>({});
-  const { getOrders } = useOrdersApi();
+  const { getOrders, updateOrder } = useOrdersApi();
   const { data: orders = [], isLoading } = getOrders(filters);
   const isMobile = useIsMobile();
 
@@ -83,21 +85,62 @@ export function OrdersList() {
     console.log("Navigating to order details for ID:", orderId);
     navigate(`/orders/${orderId}`);
   };
+  
+  const handleOrderAction = (orderId: string, action: string) => {
+    if (action === "view") {
+      viewOrderDetails(orderId);
+      return;
+    }
+    
+    // Обновляем статус заказа
+    updateOrder.mutate({
+      id: orderId,
+      data: {
+        status: action as OrderStatus
+      }
+    });
+  };
 
+  // Получаем изображение товара для карточки
+  const getOrderImage = (order: Order) => {
+    if (!order.items || order.items.length === 0) {
+      return null;
+    }
+    
+    // Возвращаем изображение первого товара
+    return order.items[0].product_image;
+  };
+  
   // Мобильная карточка заказа
   const MobileOrderCard = ({ order }: { order: Order }) => {
+    const orderImage = getOrderImage(order);
+    const itemsCount = order.items?.length || 0;
+
     return (
       <div 
         className="bg-white p-3 rounded-lg border mb-3 shadow-sm"
-        onClick={() => viewOrderDetails(order.id)}
       >
         <div className="flex justify-between items-start mb-2">
-          <div>
-            <span className="font-mono text-xs">{order.id.substring(0, 8)}</span>
-            <p className="font-medium">{order.customer_name || 'Неизвестный клиент'}</p>
-            {order.customer_phone && (
-              <p className="text-xs text-gray-500">{order.customer_phone}</p>
+          <div className="flex">
+            {orderImage && (
+              <div className="w-16 h-16 rounded overflow-hidden mr-3 flex-shrink-0">
+                <img 
+                  src={orderImage} 
+                  alt="Товар" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
             )}
+            <div>
+              <span className="font-mono text-xs">{order.id.substring(0, 8)}</span>
+              <p className="font-medium">{order.customer_name || 'Неизвестный клиент'}</p>
+              {order.customer_phone && (
+                <p className="text-xs text-gray-500">{order.customer_phone}</p>
+              )}
+              {itemsCount > 0 && (
+                <p className="text-xs text-gray-500">Товаров: {itemsCount}</p>
+              )}
+            </div>
           </div>
           {getStatusBadge(order.status as OrderStatus)}
         </div>
@@ -109,17 +152,20 @@ export function OrdersList() {
             </p>
             <p className="font-semibold">{order.total_amount.toLocaleString()} ₸</p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8"
-            onClick={(e) => {
-              e.stopPropagation();
-              viewOrderDetails(order.id);
-            }}
-          >
-            Детали
-          </Button>
+          <div className="flex gap-2">
+            <OrderStatusActions 
+              status={order.status as OrderStatus} 
+              onClick={(action) => handleOrderAction(order.id, action)}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9"
+              onClick={() => viewOrderDetails(order.id)}
+            >
+              Детали
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -281,67 +327,82 @@ export function OrdersList() {
           </p>
         </div>
       ) : isMobile ? (
-        // Мобильная версия списка заказов
-        <div className="space-y-2">
-          {orders.map((order: Order) => (
-            <MobileOrderCard key={order.id} order={order} />
-          ))}
-        </div>
+        // Мобильная версия списка заказов с ScrollArea для скроллинга
+        <ScrollArea className="h-[calc(100vh-270px)] pr-4">
+          <div className="space-y-2">
+            {orders.map((order: Order) => (
+              <MobileOrderCard key={order.id} order={order} />
+            ))}
+          </div>
+        </ScrollArea>
       ) : (
         // Десктопная версия в виде таблицы
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[80px]">ID</TableHead>
-                <TableHead>Клиент</TableHead>
-                <TableHead>Дата</TableHead>
-                <TableHead>Сумма</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead className="hidden md:table-cell">Оплата</TableHead>
-                <TableHead className="text-right">Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order: Order) => (
-                <TableRow 
-                  key={order.id} 
-                  className="cursor-pointer hover:bg-gray-50" 
-                  onClick={() => {
-                    console.log("Row clicked, navigating to order:", order.id);
-                    viewOrderDetails(order.id);
-                  }}
-                >
-                  <TableCell className="font-mono text-xs">{order.id.substring(0, 8)}</TableCell>
-                  <TableCell>
-                    <div>
-                      {order.customer_name || 'Неизвестный клиент'}
-                      {order.customer_phone && <div className="text-xs text-gray-500">{order.customer_phone}</div>}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(order.created_at), "dd.MM.yyyy HH:mm")}
-                  </TableCell>
-                  <TableCell>{order.total_amount.toLocaleString()} ₸</TableCell>
-                  <TableCell>{getStatusBadge(order.status as OrderStatus)}</TableCell>
-                  <TableCell className="hidden md:table-cell">{getPaymentStatusBadge(order.payment_status as PaymentStatus)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log("Details button clicked for order:", order.id);
-                        viewOrderDetails(order.id);
-                      }}
-                    >
-                      Детали
-                    </Button>
-                  </TableCell>
+          <ScrollArea className="h-[calc(100vh-270px)]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[80px]">ID</TableHead>
+                  <TableHead>Клиент</TableHead>
+                  <TableHead>Товары</TableHead>
+                  <TableHead>Дата</TableHead>
+                  <TableHead>Сумма</TableHead>
+                  <TableHead>Статус</TableHead>
+                  <TableHead className="hidden md:table-cell">Оплата</TableHead>
+                  <TableHead className="text-right">Действия</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {orders.map((order: Order) => (
+                  <TableRow 
+                    key={order.id} 
+                    className="cursor-pointer hover:bg-gray-50" 
+                  >
+                    <TableCell className="font-mono text-xs">{order.id.substring(0, 8)}</TableCell>
+                    <TableCell>
+                      <div>
+                        {order.customer_name || 'Неизвестный клиент'}
+                        {order.customer_phone && <div className="text-xs text-gray-500">{order.customer_phone}</div>}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        {order.items && order.items.length > 0 && order.items[0].product_image && (
+                          <img 
+                            src={order.items[0].product_image} 
+                            alt="Товар" 
+                            className="w-10 h-10 object-cover rounded mr-2" 
+                          />
+                        )}
+                        <span className="text-sm">{order.items?.length || 0} шт.</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(order.created_at), "dd.MM.yyyy HH:mm")}
+                    </TableCell>
+                    <TableCell>{order.total_amount.toLocaleString()} ₸</TableCell>
+                    <TableCell>{getStatusBadge(order.status as OrderStatus)}</TableCell>
+                    <TableCell className="hidden md:table-cell">{getPaymentStatusBadge(order.payment_status as PaymentStatus)}</TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        <OrderStatusActions 
+                          status={order.status as OrderStatus} 
+                          onClick={(action) => handleOrderAction(order.id, action)}
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => viewOrderDetails(order.id)}
+                        >
+                          Детали
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
         </div>
       )}
     </div>

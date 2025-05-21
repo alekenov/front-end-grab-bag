@@ -5,6 +5,7 @@ import { OrderDetails } from "@/components/orders/OrderDetails";
 import { CreateOrderForm } from "@/components/orders/CreateOrderForm";
 import { useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function OrdersPage() {
   // Получаем параметры из URL и хук для навигации
@@ -35,9 +36,9 @@ export default function OrdersPage() {
   if (isNewOrder) {
     console.log("Rendering CreateOrderForm at /orders/new");
     return (
-      <div className={`container ${isMobile ? 'px-2 py-3' : 'py-6'}`}>
+      <ScrollArea className={`container ${isMobile ? 'h-[calc(100vh-80px)] px-2 py-3' : 'h-[calc(100vh-80px)] py-6'}`}>
         <CreateOrderForm />
-      </div>
+      </ScrollArea>
     );
   }
   
@@ -45,9 +46,9 @@ export default function OrdersPage() {
   if (id) {
     console.log("Rendering OrderDetails for id:", id);
     return (
-      <div className={`container ${isMobile ? 'px-2 py-3' : 'py-6'}`}>
+      <ScrollArea className={`container ${isMobile ? 'h-[calc(100vh-80px)] px-2 py-3' : 'h-[calc(100vh-80px)] py-6'}`}>
         <OrderDetails />
-      </div>
+      </ScrollArea>
     );
   }
   
