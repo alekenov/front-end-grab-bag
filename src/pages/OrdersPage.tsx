@@ -4,6 +4,7 @@ import { OrdersList } from "@/components/orders/OrdersList";
 import { OrderDetails } from "@/components/orders/OrderDetails";
 import { CreateOrderForm } from "@/components/orders/CreateOrderForm";
 import { useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function OrdersPage() {
   // Получаем параметры из URL и хук для навигации
@@ -11,11 +12,13 @@ export default function OrdersPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const id = params.id;
+  const isMobile = useIsMobile();
   
   // Более детальное логирование для отладки
   console.log("OrdersPage rendered with path:", location.pathname);
   console.log("OrdersPage params:", params);
   console.log("OrdersPage id param:", id);
+  console.log("Is mobile view:", isMobile);
   
   // Проверяем точный путь для действия "new"
   const isNewOrder = location.pathname === "/orders/new";
@@ -32,7 +35,7 @@ export default function OrdersPage() {
   if (isNewOrder) {
     console.log("Rendering CreateOrderForm at /orders/new");
     return (
-      <div className="container py-6">
+      <div className={`container ${isMobile ? 'px-2 py-3' : 'py-6'}`}>
         <CreateOrderForm />
       </div>
     );
@@ -42,7 +45,7 @@ export default function OrdersPage() {
   if (id) {
     console.log("Rendering OrderDetails for id:", id);
     return (
-      <div className="container py-6">
+      <div className={`container ${isMobile ? 'px-2 py-3' : 'py-6'}`}>
         <OrderDetails />
       </div>
     );
@@ -51,7 +54,7 @@ export default function OrdersPage() {
   // Show orders list for /orders
   console.log("Rendering OrdersList at /orders");
   return (
-    <div className="container py-6">
+    <div className={`container ${isMobile ? 'px-2 py-3' : 'py-6'}`}>
       <OrdersList />
     </div>
   );
