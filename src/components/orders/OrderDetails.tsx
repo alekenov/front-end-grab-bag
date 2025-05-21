@@ -54,12 +54,16 @@ export function OrderDetails() {
     delivery_address: string;
     delivery_date: string;
     comment: string;
+    responsible_manager?: string;
+    estimated_delivery_time?: string;
   }>({
     status: 'new',
     payment_status: 'pending',
     delivery_address: '',
     delivery_date: '',
-    comment: ''
+    comment: '',
+    responsible_manager: '',
+    estimated_delivery_time: ''
   });
   
   // Обновляем formData когда получили данные заказа
@@ -71,7 +75,9 @@ export function OrderDetails() {
         payment_status: order.payment_status as PaymentStatus,
         delivery_address: order.delivery_address || '',
         delivery_date: order.delivery_date || '',
-        comment: order.comment || ''
+        comment: order.comment || '',
+        responsible_manager: order.responsible_manager || '',
+        estimated_delivery_time: order.estimated_delivery_time || ''
       });
     }
   }, [order]);

@@ -2,8 +2,9 @@
 import { format, parseISO } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, MessageSquare, CalendarClock } from "lucide-react";
+import { User, MessageSquare, CalendarClock, UserCheck, Clock } from "lucide-react";
 import { Order, OrderStatus, PaymentStatus } from "@/types/order";
 import { useNavigate } from "react-router-dom";
 
@@ -13,12 +14,23 @@ interface OrderBasicInfoProps {
   formData: {
     status: OrderStatus;
     payment_status: PaymentStatus;
+    responsible_manager?: string;
+    estimated_delivery_time?: string;
   };
   setFormData: (data: any) => void;
 }
 
 export function OrderBasicInfo({ order, editing, formData, setFormData }: OrderBasicInfoProps) {
   const navigate = useNavigate();
+  
+  // Тестовый массив менеджеров для выбора
+  const managers = [
+    "Алексей Смирнов", 
+    "Елена Петрова", 
+    "Дмитрий Иванов", 
+    "Анна Козлова", 
+    "Сергей Соколов"
+  ];
   
   if (editing) {
     return (
@@ -62,6 +74,39 @@ export function OrderBasicInfo({ order, editing, formData, setFormData }: OrderB
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Добавляем поле для ответственного менеджера */}
+            {(formData.status === "processing" || formData.status === "completed") && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Ответственный менеджер</label>
+                <Select
+                  value={formData.responsible_manager || ""}
+                  onValueChange={(value) => setFormData({ ...formData, responsible_manager: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Не назначен</SelectItem>
+                    {managers.map(manager => (
+                      <SelectItem key={manager} value={manager}>{manager}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            {/* Добавляем поле для времени доставки */}
+            {formData.status === "processing" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Примерное время доставки</label>
+                <Input
+                  value={formData.estimated_delivery_time || ""}
+                  onChange={(e) => setFormData({ ...formData, estimated_delivery_time: e.target.value })}
+                  placeholder="Например: 30 минут"
+                />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -86,6 +131,28 @@ export function OrderBasicInfo({ order, editing, formData, setFormData }: OrderB
             <span className="text-gray-500">Сумма заказа:</span>
             <span className="font-semibold">{order.total_amount.toLocaleString()} ₸</span>
           </div>
+          
+          {/* Показываем ответственного менеджера */}
+          {order.responsible_manager && (
+            <div className="flex justify-between text-sm items-center">
+              <div className="flex items-center">
+                <UserCheck className="h-4 w-4 mr-2 text-gray-500" />
+                <span className="text-gray-500">Ответственный:</span>
+              </div>
+              <span>{order.responsible_manager}</span>
+            </div>
+          )}
+          
+          {/* Показываем примерное время доставки */}
+          {order.status === "processing" && order.estimated_delivery_time && (
+            <div className="flex justify-between text-sm items-center">
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-2 text-gray-500" />
+                <span className="text-gray-500">Время доставки:</span>
+              </div>
+              <span>{order.estimated_delivery_time}</span>
+            </div>
+          )}
           
           {order.customer_name && (
             <div className="flex items-start text-sm pt-1">

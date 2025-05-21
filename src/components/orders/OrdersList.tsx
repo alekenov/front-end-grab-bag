@@ -18,15 +18,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format } from "date-fns";
+import { format, formatDistanceToNow, parseISO } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Search, FilterX } from "lucide-react";
+import { Calendar, Search, FilterX, Clock, MapPin, User, Truck, Package } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { OrderStatusActions } from "./details/OrderStatusActions";
+
+// Добавляем массив тестовых заказов для демонстрации
+const DEMO_RESPONSIBLE_MANAGERS = [
+  "Алексей Смирнов", 
+  "Елена Петрова", 
+  "Дмитрий Иванов", 
+  "Анна Козлова", 
+  "Сергей Соколов"
+];
 
 export function OrdersList() {
   const navigate = useNavigate();
@@ -109,20 +118,46 @@ export function OrdersList() {
     // Возвращаем изображение первого товара
     return order.items[0].product_image;
   };
-  
+
+  // Функция для определения, нужно ли показывать информацию о времени доставки
+  const shouldShowDeliveryTime = (order: Order) => {
+    return order.status === 'processing' && order.estimated_delivery_time;
+  };
+
+  // Функция для определения, нужно ли показывать ответственного менеджера
+  const shouldShowManager = (order: Order) => {
+    return (order.status === 'processing' || order.status === 'completed') && order.responsible_manager;
+  };
+
+  // Функция для форматирования адреса доставки
+  const formatDeliveryAddress = (address: string | null) => {
+    if (!address) return null;
+    // Если адрес слишком длинный, обрезаем его
+    return address.length > 40 ? address.substring(0, 40) + '...' : address;
+  };
+
   // Мобильная карточка заказа
   const MobileOrderCard = ({ order }: { order: Order }) => {
     const orderImage = getOrderImage(order);
     const itemsCount = order.items?.length || 0;
 
+    // Если отсутствуют данные о менеджере или времени доставки, добавим их для демонстрации
+    const demoOrder = { 
+      ...order,
+      responsible_manager: order.responsible_manager || 
+        (order.status !== 'new' ? DEMO_RESPONSIBLE_MANAGERS[Math.floor(Math.random() * DEMO_RESPONSIBLE_MANAGERS.length)] : undefined),
+      estimated_delivery_time: order.estimated_delivery_time || 
+        (order.status === 'processing' ? `${Math.floor(Math.random() * 60) + 30} минут` : undefined)
+    };
+
     return (
       <div 
-        className="bg-white p-3 rounded-lg border mb-3 shadow-sm"
+        className="bg-white p-4 rounded-lg border mb-3 shadow-sm"
       >
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start mb-3">
           <div className="flex">
             {orderImage && (
-              <div className="w-16 h-16 rounded overflow-hidden mr-3 flex-shrink-0">
+              <div className="w-20 h-20 rounded overflow-hidden mr-3 flex-shrink-0">
                 <img 
                   src={orderImage} 
                   alt="Товар" 
@@ -131,45 +166,81 @@ export function OrdersList() {
               </div>
             )}
             <div>
-              <span className="font-mono text-xs">{order.id.substring(0, 8)}</span>
-              <p className="font-medium">{order.customer_name || 'Неизвестный клиент'}</p>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">{order.id.substring(0, 8)}</span>
+                {getStatusBadge(order.status as OrderStatus)}
+              </div>
+              <p className="font-medium mt-1">{demoOrder.customer_name || 'Неизвестный клиент'}</p>
               {order.customer_phone && (
                 <p className="text-xs text-gray-500">{order.customer_phone}</p>
               )}
               {itemsCount > 0 && (
-                <p className="text-xs text-gray-500">Товаров: {itemsCount}</p>
+                <div className="flex items-center mt-1">
+                  <Package className="h-3 w-3 mr-1 text-gray-500" />
+                  <p className="text-xs text-gray-500">Товаров: {itemsCount}</p>
+                </div>
               )}
             </div>
           </div>
-          {getStatusBadge(order.status as OrderStatus)}
+          <p className="font-semibold text-lg">{order.total_amount.toLocaleString()} ₸</p>
+        </div>
+
+        {/* Информация о доставке */}
+        {order.delivery_address && (
+          <div className="flex items-center text-xs text-gray-600 mb-1.5">
+            <MapPin className="h-3 w-3 mr-1.5 flex-shrink-0" />
+            <span className="truncate">{formatDeliveryAddress(order.delivery_address)}</span>
+          </div>
+        )}
+        
+        {/* Информация о времени создания */}
+        <div className="flex items-center text-xs text-gray-600 mb-1.5">
+          <Calendar className="h-3 w-3 mr-1.5" />
+          <span>{format(new Date(order.created_at), "dd.MM.yyyy")} ({formatDistanceToNow(new Date(order.created_at), {addSuffix: true})})</span>
+        </div>
+
+        {/* Показываем ответственного менеджера */}
+        {shouldShowManager(demoOrder) && (
+          <div className="flex items-center text-xs text-gray-600 mb-1.5">
+            <User className="h-3 w-3 mr-1.5" />
+            <span>Ответственный: {demoOrder.responsible_manager}</span>
+          </div>
+        )}
+
+        {/* Показываем примерное время доставки */}
+        {shouldShowDeliveryTime(demoOrder) && (
+          <div className="flex items-center text-xs text-gray-600 mb-1.5">
+            <Truck className="h-3 w-3 mr-1.5" />
+            <span>Примерное время доставки: {demoOrder.estimated_delivery_time}</span>
+          </div>
+        )}
+
+        {/* Показываем информацию о статусе оплаты */}
+        <div className="flex items-center text-xs mb-3">
+          {getPaymentStatusBadge(order.payment_status as PaymentStatus)}
+          {order.payment_status === 'pending' && (
+            <span className="ml-2 text-amber-600">Ожидается оплата</span>
+          )}
         </div>
         
-        <div className="flex justify-between items-center mt-2">
-          <div>
-            <p className="text-xs text-gray-500">
-              {format(new Date(order.created_at), "dd.MM.yyyy")}
-            </p>
-            <p className="font-semibold">{order.total_amount.toLocaleString()} ₸</p>
-          </div>
-          <div className="flex gap-2">
-            <OrderStatusActions 
-              status={order.status as OrderStatus} 
-              onClick={(action) => handleOrderAction(order.id, action)}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9"
-              onClick={() => viewOrderDetails(order.id)}
-            >
-              Детали
-            </Button>
-          </div>
+        <div className="flex justify-end gap-2 mt-3">
+          <OrderStatusActions 
+            status={order.status as OrderStatus} 
+            onClick={(action) => handleOrderAction(order.id, action)}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9"
+            onClick={() => viewOrderDetails(order.id)}
+          >
+            Детали
+          </Button>
         </div>
       </div>
     );
   };
-  
+
   // Добавим логирование для отладки
   console.log("OrdersList rendering with orders:", orders);
 

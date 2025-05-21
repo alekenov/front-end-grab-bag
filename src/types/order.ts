@@ -28,6 +28,8 @@ export interface Order {
   delivery_date: string | null;
   comment: string | null;
   items?: OrderItem[];
+  responsible_manager?: string;
+  estimated_delivery_time?: string;
 }
 
 export interface OrdersFilter {
