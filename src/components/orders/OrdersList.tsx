@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useOrdersApi } from "@/hooks";
 import { OrdersFilter, OrderStatus, PaymentStatus, Order } from "@/types/order";
@@ -21,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "lucide-react";
+import { Calendar, Search, FilterX } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useNavigate } from "react-router-dom";
@@ -188,18 +187,17 @@ export function OrdersList() {
         </Button>
       </div>
 
-      <div className="bg-white p-4 rounded-lg shadow-sm flex flex-wrap gap-3 items-end">
-        {/* Фильтры для моб. устройств: только статус и поиск */}
+      <div className="bg-white p-3 rounded-lg shadow-sm">
+        {/* Компактные фильтры для моб. устройств */}
         {isMobile ? (
-          <>
-            <div className="w-full">
-              <p className="text-sm mb-1">Статус</p>
+          <div className="flex flex-col space-y-2">
+            <div className="flex gap-2">
               <Select
                 value={filters.status || ""}
                 onValueChange={(value) => handleFilterChange("status", value || undefined)}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Все статусы" />
+                <SelectTrigger className="flex-1 h-9">
+                  <SelectValue placeholder="Статус" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Все статусы</SelectItem>
@@ -209,48 +207,81 @@ export function OrdersList() {
                   <SelectItem value="cancelled">Отменен</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="w-full">
-              <p className="text-sm mb-1">Поиск</p>
-              <Input
-                placeholder="Поиск по ID, имени, телефону"
-                value={filters.search || ""}
-                onChange={(e) => handleFilterChange("search", e.target.value || undefined)}
-                className="w-full"
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="w-full md:w-auto">
-              <p className="text-sm mb-1">Статус</p>
-              <Select
-                value={filters.status || ""}
-                onValueChange={(value) => handleFilterChange("status", value || undefined)}
-              >
-                <SelectTrigger className="w-full md:w-[180px]">
-                  <SelectValue placeholder="Все статусы" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Все статусы</SelectItem>
-                  <SelectItem value="new">Новый</SelectItem>
-                  <SelectItem value="processing">В обработке</SelectItem>
-                  <SelectItem value="completed">Выполнен</SelectItem>
-                  <SelectItem value="cancelled">Отменен</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="w-full md:w-auto">
-              <p className="text-sm mb-1">Дата от</p>
+              
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full md:w-[180px] justify-start text-left font-normal">
+                  <Button variant="outline" size="sm" className="h-9">
+                    <Calendar className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="p-2">
+                    <p className="text-sm mb-1">Дата от</p>
+                    <CalendarComponent
+                      mode="single"
+                      selected={filters.dateFrom}
+                      onSelect={(date) => handleFilterChange("dateFrom", date)}
+                      initialFocus
+                    />
+                    <div className="border-t my-2"></div>
+                    <p className="text-sm mb-1">Дата до</p>
+                    <CalendarComponent
+                      mode="single"
+                      selected={filters.dateTo}
+                      onSelect={(date) => handleFilterChange("dateTo", date)}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Поиск"
+                  value={filters.search || ""}
+                  onChange={(e) => handleFilterChange("search", e.target.value || undefined)}
+                  className="pl-8 h-9"
+                />
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFilters({})}
+                className="h-9"
+              >
+                <FilterX className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          /* Компактные фильтры для десктопа */
+          <div className="flex flex-wrap gap-2 items-center">
+            <Select
+              value={filters.status || ""}
+              onValueChange={(value) => handleFilterChange("status", value || undefined)}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Статус" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Все статусы</SelectItem>
+                <SelectItem value="new">Новый</SelectItem>
+                <SelectItem value="processing">В обработке</SelectItem>
+                <SelectItem value="completed">Выполнен</SelectItem>
+                <SelectItem value="cancelled">Отменен</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-[140px] justify-start">
                     {filters.dateFrom ? (
                       format(filters.dateFrom, "dd.MM.yyyy")
                     ) : (
-                      <span className="text-muted-foreground">Выберите дату</span>
+                      <span className="text-muted-foreground">От</span>
                     )}
                     <Calendar className="ml-auto h-4 w-4" />
                   </Button>
@@ -264,17 +295,14 @@ export function OrdersList() {
                   />
                 </PopoverContent>
               </Popover>
-            </div>
 
-            <div className="w-full md:w-auto">
-              <p className="text-sm mb-1">Дата до</p>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full md:w-[180px] justify-start text-left font-normal">
+                  <Button variant="outline" className="w-[140px] justify-start">
                     {filters.dateTo ? (
                       format(filters.dateTo, "dd.MM.yyyy")
                     ) : (
-                      <span className="text-muted-foreground">Выберите дату</span>
+                      <span className="text-muted-foreground">До</span>
                     )}
                     <Calendar className="ml-auto h-4 w-4" />
                   </Button>
@@ -290,27 +318,26 @@ export function OrdersList() {
               </Popover>
             </div>
 
-            <div className="w-full md:w-64">
-              <p className="text-sm mb-1">Поиск</p>
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Поиск по ID, имени, телефону"
+                placeholder="Поиск"
                 value={filters.search || ""}
                 onChange={(e) => handleFilterChange("search", e.target.value || undefined)}
-                className="w-full"
+                className="w-[200px] pl-8"
               />
             </div>
-          </>
-        )}
 
-        <div className={isMobile ? "w-full" : ""}>
-          <Button
-            variant="outline"
-            className={isMobile ? "w-full" : ""}
-            onClick={() => setFilters({})}
-          >
-            Сбросить
-          </Button>
-        </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setFilters({})}
+              className="ml-1"
+            >
+              <FilterX className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {isLoading ? (
