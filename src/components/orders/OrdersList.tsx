@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useOrdersApi } from "@/hooks";
 import { OrdersFilter, OrderStatus, PaymentStatus, Order } from "@/types/order";
@@ -214,14 +215,6 @@ export function OrdersList() {
             <span>Примерное время доставки: {demoOrder.estimated_delivery_time}</span>
           </div>
         )}
-
-        {/* Показываем информацию о статусе оплаты */}
-        <div className="flex items-center text-xs mb-3">
-          {getPaymentStatusBadge(order.payment_status as PaymentStatus)}
-          {order.payment_status === 'pending' && (
-            <span className="ml-2 text-amber-600">Ожидается оплата</span>
-          )}
-        </div>
         
         <div className="flex justify-end gap-2 mt-3">
           <OrderStatusActions 
@@ -446,7 +439,6 @@ export function OrdersList() {
                   <TableHead>Дата</TableHead>
                   <TableHead>Сумма</TableHead>
                   <TableHead>Статус</TableHead>
-                  <TableHead className="hidden md:table-cell">Оплата</TableHead>
                   <TableHead className="text-right">Действия</TableHead>
                 </TableRow>
               </TableHeader>
@@ -480,7 +472,6 @@ export function OrdersList() {
                     </TableCell>
                     <TableCell>{order.total_amount.toLocaleString()} ₸</TableCell>
                     <TableCell>{getStatusBadge(order.status as OrderStatus)}</TableCell>
-                    <TableCell className="hidden md:table-cell">{getPaymentStatusBadge(order.payment_status as PaymentStatus)}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-2">
                         <OrderStatusActions 
