@@ -21,8 +21,8 @@ export function OrderDeliveryDetails({ order, editing, formData, setFormData }: 
   if (editing) {
     return (
       <Card className="md:col-span-2">
-        <CardContent className="pt-6">
-          <h3 className="font-medium mb-4">Детали доставки и комментарий</h3>
+        <CardContent className="pt-4 md:pt-6">
+          <h3 className="font-medium mb-3 md:mb-4">Детали доставки и комментарий</h3>
           
           <div className="space-y-4">
             <div className="space-y-2">
@@ -60,33 +60,33 @@ export function OrderDeliveryDetails({ order, editing, formData, setFormData }: 
   
   return (
     <Card className="md:col-span-2">
-      <CardContent className="pt-6">
-        <h3 className="font-medium mb-4">Детали доставки и комментарий</h3>
+      <CardContent className="pt-4 md:pt-6">
+        <h3 className="font-medium mb-3 md:mb-4">Детали доставки и комментарий</h3>
         
-        <div className="space-y-4">
+        <div className="space-y-3">
           {order.delivery_address && (
             <div className="flex items-start">
-              <MapPin className="h-4 w-4 mr-2 mt-0.5 text-gray-500" />
-              <div>{order.delivery_address}</div>
+              <MapPin className="h-4 w-4 mr-2 mt-0.5 text-gray-500 flex-shrink-0" />
+              <div className="text-sm">{order.delivery_address}</div>
             </div>
           )}
           
           {order.delivery_date && (
             <div className="flex items-start">
-              <Calendar className="h-4 w-4 mr-2 mt-0.5 text-gray-500" />
-              <div>{format(parseISO(order.delivery_date), 'dd.MM.yyyy HH:mm')}</div>
+              <Calendar className="h-4 w-4 mr-2 mt-0.5 text-gray-500 flex-shrink-0" />
+              <div className="text-sm">{format(parseISO(order.delivery_date), 'dd.MM.yyyy HH:mm')}</div>
             </div>
           )}
           
           {order.comment && (
             <div className="flex items-start">
-              <MessageSquare className="h-4 w-4 mr-2 mt-0.5 text-gray-500" />
-              <div>{order.comment}</div>
+              <MessageSquare className="h-4 w-4 mr-2 mt-0.5 text-gray-500 flex-shrink-0" />
+              <div className="text-sm">{order.comment}</div>
             </div>
           )}
           
           {!order.delivery_address && !order.delivery_date && !order.comment && (
-            <div className="text-gray-500">Нет дополнительной информации</div>
+            <div className="text-gray-500 text-sm">Нет дополнительной информации</div>
           )}
         </div>
       </CardContent>

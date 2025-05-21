@@ -3,7 +3,7 @@ import { format, parseISO } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, MessageSquare } from "lucide-react";
+import { User, MessageSquare, CalendarClock } from "lucide-react";
 import { Order, OrderStatus, PaymentStatus } from "@/types/order";
 import { useNavigate } from "react-router-dom";
 
@@ -70,22 +70,25 @@ export function OrderBasicInfo({ order, editing, formData, setFormData }: OrderB
   
   return (
     <Card>
-      <CardContent className="pt-6">
-        <h3 className="font-medium mb-4">Основная информация</h3>
+      <CardContent className="pt-4 md:pt-6">
+        <h3 className="font-medium mb-3 md:mb-4">Основная информация</h3>
         
-        <div className="space-y-4">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Дата создания:</span>
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm items-center">
+            <div className="flex items-center">
+              <CalendarClock className="h-4 w-4 mr-2 text-gray-500" />
+              <span className="text-gray-500">Дата:</span>
+            </div>
             <span>{format(parseISO(order.created_at), 'dd.MM.yyyy HH:mm')}</span>
           </div>
           
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-sm items-center">
             <span className="text-gray-500">Сумма заказа:</span>
             <span className="font-semibold">{order.total_amount.toLocaleString()} ₸</span>
           </div>
           
           {order.customer_name && (
-            <div className="flex items-start text-sm">
+            <div className="flex items-start text-sm pt-1">
               <User className="h-4 w-4 mr-2 mt-0.5 text-gray-500" />
               <div>
                 <div>{order.customer_name}</div>
@@ -98,7 +101,7 @@ export function OrderBasicInfo({ order, editing, formData, setFormData }: OrderB
             <Button 
               variant="outline" 
               size="sm"
-              className="w-full"
+              className="w-full mt-2"
               onClick={() => navigate(`/chats?id=${order.chat_id}`)}
             >
               <MessageSquare className="h-4 w-4 mr-2" />

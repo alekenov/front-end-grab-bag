@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useOrdersApi } from "@/hooks/orders/useOrdersApi";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Import all the smaller components
 import { OrderStatusBadge, PaymentStatusBadge } from "./details/OrderStatusBadges";
@@ -22,9 +23,11 @@ export function OrderDetails() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { getOrderById, updateOrder, deleteOrder } = useOrdersApi();
+  const isMobile = useIsMobile();
   
   // Добавляем явный console.log для отладки
   console.log("OrderDetails component rendered with ID:", id);
+  console.log("Is mobile view:", isMobile);
   
   // Используем хук для получения заказа по ID
   // Также подготовим фолбэк для прямого использования мока, если будут проблемы с хуком
@@ -135,50 +138,113 @@ export function OrderDetails() {
   
   console.log("OrderDetails rendering with order data:", order);
   
+  // Мобильная версия заголовка
+  const MobileHeader = () => (
+    <div className="flex flex-col gap-2 mb-4">
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" className="pl-0" onClick={() => navigate('/orders')}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Назад
+        </Button>
+      </div>
+      <h2 className="text-xl font-semibold">
+        Заказ #{id?.substring(0, 8)}
+      </h2>
+      <div className="flex flex-wrap gap-2 my-2">
+        <OrderStatusBadge status={order.status} />
+        <PaymentStatusBadge status={order.payment_status} />
+      </div>
+    </div>
+  );
+
+  // Десктопная версия заголовка
+  const DesktopHeader = () => (
+    <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center space-x-4">
+        <Button variant="ghost" onClick={() => navigate('/orders')}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Назад
+        </Button>
+        <h2 className="text-2xl font-semibold">
+          Заказ #{id?.substring(0, 8)}
+        </h2>
+        <OrderStatusBadge status={order.status} />
+        <PaymentStatusBadge status={order.payment_status} />
+      </div>
+      
+      <OrderActions 
+        editing={editing}
+        onEdit={() => setEditing(true)}
+        onCancel={() => setEditing(false)}
+        onSave={handleUpdateOrder}
+        onDelete={handleDeleteOrder}
+      />
+    </div>
+  );
+  
   return (
-    <div className="container py-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={() => navigate('/orders')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Назад
-          </Button>
-          <h2 className="text-2xl font-semibold">
-            Заказ #{id?.substring(0, 8)}
-          </h2>
-          <OrderStatusBadge status={order.status} />
-          <PaymentStatusBadge status={order.payment_status} />
-        </div>
-        
-        <OrderActions 
-          editing={editing}
-          onEdit={() => setEditing(true)}
-          onCancel={() => setEditing(false)}
-          onSave={handleUpdateOrder}
-          onDelete={handleDeleteOrder}
-        />
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* Основная информация */}
-        <OrderBasicInfo 
-          order={order} 
-          editing={editing} 
-          formData={formData} 
-          setFormData={setFormData} 
-        />
-        
-        {/* Детали доставки */}
-        <OrderDeliveryDetails 
-          order={order} 
-          editing={editing} 
-          formData={formData} 
-          setFormData={setFormData} 
-        />
-      </div>
-      
-      {/* Товары в заказе */}
-      <OrderItemsTable items={order.items || []} totalAmount={order.total_amount} />
+    <div className="container py-3 md:py-6">
+      {isMobile ? (
+        <>
+          <MobileHeader />
+          
+          <div className="mb-3">
+            <OrderActions 
+              editing={editing}
+              onEdit={() => setEditing(true)}
+              onCancel={() => setEditing(false)}
+              onSave={handleUpdateOrder}
+              onDelete={handleDeleteOrder}
+            />
+          </div>
+          
+          <div className="space-y-3">
+            {/* Основная информация */}
+            <OrderBasicInfo 
+              order={order} 
+              editing={editing} 
+              formData={formData} 
+              setFormData={setFormData} 
+            />
+            
+            {/* Детали доставки */}
+            <OrderDeliveryDetails 
+              order={order} 
+              editing={editing} 
+              formData={formData} 
+              setFormData={setFormData} 
+            />
+            
+            {/* Товары в заказе */}
+            <OrderItemsTable items={order.items || []} totalAmount={order.total_amount} />
+          </div>
+        </>
+      ) : (
+        <>
+          <DesktopHeader />
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {/* Основная информация */}
+            <OrderBasicInfo 
+              order={order} 
+              editing={editing} 
+              formData={formData} 
+              setFormData={setFormData} 
+            />
+            
+            {/* Детали доставки */}
+            <OrderDeliveryDetails 
+              order={order} 
+              editing={editing} 
+              formData={formData} 
+              setFormData={setFormData} 
+            />
+          </div>
+          
+          {/* Товары в заказе */}
+          <OrderItemsTable items={order.items || []} totalAmount={order.total_amount} />
+        </>
+      )}
     </div>
   );
 }
