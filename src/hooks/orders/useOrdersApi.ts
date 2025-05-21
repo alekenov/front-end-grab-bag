@@ -17,10 +17,23 @@ export const useOrdersApi = () => {
     return useQuery({
       queryKey: ['orders', filters],
       queryFn: async () => {
-        // Используем моковые данные вместо API
-        console.log("Getting filtered orders with filters:", filters);
-        return getFilteredMockOrders(filters);
-      }
+        try {
+          // Используем моковые данные вместо API
+          console.log("Getting filtered orders with filters:", filters);
+          const filtered = getFilteredMockOrders(filters);
+          console.log("Filtered orders result:", filtered);
+          return filtered;
+        } catch (error) {
+          console.error("Error getting filtered orders:", error);
+          // В случае ошибки вернем пустой массив, чтобы не ломать UI
+          return [];
+        }
+      },
+      // No staleTime/cacheTime, отключаем авто-обновление
+      refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      refetchOnReconnect: false,
+      retry: false,
     });
   };
 
@@ -30,20 +43,32 @@ export const useOrdersApi = () => {
       queryKey: ['order', orderId],
       enabled: !!orderId && orderId !== "",
       queryFn: async () => {
-        if (!orderId || orderId === "") return null;
-        
-        // Используем моковые данные вместо API
-        console.log("Fetching order with ID:", orderId);
-        const order = getMockOrderById(orderId);
-        console.log("Order found:", order);
-        return order;
-      }
+        try {
+          if (!orderId || orderId === "") {
+            console.log("Empty order ID provided to getOrderById");
+            return null;
+          }
+          
+          // Используем моковые данные вместо API
+          console.log("Fetching order with ID:", orderId);
+          const order = getMockOrderById(orderId);
+          console.log("Order found:", order);
+          return order;
+        } catch (error) {
+          console.error("Error fetching order by ID:", error);
+          return null;
+        }
+      },
+      refetchOnWindowFocus: false,
+      retry: 1,
     });
   };
 
   // Create a new order
   const createOrder = useMutation({
     mutationFn: async (orderData: Partial<Order>) => {
+      console.log("Creating new order with data:", orderData);
+      
       // Имитация создания заказа
       const newOrder: Order = {
         id: `ord-${Math.floor(Math.random() * 10000)}`,
@@ -64,10 +89,12 @@ export const useOrdersApi = () => {
       
       // Добавляем новый заказ в моковый массив
       mockOrders.push(newOrder);
+      console.log("New order created:", newOrder);
       
       return newOrder;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Order created successfully:", data);
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast({
         title: "Заказ создан",
@@ -75,6 +102,7 @@ export const useOrdersApi = () => {
       });
     },
     onError: (error: Error) => {
+      console.error("Error creating order:", error);
       toast({
         variant: "destructive",
         title: "Ошибка создания заказа",
@@ -86,9 +114,12 @@ export const useOrdersApi = () => {
   // Update an existing order
   const updateOrder = useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<Order> }) => {
+      console.log("Updating order:", id, "with data:", data);
+      
       // Находим заказ в моковых данных
       const orderIndex = mockOrders.findIndex(order => order.id === id);
       if (orderIndex === -1) {
+        console.error("Order not found for update:", id);
         throw new Error("Заказ не найден");
       }
       
@@ -100,9 +131,12 @@ export const useOrdersApi = () => {
       };
       
       mockOrders[orderIndex] = updatedOrder;
+      console.log("Order updated:", updatedOrder);
+      
       return updatedOrder;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
+      console.log("Order updated successfully:", data);
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       queryClient.invalidateQueries({ queryKey: ['order', variables.id] });
       toast({
@@ -111,6 +145,7 @@ export const useOrdersApi = () => {
       });
     },
     onError: (error: Error) => {
+      console.error("Error updating order:", error);
       toast({
         variant: "destructive",
         title: "Ошибка обновления заказа",
@@ -122,17 +157,23 @@ export const useOrdersApi = () => {
   // Delete an order
   const deleteOrder = useMutation({
     mutationFn: async (orderId: string) => {
+      console.log("Deleting order:", orderId);
+      
       // Находим индекс заказа в моковых данных
       const orderIndex = mockOrders.findIndex(order => order.id === orderId);
       if (orderIndex === -1) {
+        console.error("Order not found for deletion:", orderId);
         throw new Error("Заказ не найден");
       }
       
       // Удаляем заказ из массива
       mockOrders.splice(orderIndex, 1);
+      console.log("Order deleted successfully");
+      
       return { success: true };
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      console.log("Order deleted successfully:", variables);
       queryClient.invalidateQueries({ queryKey: ['orders'] });
       toast({
         title: "Заказ удален",
@@ -140,6 +181,7 @@ export const useOrdersApi = () => {
       });
     },
     onError: (error: Error) => {
+      console.error("Error deleting order:", error);
       toast({
         variant: "destructive",
         title: "Ошибка удаления заказа",
@@ -243,10 +285,23 @@ export const useOrdersApi = () => {
       queryKey: ['orders', 'chat', chatId],
       enabled: !!chatId,
       queryFn: async () => {
-        if (!chatId) return [];
-        // Используем моковые данные вместо API
-        return getMockOrdersByChatId(chatId);
-      }
+        try {
+          if (!chatId) {
+            console.log("Empty chat ID provided to getOrdersByChatId");
+            return [];
+          }
+          
+          // Используем моковые данные вместо API
+          console.log("Getting orders for chat ID:", chatId);
+          const orders = getMockOrdersByChatId(chatId);
+          console.log("Orders for chat found:", orders);
+          return orders;
+        } catch (error) {
+          console.error("Error getting orders by chat ID:", error);
+          return [];
+        }
+      },
+      refetchOnWindowFocus: false,
     });
   };
 

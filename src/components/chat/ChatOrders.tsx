@@ -1,5 +1,5 @@
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useOrdersApi } from "@/hooks/orders/useOrdersApi";
 import { OrderStatus } from "@/types/order";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,12 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
   const navigate = useNavigate();
   const { getOrdersByChatId } = useOrdersApi();
   const { data: orders = [], isLoading } = getOrdersByChatId(chatId || "");
+  
+  // Добавим логирование для отладки
+  useEffect(() => {
+    console.log("ChatOrders rendered with chatId:", chatId);
+    console.log("ChatOrders current orders:", orders);
+  }, [chatId, orders]);
   
   const sortedOrders = useMemo(() => {
     return [...orders].sort(
@@ -40,7 +46,7 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
   };
 
   const goToOrderDetails = (orderId: string) => {
-    console.log("Navigating to order details:", orderId);
+    console.log("ChatOrders: Navigating to order details:", orderId);
     navigate(`/orders/${orderId}`);
   };
 
@@ -68,7 +74,10 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
         <Button 
           variant="outline"
           size="sm" 
-          onClick={() => navigate("/orders/new")}
+          onClick={() => {
+            console.log("Navigate to create new order from chat");
+            navigate("/orders/new");
+          }}
         >
           Создать заказ
         </Button>

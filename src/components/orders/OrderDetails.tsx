@@ -15,6 +15,7 @@ import { OrderActions } from "./details/OrderActions";
 import { OrderDetailsLoadingState } from "./details/LoadingState";
 import { OrderNotFoundState } from "./details/NotFoundState";
 import { OrderStatus, PaymentStatus } from "@/types/order";
+import { getMockOrderById } from "@/data/mockOrders";
 
 export function OrderDetails() {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +26,23 @@ export function OrderDetails() {
   // Добавляем явный console.log для отладки
   console.log("OrderDetails component rendered with ID:", id);
   
+  // Используем хук для получения заказа по ID
+  // Также подготовим фолбэк для прямого использования мока, если будут проблемы с хуком
   const { data: order, isLoading } = getOrderById(id || "");
+  
+  // Запасной вариант: загружаем данные напрямую из моков
+  useEffect(() => {
+    if (!order && id && !isLoading) {
+      console.log("Trying to fetch order directly from mock data:", id);
+      const mockOrder = getMockOrderById(id);
+      if (mockOrder) {
+        console.log("Mock order found:", mockOrder);
+      } else {
+        console.log("Order not found in mock data");
+      }
+    }
+  }, [order, id, isLoading]);
+  
   const [editing, setEditing] = useState(false);
   
   const [formData, setFormData] = useState<{
@@ -67,6 +84,17 @@ export function OrderDetails() {
       {
         onSuccess: () => {
           setEditing(false);
+          toast({
+            title: "Заказ обновлен",
+            description: "Информация о заказе успешно обновлена"
+          });
+        },
+        onError: (error) => {
+          toast({
+            variant: "destructive",
+            title: "Ошибка при обновлении",
+            description: error.message
+          });
         }
       }
     );
@@ -78,19 +106,34 @@ export function OrderDetails() {
     if (window.confirm("Вы уверены, что хотите удалить этот заказ?")) {
       deleteOrder.mutate(id, {
         onSuccess: () => {
+          toast({
+            title: "Заказ удален",
+            description: "Заказ успешно удален"
+          });
           navigate("/orders");
+        },
+        onError: (error) => {
+          toast({
+            variant: "destructive",
+            title: "Ошибка при удалении",
+            description: error.message
+          });
         }
       });
     }
   };
   
   if (isLoading) {
+    console.log("OrderDetails is in loading state");
     return <OrderDetailsLoadingState />;
   }
   
   if (!order) {
+    console.log("OrderDetails: Order not found for id:", id);
     return <OrderNotFoundState id={id} />;
   }
+  
+  console.log("OrderDetails rendering with order data:", order);
   
   return (
     <div className="container py-6">

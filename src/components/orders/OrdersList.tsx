@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useOrdersApi } from "@/hooks/orders/useOrdersApi";
 import { OrdersFilter, OrderStatus, PaymentStatus, Order } from "@/types/order";
 import { Button } from "@/components/ui/button";
@@ -30,9 +30,19 @@ export function OrdersList() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<OrdersFilter>({});
   const { getOrders } = useOrdersApi();
-  const { data: orders = [], isLoading, refetch } = getOrders(filters);
+  const { data: orders = [], isLoading } = getOrders(filters);
+
+  // Эффект для логирования
+  useEffect(() => {
+    console.log("OrdersList mounted with filters:", filters);
+    console.log("OrdersList current orders data:", orders);
+    return () => {
+      console.log("OrdersList unmounted");
+    };
+  }, [filters, orders]);
 
   const handleFilterChange = (key: keyof OrdersFilter, value: any) => {
+    console.log(`Changing filter "${key}" to:`, value);
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -67,17 +77,25 @@ export function OrdersList() {
   };
 
   const viewOrderDetails = (orderId: string) => {
+    console.log("Navigating to order details for ID:", orderId);
     navigate(`/orders/${orderId}`);
   };
   
   // Добавим логирование для отладки
-  console.log("Orders data:", orders);
+  console.log("OrdersList rendering with orders:", orders);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Заказы</h2>
-        <Button onClick={() => navigate("/orders/new")}>Новый заказ</Button>
+        <Button 
+          onClick={() => {
+            console.log("Navigating to create new order form");
+            navigate("/orders/new");
+          }}
+        >
+          Новый заказ
+        </Button>
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow-sm flex flex-wrap gap-3 items-end">
@@ -197,7 +215,14 @@ export function OrdersList() {
             </TableHeader>
             <TableBody>
               {orders.map((order: Order) => (
-                <TableRow key={order.id} className="cursor-pointer hover:bg-gray-50" onClick={() => viewOrderDetails(order.id)}>
+                <TableRow 
+                  key={order.id} 
+                  className="cursor-pointer hover:bg-gray-50" 
+                  onClick={() => {
+                    console.log("Row clicked, navigating to order:", order.id);
+                    viewOrderDetails(order.id);
+                  }}
+                >
                   <TableCell className="font-mono text-xs">{order.id.substring(0, 8)}</TableCell>
                   <TableCell>
                     <div>
@@ -217,6 +242,7 @@ export function OrdersList() {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
+                        console.log("Details button clicked for order:", order.id);
                         viewOrderDetails(order.id);
                       }}
                     >

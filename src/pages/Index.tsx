@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ChatsPage from "./ChatsPage";
 import { MessageSquare, LineChart, HelpCircle, ShoppingBag, Package } from "lucide-react";
@@ -11,24 +11,41 @@ export type TabType = "chats" | "products" | "analytics" | "guide" | "chat" | "d
 export default function Index() {
   const [activeTab, setActiveTab] = useState<TabType>("chats");
   const navigate = useNavigate();
+  
+  // Добавляем логирование для отладки
+  useEffect(() => {
+    console.log("Index rendered with activeTab:", activeTab);
+  }, [activeTab]);
+
+  // Функция для навигации к другим страницам
+  const handleTabChange = (tab: TabType) => {
+    console.log("Tab change requested to:", tab);
+    setActiveTab(tab);
+    
+    switch(tab) {
+      case "products":
+        navigate("/products");
+        break;
+      case "analytics":
+        navigate("/analytics");
+        break;
+      case "guide":
+        navigate("/guide");
+        break;
+      case "orders":
+        navigate("/orders");
+        break;
+      default:
+        // По умолчанию остаёмся на текущей странице/чаты
+        break;
+    }
+  };
 
   // Основное содержание страницы
   const renderContent = () => {
     switch (activeTab) {
       case "chats":
         return <ChatsPage />;
-      case "products":
-        navigate("/products");
-        return null;
-      case "analytics":
-        navigate("/analytics");
-        return null;
-      case "guide":
-        navigate("/guide");
-        return null;
-      case "orders":
-        navigate("/orders");
-        return null;
       default:
         return <ChatsPage />;
     }
@@ -42,47 +59,43 @@ export default function Index() {
           <Button
             variant="ghost"
             className={`px-4 py-2 ${activeTab === "chats" ? "text-blue-600" : "text-gray-600"}`}
-            onClick={() => setActiveTab("chats")}
+            onClick={() => handleTabChange("chats")}
           >
             <MessageSquare className="mr-2 h-4 w-4" />
             Чаты
           </Button>
-          <Link to="/products">
-            <Button
-              variant="ghost"
-              className="px-4 py-2 text-gray-600"
-            >
-              <ShoppingBag className="mr-2 h-4 w-4" />
-              Товары
-            </Button>
-          </Link>
-          <Link to="/orders">
-            <Button
-              variant="ghost"
-              className="px-4 py-2 text-gray-600"
-            >
-              <Package className="mr-2 h-4 w-4" />
-              Заказы
-            </Button>
-          </Link>
-          <Link to="/analytics">
-            <Button
-              variant="ghost"
-              className="px-4 py-2 text-gray-600"
-            >
-              <LineChart className="mr-2 h-4 w-4" />
-              Аналитика
-            </Button>
-          </Link>
-          <Link to="/guide">
-            <Button
-              variant="ghost"
-              className="px-4 py-2 text-gray-600"
-            >
-              <HelpCircle className="mr-2 h-4 w-4" />
-              Руководство
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            className={`px-4 py-2 ${activeTab === "products" ? "text-blue-600" : "text-gray-600"}`}
+            onClick={() => handleTabChange("products")}
+          >
+            <ShoppingBag className="mr-2 h-4 w-4" />
+            Товары
+          </Button>
+          <Button
+            variant="ghost"
+            className={`px-4 py-2 ${activeTab === "orders" ? "text-blue-600" : "text-gray-600"}`}
+            onClick={() => handleTabChange("orders")}
+          >
+            <Package className="mr-2 h-4 w-4" />
+            Заказы
+          </Button>
+          <Button
+            variant="ghost"
+            className={`px-4 py-2 ${activeTab === "analytics" ? "text-blue-600" : "text-gray-600"}`}
+            onClick={() => handleTabChange("analytics")}
+          >
+            <LineChart className="mr-2 h-4 w-4" />
+            Аналитика
+          </Button>
+          <Button
+            variant="ghost"
+            className={`px-4 py-2 ${activeTab === "guide" ? "text-blue-600" : "text-gray-600"}`}
+            onClick={() => handleTabChange("guide")}
+          >
+            <HelpCircle className="mr-2 h-4 w-4" />
+            Руководство
+          </Button>
         </nav>
       </div>
 
@@ -93,55 +106,60 @@ export default function Index() {
 
       {/* Подключение мобильной панели навигации */}
       <div className="md:hidden">
-        <MobileTabBar />
+        <MobileTabBar activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
     </div>
   );
 }
 
 // Мобильная панель навигации внизу экрана
-function MobileTabBar() {
+function MobileTabBar({ activeTab, onTabChange }: { activeTab: TabType, onTabChange: (tab: TabType) => void }) {
   return (
     <div className="fixed bottom-0 left-0 right-0 h-14 bg-white border-t border-gray-200 flex justify-around items-center md:hidden z-10">
-      <Link
-        to="/"
-        className="flex flex-1 flex-col items-center justify-center h-full text-[#1a73e8]"
+      <Button
+        variant="ghost"
+        className={`flex flex-1 flex-col items-center justify-center h-full ${activeTab === "chats" ? "text-[#1a73e8]" : "text-gray-500"}`}
+        onClick={() => onTabChange("chats")}
       >
         <MessageSquare className="h-5 w-5" />
         <span className="text-xs mt-1">Чаты</span>
-      </Link>
+      </Button>
       
-      <Link
-        to="/products"
-        className="flex flex-1 flex-col items-center justify-center h-full text-gray-500"
+      <Button
+        variant="ghost"
+        className={`flex flex-1 flex-col items-center justify-center h-full ${activeTab === "products" ? "text-[#1a73e8]" : "text-gray-500"}`}
+        onClick={() => onTabChange("products")}
       >
         <ShoppingBag className="h-5 w-5" />
         <span className="text-xs mt-1">Товары</span>
-      </Link>
+      </Button>
       
-      <Link
-        to="/orders"
-        className="flex flex-1 flex-col items-center justify-center h-full text-gray-500"
+      <Button
+        variant="ghost"
+        className={`flex flex-1 flex-col items-center justify-center h-full ${activeTab === "orders" ? "text-[#1a73e8]" : "text-gray-500"}`}
+        onClick={() => onTabChange("orders")}
       >
         <Package className="h-5 w-5" />
         <span className="text-xs mt-1">Заказы</span>
-      </Link>
+      </Button>
       
-      <Link
-        to="/analytics"
-        className="flex flex-1 flex-col items-center justify-center h-full text-gray-500"
+      <Button
+        variant="ghost"
+        className={`flex flex-1 flex-col items-center justify-center h-full ${activeTab === "analytics" ? "text-[#1a73e8]" : "text-gray-500"}`}
+        onClick={() => onTabChange("analytics")}
       >
         <LineChart className="h-5 w-5" />
         <span className="text-xs mt-1">Аналитика</span>
-      </Link>
+      </Button>
       
-      <Link
-        to="/guide"
-        className="flex flex-1 flex-col items-center justify-center h-full text-gray-500"
+      <Button
+        variant="ghost"
+        className={`flex flex-1 flex-col items-center justify-center h-full ${activeTab === "guide" ? "text-[#1a73e8]" : "text-gray-500"}`}
+        onClick={() => onTabChange("guide")}
       >
         <HelpCircle className="h-5 w-5" />
         <span className="text-xs mt-1">Помощь</span>
-      </Link>
+      </Button>
     </div>
   );
 }

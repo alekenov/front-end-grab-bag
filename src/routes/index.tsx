@@ -68,18 +68,16 @@ const router = createBrowserRouter([
         path: "products",
         element: <ProductsPage />,
       },
-      // Важно: порядок маршрутов имеет значение!
-      // Сначала идут конкретные пути, потом параметризованные
+      {
+        path: "orders",
+        element: <OrdersPage />,
+      },
       {
         path: "orders/new",
         element: <OrdersPage />,
       },
       {
         path: "orders/:id",
-        element: <OrdersPage />,
-      },
-      {
-        path: "orders",
         element: <OrdersPage />,
       },
       {
