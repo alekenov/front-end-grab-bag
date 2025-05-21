@@ -48,7 +48,15 @@ export function useProductsApi() {
         
         // Используем локальное хранилище как запасной вариант
         const storedProducts = localStorage.getItem("product_list");
-        return storedProducts ? JSON.parse(storedProducts) : [];
+        const parsedProducts = storedProducts ? JSON.parse(storedProducts) : [];
+        
+        // Если в localStorage есть данные, используем их
+        if (parsedProducts.length > 0) {
+          return parsedProducts;
+        }
+        
+        // Если нет данных, возвращаем пустой массив
+        return [];
       }
     }
   });
@@ -56,39 +64,80 @@ export function useProductsApi() {
   // Добавление нового товара
   const addProductMutation = useMutation({
     mutationFn: async (newProduct: NewProduct) => {
-      const productData = {
-        price: newProduct.price,
-        name: newProduct.name || `Букет за ${newProduct.price} ₸`,
-        image_url: newProduct.imageUrl,
-        description: newProduct.description || '',
-        category: newProduct.category || 'Другое',
-        quantity: newProduct.quantity || 1,
-        availability: true,
-      };
-      
-      const result = await apiClient.post('/rest/v1/products', productData, {
-        requiresAuth: true,
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Prefer': 'return=representation'
-        }
-      });
-      
-      if (result && Array.isArray(result) && result[0]) {
-        return {
-          id: result[0].id.toString(),
-          imageUrl: result[0].image_url || '',
-          name: result[0].name || `Букет за ${result[0].price} ₸`,
-          price: result[0].price,
-          category: result[0].category || 'Другое',
-          description: result[0].description || '',
-          availability: result[0].availability !== false,
-          quantity: result[0].quantity || 0,
+      try {
+        // Создаем объект с данными товара
+        const productData = {
+          price: newProduct.price,
+          name: newProduct.name || `Букет за ${newProduct.price} ₸`,
+          image_url: newProduct.imageUrl,
+          description: newProduct.description || '',
+          category: newProduct.category || 'Другое',
+          quantity: newProduct.quantity || 1,
+          availability: true,
+        };
+        
+        // Пробуем получить текущие товары из localStorage
+        const storedProducts = localStorage.getItem("product_list");
+        const currentProducts = storedProducts ? JSON.parse(storedProducts) : [];
+        
+        // Создаем новый товар
+        const newId = currentProducts.length > 0 
+          ? Math.max(...currentProducts.map((p: Product) => parseInt(p.id))) + 1 
+          : 1;
+        
+        const createdProduct: Product = {
+          id: newId.toString(),
+          imageUrl: productData.image_url || '',
+          name: productData.name,
+          price: productData.price,
+          category: productData.category,
+          description: productData.description,
+          availability: productData.availability,
+          quantity: productData.quantity,
           createdAt: new Date().toISOString(),
-        } as Product;
+        };
+        
+        // Пробуем выполнить API-запрос
+        try {
+          const result = await apiClient.post('/rest/v1/products', productData, {
+            requiresAuth: true,
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Prefer': 'return=representation'
+            }
+          });
+          
+          if (result && Array.isArray(result) && result[0]) {
+            return {
+              id: result[0].id.toString(),
+              imageUrl: result[0].image_url || '',
+              name: result[0].name || `Букет за ${result[0].price} ₸`,
+              price: result[0].price,
+              category: result[0].category || 'Другое',
+              description: result[0].description || '',
+              availability: result[0].availability !== false,
+              quantity: result[0].quantity || 0,
+              createdAt: new Date().toISOString(),
+            } as Product;
+          }
+        } catch (apiError) {
+          console.error('API Error adding product:', apiError);
+          // Если API-запрос не удался, записываем в localStorage
+          currentProducts.push(createdProduct);
+          localStorage.setItem("product_list", JSON.stringify(currentProducts));
+          
+          return createdProduct;
+        }
+        
+        // Если API не вернул результат, используем локальное хранение
+        currentProducts.push(createdProduct);
+        localStorage.setItem("product_list", JSON.stringify(currentProducts));
+        
+        return createdProduct;
+      } catch (error) {
+        console.error('Error in addProductMutation:', error);
+        throw new Error('Не удалось добавить товар');
       }
-      
-      throw new Error('Не удалось добавить товар');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -101,7 +150,7 @@ export function useProductsApi() {
       console.error('Error adding product:', error);
       toast({
         title: "Ошибка",
-        description: "Не удалось добавить товар",
+        description: "Не удалось добавить товар: " + (error.message || "неизвестная ошибка"),
         variant: "destructive",
       });
     }
@@ -110,25 +159,46 @@ export function useProductsApi() {
   // Обновление товара
   const updateProductMutation = useMutation({
     mutationFn: async (product: Product) => {
-      const productData = {
-        price: product.price,
-        name: product.name || `Букет за ${product.price} ₸`,
-        image_url: product.imageUrl,
-        description: product.description || '',
-        category: product.category || 'Другое',
-        quantity: product.quantity || 0,
-        availability: product.availability !== false,
-      };
-      
-      await apiClient.patch(`/rest/v1/products?id=eq.${product.id}`, productData, {
-        requiresAuth: true,
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Prefer': 'return=representation'
+      try {
+        const productData = {
+          price: product.price,
+          name: product.name || `Букет за ${product.price} ₸`,
+          image_url: product.imageUrl,
+          description: product.description || '',
+          category: product.category || 'Другое',
+          quantity: product.quantity || 0,
+          availability: product.availability !== false,
+        };
+        
+        // Пробуем обновить через API
+        try {
+          await apiClient.patch(`/rest/v1/products?id=eq.${product.id}`, productData, {
+            requiresAuth: true,
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Prefer': 'return=representation'
+            }
+          });
+        } catch (apiError) {
+          console.error('API Error updating product:', apiError);
+          
+          // Если API-запрос не удался, обновляем в localStorage
+          const storedProducts = localStorage.getItem("product_list");
+          if (storedProducts) {
+            const currentProducts = JSON.parse(storedProducts);
+            const index = currentProducts.findIndex((p: Product) => p.id === product.id);
+            if (index !== -1) {
+              currentProducts[index] = {...product};
+              localStorage.setItem("product_list", JSON.stringify(currentProducts));
+            }
+          }
         }
-      });
-      
-      return product;
+        
+        return product;
+      } catch (error) {
+        console.error('Error in updateProductMutation:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -141,7 +211,7 @@ export function useProductsApi() {
       console.error('Error updating product:', error);
       toast({
         title: "Ошибка",
-        description: "Не удалось обновить товар",
+        description: "Не удалось обновить товар: " + (error.message || "неизвестная ошибка"),
         variant: "destructive",
       });
     }
@@ -150,13 +220,32 @@ export function useProductsApi() {
   // Удаление товара
   const deleteProductMutation = useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.delete(`/rest/v1/products?id=eq.${id}`, {
-        requiresAuth: true,
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+      try {
+        // Пробуем удалить через API
+        try {
+          await apiClient.delete(`/rest/v1/products?id=eq.${id}`, {
+            requiresAuth: true,
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+            }
+          });
+        } catch (apiError) {
+          console.error('API Error deleting product:', apiError);
+          
+          // Если API-запрос не удался, удаляем из localStorage
+          const storedProducts = localStorage.getItem("product_list");
+          if (storedProducts) {
+            const currentProducts = JSON.parse(storedProducts);
+            const updatedProducts = currentProducts.filter((p: Product) => p.id !== id);
+            localStorage.setItem("product_list", JSON.stringify(updatedProducts));
+          }
         }
-      });
-      return id;
+        
+        return id;
+      } catch (error) {
+        console.error('Error in deleteProductMutation:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -168,7 +257,7 @@ export function useProductsApi() {
       console.error('Error deleting product:', error);
       toast({
         title: "Ошибка",
-        description: "Не удалось удалить товар",
+        description: "Не удалось удалить товар: " + (error.message || "неизвестная ошибка"),
         variant: "destructive",
       });
     }

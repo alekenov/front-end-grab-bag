@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddProductDialogProps {
   open: boolean;
@@ -39,6 +40,7 @@ const PREDEFINED_CATEGORIES = [
 ];
 
 export function AddProductDialog({ open, onOpenChange, onAddProduct }: AddProductDialogProps) {
+  const { toast } = useToast();
   const [name, setName] = useState<string>("");
   const [price, setPrice] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -52,9 +54,26 @@ export function AddProductDialog({ open, onOpenChange, onAddProduct }: AddProduc
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Проверим размер файла (не более 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Ошибка",
+        description: "Размер изображения не должен превышать 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       setImageData(event.target?.result as string);
+    };
+    reader.onerror = () => {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось загрузить изображение",
+        variant: "destructive",
+      });
     };
     reader.readAsDataURL(file);
   };
@@ -88,8 +107,15 @@ export function AddProductDialog({ open, onOpenChange, onAddProduct }: AddProduc
     setIsSubmitting(false);
   };
 
-  const handleSubmit = () => {
-    if (!imageData || !price) return;
+  const handleSubmit = async () => {
+    if (!imageData || !price) {
+      toast({
+        title: "Ошибка",
+        description: "Добавьте фото и укажите цену товара",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -101,7 +127,7 @@ export function AddProductDialog({ open, onOpenChange, onAddProduct }: AddProduc
         throw new Error("Введите корректную цену");
       }
       
-      onAddProduct({
+      await onAddProduct({
         imageUrl: imageData,
         price: priceNumber,
         name: name || `Букет за ${priceNumber} ₸`,
@@ -113,8 +139,13 @@ export function AddProductDialog({ open, onOpenChange, onAddProduct }: AddProduc
       // Reset form
       resetForm();
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding product:", error);
+      toast({
+        title: "Ошибка",
+        description: error.message || "Не удалось добавить товар",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
