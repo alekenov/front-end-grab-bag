@@ -95,14 +95,14 @@ export function ProductFilter({
       <div className="space-y-2">
         <Label htmlFor="category-filter">Категория</Label>
         <Select
-          value={categoryFilter || ""}
-          onValueChange={(value) => setCategoryFilter(value || null)}
+          value={categoryFilter || "all"}
+          onValueChange={(value) => setCategoryFilter(value === "all" ? null : value)}
         >
           <SelectTrigger id="category-filter">
             <SelectValue placeholder="Все категории" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Все категории</SelectItem>
+            <SelectItem value="all">Все категории</SelectItem>
             {categories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}

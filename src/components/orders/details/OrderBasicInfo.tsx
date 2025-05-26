@@ -80,14 +80,14 @@ export function OrderBasicInfo({ order, editing, formData, setFormData }: OrderB
               <div className="space-y-2">
                 <label className="text-sm font-medium">Ответственный менеджер</label>
                 <Select
-                  value={formData.responsible_manager || ""}
-                  onValueChange={(value) => setFormData({ ...formData, responsible_manager: value })}
+                  value={formData.responsible_manager || "unassigned"}
+                  onValueChange={(value) => setFormData({ ...formData, responsible_manager: value === "unassigned" ? null : value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Не назначен</SelectItem>
+                    <SelectItem value="unassigned">Не назначен</SelectItem>
                     {managers.map(manager => (
                       <SelectItem key={manager} value={manager}>{manager}</SelectItem>
                     ))}

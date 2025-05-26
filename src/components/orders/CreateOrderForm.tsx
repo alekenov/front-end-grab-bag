@@ -184,14 +184,14 @@ export function CreateOrderForm() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Клиент</label>
                 <Select
-                  value={orderData.customer_id || ""}
-                  onValueChange={(value) => setOrderData({ ...orderData, customer_id: value || null })}
+                  value={orderData.customer_id || "no_client"}
+                  onValueChange={(value) => setOrderData({ ...orderData, customer_id: value === "no_client" ? null : value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Выберите клиента (необязательно)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Без клиента</SelectItem>
+                    <SelectItem value="no_client">Без клиента</SelectItem>
                     {customers.map((customer: any) => (
                       <SelectItem key={customer.id} value={customer.id}>
                         {customer.name || customer.phone}
