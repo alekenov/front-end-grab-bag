@@ -19,22 +19,22 @@ const AppLayoutWrapper = () => {
   let activePage = "chats";
   let title = "Чаты";
   
-  if (path.startsWith("/products")) {
+  if (path === "/products") {
     activePage = "products";
     title = "Товары";
-  } else if (path.startsWith("/analytics")) {
+  } else if (path === "/analytics") {
     activePage = "analytics";
     title = "Аналитика";
-  } else if (path.startsWith("/guide")) {
+  } else if (path === "/guide") {
     activePage = "guide";
     title = "Руководство";
-  } else if (path.startsWith("/api")) {
+  } else if (path === "/api") {
     activePage = "api";
     title = "API";
-  } else if (path.startsWith("/orders")) {
+  } else if (path === "/orders" || path.startsWith("/orders/")) {
     activePage = "orders";
     title = "Заказы";
-  } else if (path === "/" || path.startsWith("/chats")) {
+  } else if (path === "/" || path === "/chats") {
     activePage = "chats";
     title = "Чаты";
   }
