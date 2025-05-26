@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useChatApi } from "@/hooks/chat";
 import { MessageList } from "./MessageList";
@@ -29,6 +28,9 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const normalizedChatId = currentChatId ? 
     (isNaN(Number(currentChatId)) || currentChatId.includes('-') ? currentChatId : `demo-${currentChatId}`) : null;
   
+  // Определяем, является ли чат демо-чатом
+  const isDemoChat = normalizedChatId?.startsWith('demo-');
+  
   // Используем нормализованный ID для получения деталей чата
   const { chatName, setChatName, chatDetails } = useChatDetails(normalizedChatId);
   
@@ -41,8 +43,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     data: messages = [],
     isLoading: messagesLoading,
     error: messagesError,
-    refetch: refetchMessages,
-    isDemoChat
+    refetch: refetchMessages
   } = chatApi.getMessages(normalizedChatId);
   
   // Логируем статус загрузки сообщений
@@ -227,7 +228,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
           <div className="px-4 py-6">
             <MessageList 
               messages={messages} 
-              isLoading={messagesLoading && !isDemoChatView} 
+              isLoading={messagesLoading && !isDemoChat} 
             />
             <div ref={messageEndRef} className="h-8" />
           </div>
@@ -235,7 +236,7 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
         
         <TabsContent value="orders" className="flex-1 overflow-y-auto bg-[#f5f7fb] p-0 m-0">
           <div className="p-4 flex justify-end">
-            {!isDemoChatView && (
+            {!isDemoChat && (
               <CreateOrderFromChat 
                 chatId={normalizedChatId} 
                 products={products}
