@@ -4,7 +4,6 @@ import { useChatApi } from "@/hooks/chat";
 import { ChatHeader } from "./ChatHeader";
 import { MessageInput } from "./MessageInput";
 import { EmptyState } from "./EmptyState";
-import { DemoBanner } from "./DemoBanner";
 import { ChatTabs } from "./tabs/ChatTabs";
 import { Product } from "@/types/product";
 import { useToast } from "@/hooks/use-toast";
@@ -78,10 +77,6 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     
     // Для демо-чата обрабатываем локально
     if (normalizedChatId.startsWith('demo-')) {
-      toast({
-        title: "Демо-режим",
-        description: "В демо-режиме сообщения не сохраняются в базе данных",
-      });
       return;
     }
     
@@ -107,8 +102,6 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <DemoBanner isDemoChat={isDemoChat || false} />
-      
       <ChatHeader 
         onBack={() => setCurrentChatId?.(null)}
         contactName={chatName || "Новый контакт"}
