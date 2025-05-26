@@ -78,6 +78,9 @@ export function ProductFilter({
     });
   };
 
+  // Фильтруем категории от пустых значений
+  const validCategories = categories.filter(category => category && category.trim() !== "");
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm space-y-4 border border-gray-100">
       {/* Поиск */}
@@ -103,7 +106,7 @@ export function ProductFilter({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Все категории</SelectItem>
-            {categories.map((category) => (
+            {validCategories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
               </SelectItem>
