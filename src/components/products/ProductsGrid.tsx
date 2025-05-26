@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { ProductCard } from "./ProductCard";
+import { ProductCard } from "./card/ProductCard";
 import { ProductFilter } from "./ProductFilter";
 import { Product } from "@/types/product";
 import { Button } from "@/components/ui/button";
