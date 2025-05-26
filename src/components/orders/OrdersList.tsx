@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useOrdersApi } from "@/hooks";
 import { OrdersFilter, OrderStatus, PaymentStatus, Order } from "@/types/order";
@@ -222,8 +223,6 @@ export function OrdersList() {
 
   return (
     <div className="space-y-6">
-      <DemoModeIndicator />
-      
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Заказы</h2>
         <Button 
