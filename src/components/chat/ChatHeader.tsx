@@ -59,8 +59,8 @@ export function ChatHeader({
   };
 
   return (
-    <div className={`sticky top-0 z-10 ${isMobile ? 'px-3 py-4' : 'p-4'} bg-white border-b border-[#e1e4e8]`}>
-      <div className="flex items-center gap-3">
+    <div className={`sticky top-0 z-10 w-full ${isMobile ? 'px-3 py-4' : 'p-4'} bg-white border-b border-[#e1e4e8]`}>
+      <div className="flex items-center gap-3 w-full">
         <Button 
           variant="ghost" 
           size="icon" 
