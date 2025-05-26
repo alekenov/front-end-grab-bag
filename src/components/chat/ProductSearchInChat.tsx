@@ -37,21 +37,6 @@ export function ProductSearchInChat({ currentChatId, onSelectProduct }: ProductS
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          className="h-9 px-3 flex items-center"
-          onClick={() => {
-            // Сохраняем ID текущего чата
-            if (currentChatId) {
-              localStorage.setItem("current_chat_id", currentChatId);
-            }
-          }}
-        >
-          <Search className="h-4 w-4 mr-2" />
-          <span>Найти товар</span>
-        </Button>
-      </DialogTrigger>
       <DialogContent className="w-[90vw] max-w-[800px] h-[80vh] max-h-[800px]">
         <DialogHeader>
           <DialogTitle>Поиск товаров</DialogTitle>
