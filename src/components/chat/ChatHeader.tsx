@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { User, Phone, ArrowLeft, Edit, Check, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatHeaderProps {
   phoneNumber?: string;
@@ -26,6 +26,7 @@ export function ChatHeader({
   const [editTags, setEditTags] = useState<string[]>(tags);
   const [newTag, setNewTag] = useState("");
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleSave = () => {
     if (onUpdateContact) {
@@ -58,7 +59,7 @@ export function ChatHeader({
   };
 
   return (
-    <div className="sticky top-0 z-10 p-4 bg-white border-b border-[#e1e4e8]">
+    <div className={`sticky top-0 z-10 ${isMobile ? 'px-3 py-4' : 'p-4'} bg-white border-b border-[#e1e4e8]`}>
       <div className="flex items-center gap-3">
         <Button 
           variant="ghost" 
