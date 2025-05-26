@@ -87,8 +87,8 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
   }
   
   return (
-    <div className={`w-full ${isMobile ? 'px-0' : 'px-4'}`}>
-      <div className={`${isMobile ? 'px-4 py-3' : 'py-4'} space-y-4`}>
+    <div className="w-full">
+      <div className="px-4 pb-4 space-y-4">
         <div className={`flex ${isMobile ? 'flex-col gap-3' : 'justify-between items-center'} mb-4`}>
           <h3 className="font-medium text-lg">Заказы из этого чата</h3>
           <Button 

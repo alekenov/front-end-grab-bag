@@ -50,15 +50,15 @@ export function ChatTabs({
       </TabsContent>
       
       <TabsContent value="orders" className="flex-1 overflow-y-auto bg-[#f5f7fb] p-0 m-0">
-        <div className="p-4 flex justify-end">
-          {!isDemoChat && (
+        {!isDemoChat && (
+          <div className="px-4 pt-4 pb-2 flex justify-end">
             <CreateOrderFromChat 
               chatId={normalizedChatId} 
               products={products}
               onOrderCreated={onOrderCreated}
             />
-          )}
-        </div>
+          </div>
+        )}
         <ChatOrders chatId={normalizedChatId} />
       </TabsContent>
     </Tabs>
