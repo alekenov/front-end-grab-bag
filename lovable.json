@@ -1,0 +1,13 @@
+{
+  "build": {
+    "command": "npm run build",
+    "outputDirectory": "dist"
+  },
+  "spa": true,
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
