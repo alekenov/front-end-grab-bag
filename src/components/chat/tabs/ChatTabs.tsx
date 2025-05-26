@@ -52,16 +52,17 @@ export function ChatTabs({
       </TabsContent>
       
       <TabsContent value="orders" className="flex-1 overflow-y-auto bg-[#f5f7fb] p-0 m-0">
-        {!isDemoChat && (
-          <div className={`${isMobile ? 'px-2 pt-4 pb-2' : 'px-4 pt-4 pb-2'} flex justify-end`}>
+        <ChatOrders 
+          chatId={normalizedChatId} 
+          showCreateButton={!isDemoChat}
+          createOrderButton={
             <CreateOrderFromChat 
               chatId={normalizedChatId} 
               products={products}
               onOrderCreated={onOrderCreated}
             />
-          </div>
-        )}
-        <ChatOrders chatId={normalizedChatId} />
+          }
+        />
       </TabsContent>
     </Tabs>
   );

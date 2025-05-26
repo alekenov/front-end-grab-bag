@@ -11,9 +11,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatOrdersProps {
   chatId: string | null;
+  showCreateButton?: boolean;
+  createOrderButton?: React.ReactNode;
 }
 
-export function ChatOrders({ chatId }: ChatOrdersProps) {
+export function ChatOrders({ chatId, showCreateButton = false, createOrderButton }: ChatOrdersProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { getOrdersByChatId } = useOrdersApi();
@@ -90,17 +92,23 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
       <div className={`${isMobile ? 'px-2 pb-4' : 'px-4 pb-4'} space-y-4`}>
         <div className={`flex ${isMobile ? 'flex-col gap-3' : 'justify-between items-center'} mb-4`}>
           <h3 className="font-medium text-lg">Заказы из этого чата</h3>
-          <Button 
-            variant="outline"
-            size={isMobile ? "default" : "sm"}
-            className={isMobile ? "w-full" : ""}
-            onClick={() => {
-              console.log("Navigate to create new order from chat");
-              navigate("/orders/new");
-            }}
-          >
-            Создать заказ
-          </Button>
+          {showCreateButton && createOrderButton ? (
+            <div className={isMobile ? "w-full" : ""}>
+              {createOrderButton}
+            </div>
+          ) : (
+            <Button 
+              variant="outline"
+              size={isMobile ? "default" : "sm"}
+              className={isMobile ? "w-full" : ""}
+              onClick={() => {
+                console.log("Navigate to create new order from chat");
+                navigate("/orders/new");
+              }}
+            >
+              Создать заказ
+            </Button>
+          )}
         </div>
         
         <div className="space-y-3">
