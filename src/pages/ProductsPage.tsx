@@ -14,6 +14,8 @@ export default function ProductsPage() {
   const location = useLocation();
   const inChatMode = location.state?.fromChat || false;
 
+  console.log("ProductsPage rendered, inChatMode:", inChatMode);
+
   const handleAddProduct = (product: NewProduct) => {
     addProduct(product);
     setDialogOpen(false);
