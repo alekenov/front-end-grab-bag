@@ -1,5 +1,6 @@
 
-import { Button } from "@/components/ui/button";
+import { ActionButtons, ActionButtonConfig } from "@/components/ui/action-buttons";
+import { Edit, Save, X, Trash2 } from "lucide-react";
 
 interface OrderActionsProps {
   editing: boolean;
@@ -10,36 +11,36 @@ interface OrderActionsProps {
 }
 
 export function OrderActions({ editing, onEdit, onCancel, onSave, onDelete }: OrderActionsProps) {
-  if (editing) {
-    return (
-      <div className="space-x-2">
-        <Button 
-          variant="outline" 
-          onClick={onCancel}
-        >
-          Отмена
-        </Button>
-        <Button onClick={onSave}>
-          Сохранить
-        </Button>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="space-x-2">
-      <Button 
-        variant="outline" 
-        onClick={onEdit}
-      >
-        Редактировать
-      </Button>
-      <Button
-        variant="destructive"
-        onClick={onDelete}
-      >
-        Удалить
-      </Button>
-    </div>
-  );
+  const buttons: ActionButtonConfig[] = editing ? [
+    {
+      id: "cancel",
+      label: "Отмена",
+      icon: X,
+      variant: "outline",
+      onClick: onCancel
+    },
+    {
+      id: "save", 
+      label: "Сохранить",
+      icon: Save,
+      onClick: onSave
+    }
+  ] : [
+    {
+      id: "edit",
+      label: "Редактировать", 
+      icon: Edit,
+      variant: "outline",
+      onClick: onEdit
+    },
+    {
+      id: "delete",
+      label: "Удалить",
+      icon: Trash2,
+      variant: "destructive", 
+      onClick: onDelete
+    }
+  ];
+
+  return <ActionButtons buttons={buttons} />;
 }

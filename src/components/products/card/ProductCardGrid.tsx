@@ -1,6 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PriceDisplay } from "@/components/ui/price-display";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { Product } from "@/types/product";
 import { useState } from "react";
@@ -61,7 +62,7 @@ export function ProductCardGrid({
         <CardContent className="p-2">
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-medium">{product.price.toLocaleString()} ₸</div>
+              <PriceDisplay price={product.price} variant="primary" />
               {product.name && <div className="text-xs text-gray-500 truncate">{product.name}</div>}
               {product.category && <div className="text-xs text-gray-400">{product.category}</div>}
             </div>

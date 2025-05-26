@@ -1,6 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PriceDisplay } from "@/components/ui/price-display";
 import { Trash2, Edit, ShoppingBag } from "lucide-react";
 import { Product } from "@/types/product";
 import { useState } from "react";
@@ -44,7 +45,7 @@ export function ProductCardList({
               <div className="flex items-start justify-between">
                 <div>
                   <div className="font-medium">{product.name || `Букет за ${product.price.toLocaleString()} ₸`}</div>
-                  <div className="text-sm font-bold text-[#1a73e8]">{product.price.toLocaleString()} ₸</div>
+                  <PriceDisplay price={product.price} variant="primary" size="sm" />
                   {product.category && <div className="text-xs text-gray-400">{product.category}</div>}
                 </div>
                 
