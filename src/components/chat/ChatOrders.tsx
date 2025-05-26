@@ -87,107 +87,109 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
   }
   
   return (
-    <div className={`space-y-4 ${isMobile ? 'p-3' : 'p-4'}`}>
-      <div className={`flex ${isMobile ? 'flex-col gap-3' : 'justify-between items-center'} mb-4`}>
-        <h3 className="font-medium text-lg">Заказы из этого чата</h3>
-        <Button 
-          variant="outline"
-          size={isMobile ? "default" : "sm"}
-          className={isMobile ? "w-full" : ""}
-          onClick={() => {
-            console.log("Navigate to create new order from chat");
-            navigate("/orders/new");
-          }}
-        >
-          Создать заказ
-        </Button>
-      </div>
-      
-      <div className="space-y-3">
-        {sortedOrders.map(order => (
-          <Card 
-            key={order.id} 
-            className="relative overflow-hidden group cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => goToOrderDetails(order.id)}
+    <div className={`w-full ${isMobile ? 'px-0' : 'px-4'}`}>
+      <div className={`${isMobile ? 'px-4 py-3' : 'py-4'} space-y-4`}>
+        <div className={`flex ${isMobile ? 'flex-col gap-3' : 'justify-between items-center'} mb-4`}>
+          <h3 className="font-medium text-lg">Заказы из этого чата</h3>
+          <Button 
+            variant="outline"
+            size={isMobile ? "default" : "sm"}
+            className={isMobile ? "w-full" : ""}
+            onClick={() => {
+              console.log("Navigate to create new order from chat");
+              navigate("/orders/new");
+            }}
           >
-            <CardContent className={isMobile ? "p-4" : "p-4"}>
-              <div className={`flex ${isMobile ? 'flex-col' : 'justify-between items-start'} mb-3`}>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                      #{order.id.substring(0, 8)}
-                    </span>
-                    {getStatusBadge(order.status as OrderStatus)}
+            Создать заказ
+          </Button>
+        </div>
+        
+        <div className="space-y-3">
+          {sortedOrders.map(order => (
+            <Card 
+              key={order.id} 
+              className="relative overflow-hidden group cursor-pointer hover:shadow-md transition-shadow w-full"
+              onClick={() => goToOrderDetails(order.id)}
+            >
+              <CardContent className="p-4 w-full">
+                <div className={`flex ${isMobile ? 'flex-col' : 'justify-between items-start'} mb-3`}>
+                  <div className="flex-1 w-full">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                        #{order.id.substring(0, 8)}
+                      </span>
+                      {getStatusBadge(order.status as OrderStatus)}
+                    </div>
+                    
+                    {/* Информация о клиенте */}
+                    <p className="font-medium text-gray-900 mb-1">
+                      {order.customer_name || 'Неизвестный клиент'}
+                    </p>
+                    
+                    {/* Дата создания */}
+                    <div className="flex items-center text-xs text-gray-500 mb-2">
+                      <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
+                      <span>{format(new Date(order.created_at), "dd.MM.yyyy HH:mm")}</span>
+                    </div>
+                    
+                    {/* Информация о товарах */}
+                    {order.items && order.items.length > 0 && (
+                      <div className="flex items-center text-xs text-gray-500 mb-2">
+                        <Package className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <span>Товаров: {order.items.length}</span>
+                      </div>
+                    )}
+                    
+                    {/* Адрес доставки */}
+                    {order.delivery_address && (
+                      <div className="flex items-center text-xs text-gray-500 mb-2">
+                        <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <span className="truncate">{formatDeliveryAddress(order.delivery_address)}</span>
+                      </div>
+                    )}
                   </div>
                   
-                  {/* Информация о клиенте */}
-                  <p className="font-medium text-gray-900 mb-1">
-                    {order.customer_name || 'Неизвестный клиент'}
-                  </p>
-                  
-                  {/* Дата создания */}
-                  <div className="flex items-center text-xs text-gray-500 mb-2">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    <span>{format(new Date(order.created_at), "dd.MM.yyyy HH:mm")}</span>
+                  <div className={`${isMobile ? 'flex justify-between items-center mt-3 w-full' : 'text-right'}`}>
+                    <p className="font-semibold text-lg text-gray-900">
+                      {order.total_amount.toLocaleString()} ₸
+                    </p>
+                    
+                    {!isMobile && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-8 mt-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          goToOrderDetails(order.id);
+                        }}
+                      >
+                        Детали
+                        <ArrowRight className="ml-1 h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
-                  
-                  {/* Информация о товарах */}
-                  {order.items && order.items.length > 0 && (
-                    <div className="flex items-center text-xs text-gray-500 mb-2">
-                      <Package className="h-3 w-3 mr-1" />
-                      <span>Товаров: {order.items.length}</span>
-                    </div>
-                  )}
-                  
-                  {/* Адрес доставки */}
-                  {order.delivery_address && (
-                    <div className="flex items-center text-xs text-gray-500 mb-2">
-                      <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                      <span className="truncate">{formatDeliveryAddress(order.delivery_address)}</span>
-                    </div>
-                  )}
                 </div>
                 
-                <div className={`${isMobile ? 'flex justify-between items-center mt-3' : 'text-right'}`}>
-                  <p className="font-semibold text-lg text-gray-900">
-                    {order.total_amount.toLocaleString()} ₸
-                  </p>
-                  
-                  {!isMobile && (
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity h-8 mt-2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        goToOrderDetails(order.id);
-                      }}
-                    >
-                      Детали
-                      <ArrowRight className="ml-1 h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-              
-              {/* Мобильная кнопка детали */}
-              {isMobile && (
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="w-full mt-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToOrderDetails(order.id);
-                  }}
-                >
-                  Подробнее
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+                {/* Мобильная кнопка детали */}
+                {isMobile && (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="w-full mt-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToOrderDetails(order.id);
+                    }}
+                  >
+                    Подробнее
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
