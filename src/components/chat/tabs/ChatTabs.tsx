@@ -6,6 +6,7 @@ import { CreateOrderFromChat } from "../CreateOrderFromChat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Message } from "@/types/chat";
 import { Product } from "@/types/product";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatTabsProps {
   tabs: string;
@@ -29,6 +30,7 @@ export function ChatTabs({
   onOrderCreated,
 }: ChatTabsProps) {
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   return (
     <Tabs value={tabs} onValueChange={setTabs} className="flex-1 flex flex-col overflow-hidden">
@@ -40,7 +42,7 @@ export function ChatTabs({
       </div>
       
       <TabsContent value="messages" className="flex-1 overflow-y-auto bg-[#f5f7fb] p-0 m-0">
-        <div className="px-4 py-6">
+        <div className={`${isMobile ? 'px-2 py-4' : 'px-4 py-6'}`}>
           <MessageList 
             messages={messages} 
             isLoading={messagesLoading && !isDemoChat} 
@@ -51,7 +53,7 @@ export function ChatTabs({
       
       <TabsContent value="orders" className="flex-1 overflow-y-auto bg-[#f5f7fb] p-0 m-0">
         {!isDemoChat && (
-          <div className="px-4 pt-4 pb-2 flex justify-end">
+          <div className={`${isMobile ? 'px-2 pt-4 pb-2' : 'px-4 pt-4 pb-2'} flex justify-end`}>
             <CreateOrderFromChat 
               chatId={normalizedChatId} 
               products={products}
