@@ -13,7 +13,6 @@ import { Outlet, useLocation } from "react-router-dom";
 
 // Wrapper component to provide props to AppLayout
 const AppLayoutWrapper = () => {
-  // Используем хук useLocation для получения текущего пути
   const location = useLocation();
   const path = location.pathname;
   
