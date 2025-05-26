@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,11 +5,11 @@ import { ProductsGrid } from "@/components/products/ProductsGrid";
 import { AddProductDialog } from "@/components/products/AddProductDialog";
 import { Plus } from "lucide-react";
 import { NewProduct, Product } from "@/types/product";
-import { useProductsApi } from "@/hooks/products/useProductsApi";
+import { useProductsUnified } from "@/hooks/products/useProductsUnified";
 
 export default function ProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { isLoading, addProduct, updateProduct, deleteProduct } = useProductsApi();
+  const { isLoading, addProduct, updateProduct, deleteProduct } = useProductsUnified();
   const location = useLocation();
   const inChatMode = location.state?.fromChat || false;
 

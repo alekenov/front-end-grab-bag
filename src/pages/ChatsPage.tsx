@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { ChatListContainer } from "@/components/chat/ChatListContainer";
 import { ChatView } from "@/components/chat/ChatView";
@@ -6,15 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-
-/**
- * Функция для нормализации ID чата
- * Преобразует строковые значения к единому формату
- */
-const normalizeChatId = (chatId: string | null): string | null => {
-  if (!chatId) return null;
-  return chatId;
-};
+import { useChatNavigation } from "@/hooks/chat";
 
 export default function ChatsPage() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
@@ -22,32 +13,16 @@ export default function ChatsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Используем новый хук для навигации
+  const { normalizeChatId, setCurrentChatId: navigateToChat } = useChatNavigation();
 
   // Обработчик изменения ID текущего чата
   const handleSetCurrentChatId = useCallback((id: string | null) => {
-    if (id) {
-      console.log("[ChatsPage] Setting current chat ID:", id);
-      setCurrentChatId(id);
-      
-      // Обновляем URL при выборе чата
-      navigate(`/?chatId=${id}`, { replace: true });
-      
-      // Если у чата есть непрочитанные сообщения, сбрасываем счетчик
-      // Это должно быть реализовано на бэкенде
-    } else {
-      setCurrentChatId(null);
-      navigate('/', { replace: true });
-    }
-    
-    // Принудительно обновляем список чатов при смене чата
-    queryClient.invalidateQueries({ queryKey: ['chats-api'] });
-    queryClient.invalidateQueries({ queryKey: ['chats'] });
-    
-    setTimeout(() => {
-      queryClient.refetchQueries({ queryKey: ['chats-api'] });
-      queryClient.refetchQueries({ queryKey: ['chats'] });
-    }, 300);
-  }, [navigate, queryClient]);
+    const normalizedId = normalizeChatId(id);
+    setCurrentChatId(normalizedId);
+    navigateToChat(normalizedId);
+  }, [normalizeChatId, navigateToChat]);
 
   // Проверяем наличие параметра chatId в URL или сохраненный ID в localStorage
   useEffect(() => {
@@ -56,7 +31,8 @@ export default function ChatsPage() {
     
     if (chatIdFromUrl) {
       console.log("[ChatsPage] Setting current chat ID from URL:", chatIdFromUrl);
-      setCurrentChatId(normalizeChatId(chatIdFromUrl));
+      const normalizedId = normalizeChatId(chatIdFromUrl);
+      setCurrentChatId(normalizedId);
       return;
     }
     
@@ -64,17 +40,18 @@ export default function ChatsPage() {
     const savedChatId = localStorage.getItem("current_chat_id");
     if (savedChatId) {
       console.log("[ChatsPage] Setting current chat ID from localStorage:", savedChatId);
-      setCurrentChatId(normalizeChatId(savedChatId));
+      const normalizedId = normalizeChatId(savedChatId);
+      setCurrentChatId(normalizedId);
       
-      // Обновляем URL
-      navigate(`/?chatId=${savedChatId}`, { replace: true });
+      // Навигируем к чату
+      navigateToChat(normalizedId);
       
       // Очищаем localStorage, так как ID уже использован
       localStorage.removeItem("current_chat_id");
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, normalizeChatId, navigateToChat]);
 
-  // Настройка уведомлений о новых сообщениях
+  // Функция для показа уведомления о новом сообщении
   useEffect(() => {
     // Функция для показа уведомления о новом сообщении
     const showNewMessageNotification = (chatName: string, message: string) => {

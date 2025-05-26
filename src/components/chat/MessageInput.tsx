@@ -1,13 +1,11 @@
-
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Send, Paperclip, Image, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { useNavigate } from "react-router-dom";
 import { Product } from "@/types/product";
-import { useQueryClient } from "@tanstack/react-query";
+import { useProductSelection, useChatNavigation, useChatUpdates } from "@/hooks/chat";
 import { ProductSearchInChat } from "./ProductSearchInChat";
 
 interface MessageInputProps {
@@ -20,47 +18,14 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
   const [message, setMessage] = useState("");
   const { toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   
-  // Check for selected product in localStorage on component mount and changes
-  useEffect(() => {
-    console.log("[MessageInput] Checking for selected product...");
-    const selectedProductJson = localStorage.getItem("selected_product");
-    
-    if (selectedProductJson) {
-      try {
-        const product = JSON.parse(selectedProductJson);
-        console.log("[MessageInput] Found product in localStorage:", product);
-        
-        if (currentChatId) {
-          // Send the product to chat
-          onSendMessage(`${product.name || `Букет за ${product.price.toLocaleString()} ₸`}`, product);
-          
-          // Clear the selected product from localStorage
-          localStorage.removeItem("selected_product");
-          console.log("[MessageInput] Product processed and removed from localStorage");
-          
-          // Force refresh queries
-          queryClient.invalidateQueries({ queryKey: ['chats-api'] });
-          queryClient.invalidateQueries({ queryKey: ['chats'] });
-          queryClient.invalidateQueries({ queryKey: ['messages', currentChatId] });
-          queryClient.invalidateQueries({ queryKey: ['messages-api', currentChatId] });
-          
-          setTimeout(() => {
-            queryClient.refetchQueries({ queryKey: ['chats-api'] });
-            queryClient.refetchQueries({ queryKey: ['chats'] });
-            queryClient.refetchQueries({ queryKey: ['messages', currentChatId] });
-            queryClient.refetchQueries({ queryKey: ['messages-api', currentChatId] });
-          }, 300);
-        } else {
-          console.warn("[MessageInput] Cannot send product: currentChatId is null");
-        }
-      } catch (error) {
-        console.error("[MessageInput] Error parsing selected product:", error);
-      }
-    }
-  }, [currentChatId, onSendMessage, queryClient]);
+  // Используем новые хуки
+  const { navigateToProducts } = useChatNavigation();
+  const { refreshAfterMessage } = useChatUpdates(currentChatId);
+  const { processSelectedProduct } = useProductSelection(currentChatId);
+  
+  // Обработка выбранного товара
+  processSelectedProduct(onSendMessage);
   
   const handleSend = () => {
     if (!message.trim() || disabled) return;
@@ -69,19 +34,9 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
     onSendMessage(message);
     setMessage("");
     
-    // Force refresh queries
+    // Обновляем данные через новый хук
     if (currentChatId) {
-      queryClient.invalidateQueries({ queryKey: ['chats-api'] });
-      queryClient.invalidateQueries({ queryKey: ['chats'] });
-      queryClient.invalidateQueries({ queryKey: ['messages', currentChatId] });
-      queryClient.invalidateQueries({ queryKey: ['messages-api', currentChatId] });
-      
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['chats-api'] });
-        queryClient.refetchQueries({ queryKey: ['chats'] });
-        queryClient.refetchQueries({ queryKey: ['messages', currentChatId] });
-        queryClient.refetchQueries({ queryKey: ['messages-api', currentChatId] });
-      }, 300);
+      refreshAfterMessage();
     }
   };
 
@@ -110,12 +65,7 @@ export function MessageInput({ onSendMessage, disabled = false, currentChatId }:
   };
 
   const handleProductsNavigate = () => {
-    // Сохраняем ID текущего чата перед переходом на страницу товаров
-    if (currentChatId) {
-      localStorage.setItem("current_chat_id", currentChatId);
-      console.log("[MessageInput] Saved current chat ID before navigation:", currentChatId);
-    }
-    navigate('/products', { state: { fromChat: true } });
+    navigateToProducts(currentChatId);
   };
 
   // Если нет выбранного чата, не показываем ввод сообщения

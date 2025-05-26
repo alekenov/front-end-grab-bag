@@ -9,8 +9,8 @@ import { ChatTabs } from "./tabs/ChatTabs";
 import { Product } from "@/types/product";
 import { useToast } from "@/hooks/use-toast";
 import { useChatDetails } from "./hooks/useChatDetails";
-import { useProductsApi } from "@/hooks/products/useProductsApi";
-import { useChatRefresh } from "./hooks/useChatRefresh";
+import { useProductsUnified } from "@/hooks/products/useProductsUnified";
+import { useChatUpdates, useProductSelection } from "@/hooks/chat";
 
 interface ChatViewProps {
   currentChatId: string | null;
@@ -20,7 +20,7 @@ interface ChatViewProps {
 export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const { toast } = useToast();
   const chatApi = useChatApi();
-  const { products = [] } = useProductsApi();
+  const { products = [] } = useProductsUnified();
   
   // Нормализуем ID чата - если это число, считаем его тестовым демо-ID
   const normalizedChatId = currentChatId ? 
@@ -35,8 +35,9 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const [tabs, setTabs] = useState<string>("messages");
   const [tags, setTags] = useState<string[]>([]);
   
-  // Используем хук для обновления данных
-  const { forceRefresh } = useChatRefresh(normalizedChatId, isDemoChat || false);
+  // Используем новые хуки
+  const { forceRefresh, refreshAfterMessage } = useChatUpdates(normalizedChatId, isDemoChat || false);
+  const { processSelectedProduct } = useProductSelection(normalizedChatId);
   
   // Получаем сообщения чата с нормализованным ID
   const {
@@ -67,6 +68,14 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
   const handleSendMessage = async (content: string, product?: Product) => {
     if (!normalizedChatId || !content.trim()) return;
     
+    // Обрабатываем выбранный товар через хук
+    if (product) {
+      processSelectedProduct((message, selectedProduct) => {
+        // Логика отправки сообщения с товаром
+        console.log("[ChatView] Sending message with product:", { message, selectedProduct });
+      });
+    }
+    
     // Для демо-чата обрабатываем локально
     if (normalizedChatId.startsWith('demo-')) {
       toast({
@@ -79,10 +88,8 @@ export function ChatView({ currentChatId, setCurrentChatId }: ChatViewProps) {
     try {
       await chatApi.sendMessage(normalizedChatId, content, product);
       
-      // Обновляем список сообщений
-      setTimeout(() => {
-        forceRefresh();
-      }, 300);
+      // Обновляем данные через новый хук
+      refreshAfterMessage();
     } catch (error) {
       console.error("[ChatView] Error sending message:", error);
       toast({

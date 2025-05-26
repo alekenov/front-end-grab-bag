@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ProductCard } from "./card/ProductCard";
 import { ProductFilter } from "./ProductFilter";
