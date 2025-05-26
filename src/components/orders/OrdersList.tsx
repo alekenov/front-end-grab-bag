@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useOrdersApi } from "@/hooks";
 import { OrdersFilter, OrderStatus, PaymentStatus, Order } from "@/types/order";
@@ -19,15 +18,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format, formatDistanceToNow, parseISO } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Search, FilterX, Clock, MapPin, User, Truck, Package } from "lucide-react";
+import { Calendar, Search, FilterX, MapPin, User, Truck, Package } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { OrderStatusActions } from "./details/OrderStatusActions";
+import { DemoModeIndicator } from "@/components/common/DemoModeIndicator";
 
 // Добавляем массив тестовых заказов для демонстрации
 const DEMO_RESPONSIBLE_MANAGERS = [
@@ -70,21 +70,6 @@ export function OrdersList() {
         return <Badge variant="outline" className="bg-green-100 text-green-800">Выполнен</Badge>;
       case 'cancelled':
         return <Badge variant="outline" className="bg-red-100 text-red-800">Отменен</Badge>;
-      default:
-        return <Badge variant="outline">Неизвестно</Badge>;
-    }
-  };
-
-  const getPaymentStatusBadge = (status: PaymentStatus) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800">Ожидает</Badge>;
-      case 'paid':
-        return <Badge variant="outline" className="bg-green-100 text-green-800">Оплачен</Badge>;
-      case 'cancelled':
-        return <Badge variant="outline" className="bg-red-100 text-red-800">Отменен</Badge>;
-      case 'refunded':
-        return <Badge variant="outline" className="bg-purple-100 text-purple-800">Возврат</Badge>;
       default:
         return <Badge variant="outline">Неизвестно</Badge>;
     }
@@ -234,11 +219,12 @@ export function OrdersList() {
     );
   };
 
-  // Добавим логирование для отладки
   console.log("OrdersList rendering with orders:", orders);
 
   return (
     <div className="space-y-6">
+      <DemoModeIndicator />
+      
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Заказы</h2>
         <Button 
@@ -251,82 +237,15 @@ export function OrdersList() {
         </Button>
       </div>
 
-      <div className="bg-white p-3 rounded-lg shadow-sm">
-        {/* Компактные фильтры для моб. устройств */}
-        {isMobile ? (
-          <div className="flex flex-col space-y-2">
-            <div className="flex gap-2">
-              <Select
-                value={filters.status || ""}
-                onValueChange={(value) => handleFilterChange("status", value || undefined)}
-              >
-                <SelectTrigger className="flex-1 h-9">
-                  <SelectValue placeholder="Статус" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Все статусы</SelectItem>
-                  <SelectItem value="new">Новый</SelectItem>
-                  <SelectItem value="processing">В обработке</SelectItem>
-                  <SelectItem value="completed">Выполнен</SelectItem>
-                  <SelectItem value="cancelled">Отменен</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-9">
-                    <Calendar className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <div className="p-2">
-                    <p className="text-sm mb-1">Дата от</p>
-                    <CalendarComponent
-                      mode="single"
-                      selected={filters.dateFrom}
-                      onSelect={(date) => handleFilterChange("dateFrom", date)}
-                      initialFocus
-                    />
-                    <div className="border-t my-2"></div>
-                    <p className="text-sm mb-1">Дата до</p>
-                    <CalendarComponent
-                      mode="single"
-                      selected={filters.dateTo}
-                      onSelect={(date) => handleFilterChange("dateTo", date)}
-                    />
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Поиск"
-                  value={filters.search || ""}
-                  onChange={(e) => handleFilterChange("search", e.target.value || undefined)}
-                  className="pl-8 h-9"
-                />
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setFilters({})}
-                className="h-9"
-              >
-                <FilterX className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        ) : (
-          /* Компактные фильтры для десктопа */
-          <div className="flex flex-wrap gap-2 items-center">
+      {/* Компактные фильтры для моб. устройств */}
+      {isMobile ? (
+        <div className="flex flex-col space-y-2">
+          <div className="flex gap-2">
             <Select
               value={filters.status || ""}
               onValueChange={(value) => handleFilterChange("status", value || undefined)}
             >
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="flex-1 h-9">
                 <SelectValue placeholder="Статус" />
               </SelectTrigger>
               <SelectContent>
@@ -337,73 +256,138 @@ export function OrdersList() {
                 <SelectItem value="cancelled">Отменен</SelectItem>
               </SelectContent>
             </Select>
-
-            <div className="flex items-center gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-[140px] justify-start">
-                    {filters.dateFrom ? (
-                      format(filters.dateFrom, "dd.MM.yyyy")
-                    ) : (
-                      <span className="text-muted-foreground">От</span>
-                    )}
-                    <Calendar className="ml-auto h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9">
+                  <Calendar className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <div className="p-2">
+                  <p className="text-sm mb-1">Дата от</p>
                   <CalendarComponent
                     mode="single"
                     selected={filters.dateFrom}
                     onSelect={(date) => handleFilterChange("dateFrom", date)}
                     initialFocus
                   />
-                </PopoverContent>
-              </Popover>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-[140px] justify-start">
-                    {filters.dateTo ? (
-                      format(filters.dateTo, "dd.MM.yyyy")
-                    ) : (
-                      <span className="text-muted-foreground">До</span>
-                    )}
-                    <Calendar className="ml-auto h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="border-t my-2"></div>
+                  <p className="text-sm mb-1">Дата до</p>
                   <CalendarComponent
                     mode="single"
                     selected={filters.dateTo}
                     onSelect={(date) => handleFilterChange("dateTo", date)}
-                    initialFocus
                   />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="relative">
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+          
+          <div className="flex gap-2">
+            <div className="relative flex-1">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Поиск"
                 value={filters.search || ""}
                 onChange={(e) => handleFilterChange("search", e.target.value || undefined)}
-                className="w-[200px] pl-8"
+                className="pl-8 h-9"
               />
             </div>
-
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={() => setFilters({})}
-              className="ml-1"
+              className="h-9"
             >
               <FilterX className="h-4 w-4" />
             </Button>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        /* Компактные фильтры для десктопа */
+        <div className="flex flex-wrap gap-2 items-center">
+          <Select
+            value={filters.status || ""}
+            onValueChange={(value) => handleFilterChange("status", value || undefined)}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Статус" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все статусы</SelectItem>
+              <SelectItem value="new">Новый</SelectItem>
+              <SelectItem value="processing">В обработке</SelectItem>
+              <SelectItem value="completed">Выполнен</SelectItem>
+              <SelectItem value="cancelled">Отменен</SelectItem>
+            </SelectContent>
+          </Select>
 
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-[140px] justify-start">
+                  {filters.dateFrom ? (
+                    format(filters.dateFrom, "dd.MM.yyyy")
+                  ) : (
+                    <span className="text-muted-foreground">От</span>
+                  )}
+                  <Calendar className="ml-auto h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={filters.dateFrom}
+                  onSelect={(date) => handleFilterChange("dateFrom", date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-[140px] justify-start">
+                  {filters.dateTo ? (
+                    format(filters.dateTo, "dd.MM.yyyy")
+                  ) : (
+                    <span className="text-muted-foreground">До</span>
+                  )}
+                  <Calendar className="ml-auto h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={filters.dateTo}
+                  onSelect={(date) => handleFilterChange("dateTo", date)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Поиск"
+              value={filters.search || ""}
+              onChange={(e) => handleFilterChange("search", e.target.value || undefined)}
+              className="w-[200px] pl-8"
+            />
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setFilters({})}
+            className="ml-1"
+          >
+            <FilterX className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+      
       {isLoading ? (
         <div className="flex justify-center p-8">
           <p>Загрузка заказов...</p>
