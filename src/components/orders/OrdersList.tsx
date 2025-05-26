@@ -27,7 +27,6 @@ import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { OrderStatusActions } from "./details/OrderStatusActions";
-import { DemoModeIndicator } from "@/components/common/DemoModeIndicator";
 
 // Добавляем массив тестовых заказов для демонстрации
 const DEMO_RESPONSIBLE_MANAGERS = [

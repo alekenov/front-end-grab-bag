@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { ShoppingBag, ArrowRight } from "lucide-react";
+import { ShoppingBag, ArrowRight, MapPin, User, Package, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatOrdersProps {
   chatId: string | null;
@@ -15,6 +16,7 @@ interface ChatOrdersProps {
 
 export function ChatOrders({ chatId }: ChatOrdersProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { getOrdersByChatId } = useOrdersApi();
   const { data: orders = [], isLoading } = getOrdersByChatId(chatId || "");
   
@@ -50,6 +52,11 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
     navigate(`/orders/${orderId}`);
   };
 
+  const formatDeliveryAddress = (address: string | null) => {
+    if (!address) return null;
+    return address.length > 30 ? address.substring(0, 30) + '...' : address;
+  };
+
   if (isLoading) {
     return (
       <div className="text-center p-4">
@@ -60,20 +67,33 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
   
   if (!orders.length) {
     return (
-      <div className="flex flex-col items-center justify-center p-4">
-        <ShoppingBag className="h-10 w-10 text-gray-400 mb-2" />
-        <p className="text-center text-sm text-gray-500">Нет заказов из этого чата</p>
+      <div className="flex flex-col items-center justify-center p-8">
+        <ShoppingBag className="h-12 w-12 text-gray-400 mb-3" />
+        <p className="text-center text-gray-500 font-medium mb-2">Нет заказов из этого чата</p>
+        <p className="text-sm text-gray-400 text-center mb-4">
+          Создайте первый заказ для этого клиента
+        </p>
+        <Button 
+          variant="outline"
+          onClick={() => {
+            console.log("Navigate to create new order from chat");
+            navigate("/orders/new");
+          }}
+        >
+          Создать заказ
+        </Button>
       </div>
     );
   }
   
   return (
-    <div className="space-y-4 p-2">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="font-medium">Заказы из этого чата</h3>
+    <div className={`space-y-4 ${isMobile ? 'p-3' : 'p-4'}`}>
+      <div className={`flex ${isMobile ? 'flex-col gap-3' : 'justify-between items-center'} mb-4`}>
+        <h3 className="font-medium text-lg">Заказы из этого чата</h3>
         <Button 
           variant="outline"
-          size="sm" 
+          size={isMobile ? "default" : "sm"}
+          className={isMobile ? "w-full" : ""}
           onClick={() => {
             console.log("Navigate to create new order from chat");
             navigate("/orders/new");
@@ -83,44 +103,92 @@ export function ChatOrders({ chatId }: ChatOrdersProps) {
         </Button>
       </div>
       
-      {sortedOrders.map(order => (
-        <Card 
-          key={order.id} 
-          className="relative overflow-hidden group cursor-pointer"
-          onClick={() => goToOrderDetails(order.id)}
-        >
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <p className="text-sm font-medium">
-                  Заказ #{order.id.substring(0, 8)}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {format(new Date(order.created_at), "dd.MM.yyyy HH:mm")}
-                </p>
+      <div className="space-y-3">
+        {sortedOrders.map(order => (
+          <Card 
+            key={order.id} 
+            className="relative overflow-hidden group cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => goToOrderDetails(order.id)}
+          >
+            <CardContent className={isMobile ? "p-4" : "p-4"}>
+              <div className={`flex ${isMobile ? 'flex-col' : 'justify-between items-start'} mb-3`}>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                      #{order.id.substring(0, 8)}
+                    </span>
+                    {getStatusBadge(order.status as OrderStatus)}
+                  </div>
+                  
+                  {/* Информация о клиенте */}
+                  <p className="font-medium text-gray-900 mb-1">
+                    {order.customer_name || 'Неизвестный клиент'}
+                  </p>
+                  
+                  {/* Дата создания */}
+                  <div className="flex items-center text-xs text-gray-500 mb-2">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    <span>{format(new Date(order.created_at), "dd.MM.yyyy HH:mm")}</span>
+                  </div>
+                  
+                  {/* Информация о товарах */}
+                  {order.items && order.items.length > 0 && (
+                    <div className="flex items-center text-xs text-gray-500 mb-2">
+                      <Package className="h-3 w-3 mr-1" />
+                      <span>Товаров: {order.items.length}</span>
+                    </div>
+                  )}
+                  
+                  {/* Адрес доставки */}
+                  {order.delivery_address && (
+                    <div className="flex items-center text-xs text-gray-500 mb-2">
+                      <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">{formatDeliveryAddress(order.delivery_address)}</span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className={`${isMobile ? 'flex justify-between items-center mt-3' : 'text-right'}`}>
+                  <p className="font-semibold text-lg text-gray-900">
+                    {order.total_amount.toLocaleString()} ₸
+                  </p>
+                  
+                  {!isMobile && (
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity h-8 mt-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goToOrderDetails(order.id);
+                      }}
+                    >
+                      Детали
+                      <ArrowRight className="ml-1 h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
               </div>
-              {getStatusBadge(order.status as OrderStatus)}
-            </div>
-            
-            <div className="flex justify-between items-center mt-2">
-              <p className="font-semibold">{order.total_amount.toLocaleString()} ₸</p>
               
-              <Button 
-                size="sm" 
-                variant="ghost"
-                className="opacity-0 group-hover:opacity-100 transition-opacity h-8"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToOrderDetails(order.id);
-                }}
-              >
-                Детали
-                <ArrowRight className="ml-2 h-3 w-3" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              {/* Мобильная кнопка детали */}
+              {isMobile && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full mt-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToOrderDetails(order.id);
+                  }}
+                >
+                  Подробнее
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

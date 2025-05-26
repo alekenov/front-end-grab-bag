@@ -42,65 +42,151 @@ export const mockOrderItems: OrderItem[] = [
     quantity: 1,
     price: 9500,
     created_at: new Date().toISOString()
+  },
+  {
+    id: "item-5",
+    order_id: "ord-555",
+    product_id: 5,
+    product_name: "Букет 'Роскошь'",
+    product_image: "https://picsum.photos/id/19/200/200",
+    quantity: 1,
+    price: 15000,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "item-6",
+    order_id: "ord-666",
+    product_id: 6,
+    product_name: "Букет 'Минимализм'",
+    product_image: "https://picsum.photos/id/20/200/200",
+    quantity: 3,
+    price: 5500,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "item-7",
+    order_id: "ord-777",
+    product_id: 7,
+    product_name: "Букет 'Экзотика'",
+    product_image: "https://picsum.photos/id/21/200/200",
+    quantity: 1,
+    price: 18000,
+    created_at: new Date().toISOString()
   }
 ];
 
-// Моковые заказы
+// Моковые заказы - добавим больше заказов для демонстрации
 export const mockOrders: Order[] = [
   {
     id: "ord-123",
     customer_id: "cus-1",
     customer_name: "Анна Иванова",
     customer_phone: "+7 (900) 123-45-67",
-    chat_id: "chat-1",
+    chat_id: "demo-1",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     status: "new",
     total_amount: 23900,
     payment_status: "pending",
-    delivery_address: "г. Москва, ул. Ленина, д. 10, кв. 25",
+    delivery_address: "г. Алматы, ул. Достык, д. 15, кв. 25",
     delivery_date: new Date(Date.now() + 86400000).toISOString(), // завтра
     comment: "Позвонить за час до доставки",
-    items: mockOrderItems.filter(item => item.order_id === "ord-123")
+    items: mockOrderItems.filter(item => item.order_id === "ord-123"),
+    responsible_manager: "Елена Петрова",
+    estimated_delivery_time: "45 минут"
   },
   {
     id: "ord-456",
     customer_id: "cus-2",
     customer_name: "Петр Смирнов",
     customer_phone: "+7 (900) 987-65-43",
-    chat_id: "chat-1",
+    chat_id: "demo-1",
     created_at: new Date(Date.now() - 172800000).toISOString(), // 2 дня назад
     updated_at: new Date(Date.now() - 86400000).toISOString(), // вчера
     status: "processing",
     total_amount: 12000,
     payment_status: "paid",
-    delivery_address: "г. Москва, ул. Гагарина, д. 5, кв. 12",
+    delivery_address: "г. Алматы, ул. Абая, д. 5, кв. 12",
     delivery_date: new Date(Date.now() + 172800000).toISOString(), // через 2 дня
-    comment: null,
-    items: mockOrderItems.filter(item => item.order_id === "ord-456")
+    comment: "Доставить вечером после 18:00",
+    items: mockOrderItems.filter(item => item.order_id === "ord-456"),
+    responsible_manager: "Алексей Смирнов",
+    estimated_delivery_time: "60 минут"
   },
   {
     id: "ord-789",
     customer_id: "cus-3",
     customer_name: "Елена Кузнецова",
     customer_phone: "+7 (900) 555-44-33",
-    chat_id: "chat-2",
+    chat_id: "demo-1",
     created_at: new Date(Date.now() - 432000000).toISOString(), // 5 дней назад
     updated_at: new Date(Date.now() - 259200000).toISOString(), // 3 дня назад
     status: "completed",
     total_amount: 9500,
     payment_status: "paid",
-    delivery_address: "г. Москва, ул. Пушкина, д. 15, кв. 7",
+    delivery_address: "г. Алматы, ул. Сатпаева, д. 15, кв. 7",
     delivery_date: new Date(Date.now() - 259200000).toISOString(), // 3 дня назад
     comment: "Оставить у консьержа",
-    items: mockOrderItems.filter(item => item.order_id === "ord-789")
+    items: mockOrderItems.filter(item => item.order_id === "ord-789"),
+    responsible_manager: "Дмитрий Иванов"
+  },
+  {
+    id: "ord-555",
+    customer_id: "cus-1",
+    customer_name: "Анна Иванова",
+    customer_phone: "+7 (900) 123-45-67",
+    chat_id: "demo-1",
+    created_at: new Date(Date.now() - 604800000).toISOString(), // неделю назад
+    updated_at: new Date(Date.now() - 604800000).toISOString(),
+    status: "completed",
+    total_amount: 15000,
+    payment_status: "paid",
+    delivery_address: "г. Алматы, ул. Достык, д. 15, кв. 25",
+    delivery_date: new Date(Date.now() - 604800000).toISOString(),
+    comment: "Юбилей свадьбы",
+    items: mockOrderItems.filter(item => item.order_id === "ord-555"),
+    responsible_manager: "Анна Козлова"
+  },
+  {
+    id: "ord-666",
+    customer_id: "cus-1",
+    customer_name: "Анна Иванова",
+    customer_phone: "+7 (900) 123-45-67",
+    chat_id: "demo-1",
+    created_at: new Date(Date.now() - 1209600000).toISOString(), // 2 недели назад
+    updated_at: new Date(Date.now() - 1209600000).toISOString(),
+    status: "completed",
+    total_amount: 16500,
+    payment_status: "paid",
+    delivery_address: "г. Алматы, мкр. Самал-2, д. 78, кв. 45",
+    delivery_date: new Date(Date.now() - 1209600000).toISOString(),
+    comment: "День рождения мамы",
+    items: mockOrderItems.filter(item => item.order_id === "ord-666"),
+    responsible_manager: "Сергей Соколов"
+  },
+  {
+    id: "ord-777",
+    customer_id: "cus-1",
+    customer_name: "Анна Иванова",
+    customer_phone: "+7 (900) 123-45-67",
+    chat_id: "demo-1",
+    created_at: new Date(Date.now() - 1814400000).toISOString(), // 3 недели назад
+    updated_at: new Date(Date.now() - 1814400000).toISOString(),
+    status: "completed",
+    total_amount: 18000,
+    payment_status: "paid",
+    delivery_address: "г. Алматы, ул. Розыбакиева, д. 289, офис 10",
+    delivery_date: new Date(Date.now() - 1814400000).toISOString(),
+    comment: "Корпоративный подарок",
+    items: mockOrderItems.filter(item => item.order_id === "ord-777"),
+    responsible_manager: "Елена Петрова"
   },
   {
     id: "ord-101",
     customer_id: "cus-4",
     customer_name: "Дмитрий Морозов",
     customer_phone: "+7 (900) 111-22-33",
-    chat_id: "chat-3",
+    chat_id: "demo-2",
     created_at: new Date(Date.now() - 86400000).toISOString(), // вчера
     updated_at: new Date(Date.now() - 43200000).toISOString(), // 12 часов назад
     status: "cancelled",
