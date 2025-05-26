@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { Product } from "@/types/product";
 import { useState } from "react";
-import { EditProductDialog } from "./EditProductDialog";
-import { useProductActions } from "./hooks/useProductActions";
+import { EditProductDialog } from "../EditProductDialog";
+import { useProductActions } from "../hooks/useProductActions";
 
 interface ProductCardGridProps {
   product: Product;

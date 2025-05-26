@@ -1,5 +1,5 @@
 
-import { ProductCard } from "./ProductCard";
+import { ProductCard } from "./card/ProductCard";
 import { Product } from "@/types/product";
 
 interface ProductListProps {

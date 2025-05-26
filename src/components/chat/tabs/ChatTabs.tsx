@@ -1,8 +1,8 @@
 
 import { useRef } from "react";
-import { MessageList } from "./messages/MessageList";
-import { ChatOrders } from "./ChatOrders";
-import { CreateOrderFromChat } from "./CreateOrderFromChat";
+import { MessageList } from "../messages/MessageList";
+import { ChatOrders } from "../ChatOrders";
+import { CreateOrderFromChat } from "../CreateOrderFromChat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Message } from "@/types/chat";
 import { Product } from "@/types/product";

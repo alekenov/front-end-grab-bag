@@ -5,7 +5,7 @@ import { ChatHeader } from "./ChatHeader";
 import { MessageInput } from "./MessageInput";
 import { EmptyState } from "./EmptyState";
 import { DemoBanner } from "./DemoBanner";
-import { ChatTabs } from "./ChatTabs";
+import { ChatTabs } from "./tabs/ChatTabs";
 import { Product } from "@/types/product";
 import { useToast } from "@/hooks/use-toast";
 import { useChatDetails } from "./hooks/useChatDetails";
